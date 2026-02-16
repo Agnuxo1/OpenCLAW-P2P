@@ -1,5 +1,5 @@
 {
-  "name": "p2pclaw-mcp-server",
+  "name": "p2pclaw-gateway",
   "version": "1.0.0",
   "description": "P2PCLAW MCP Gateway — Connect any AI to the Hive Mind",
   "type": "module",
@@ -15,11 +15,15 @@
   "dependencies": {
     "@lighthouse-web3/sdk": "^0.4.4",
     "@modelcontextprotocol/sdk": "^1.26.0",
+    "axios": "^1.7.9",
     "cors": "^2.8.6",
     "ethers": "^5.7.2",
     "express": "^5.2.1",
     "gun": "^0.2020.1241",
     "jspdf": "^4.1.0",
     "markdown-it": "^14.1.1"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.7"
   }
 }

@@ -7,17 +7,24 @@ import axios from 'axios';
 const md = new MarkdownIt();
 
 export class PaperPublisher {
-  private wallet: ethers.Wallet;
-  private apiKey: string | null = null;
-  private moltApiKey: string;
-
-  constructor(moltApiKey: string) {
+  constructor(moltApiKey) {
     this.moltApiKey = moltApiKey;
-    // Generate a persistent but unique wallet for this server instance
-    // In a real scenario, this would be loaded from an encrypted env var
-    const seed = process.env.STORAGE_SEED || 'p2pclaw-universal-gateway-default-seed-2026';
-    const mnemonic = ethers.utils.id(seed);
-    this.wallet = new ethers.Wallet(mnemonic);
+    this.wallet = null;
+    this.apiKey = null;
+    
+    // Secure Wallet Initialization
+    // Requires STORAGE_SEED to be set in environment variables
+    const seed = process.env.STORAGE_SEED;
+    if (!seed) {
+        console.warn("⚠️ STORAGE_SEED not set. Permanent storage disabled. Use 'node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"' to generate one.");
+    } else {
+        try {
+            const mnemonic = ethers.utils.id(seed);
+            this.wallet = new ethers.Wallet(mnemonic);
+        } catch (err) {
+            console.error("Failed to create wallet from seed:", err);
+        }
+    }
   }
 
   /**
@@ -25,21 +32,68 @@ export class PaperPublisher {
    */
   async init() {
     if (this.apiKey) return;
+    
+    // 0. Environment Override (Prioritized Fallback)
+    if (process.env.LIGHTHOUSE_API_KEY) {
+        this.apiKey = process.env.LIGHTHOUSE_API_KEY;
+        console.log('Lighthouse API Key loaded from environment.');
+        return;
+    }
+
+    if (!this.wallet) {
+        throw new Error("Cannot initialize storage: No wallet available (check STORAGE_SEED)");
+    }
+    
     try {
-      const message = "Allow this application to upload papers to Lighthouse";
-      const signedMessage = await this.wallet.signMessage(message);
-      const response = await lighthouse.getApiKey(this.wallet.address, signedMessage);
-      this.apiKey = response.data.apiKey;
-      console.log('Lighthouse API Key initialized successfully.');
+      // 1. Get the message to sign from Lighthouse (Use checksummed address)
+      const address = this.wallet.address; 
+      const authMessageResponse = await lighthouse.getAuthMessage(address);
+      
+      if (!authMessageResponse || !authMessageResponse.data || !authMessageResponse.data.message) {
+          throw new Error("Failed to retrieve auth message from Lighthouse");
+      }
+      const messageToSign = authMessageResponse.data.message;
+
+      // 2. Sign the message
+      const signedMessage = await this.wallet.signMessage(messageToSign);
+
+      // 3. Get API Key MANUALLY (Bypassing SDK bug)
+      let response;
+      try {
+        const result = await axios.post('https://api.lighthouse.storage/api/auth/create_api_key', {
+            publicKey: address,
+            signedMessage: signedMessage
+        });
+        response = { data: result.data };
+      } catch (innerErr) {
+        throw new Error(`Auth API request failed: ${innerErr.message}`);
+      }
+      
+      if (response && response.data) {
+        if (response.data.apiKey) {
+             this.apiKey = response.data.apiKey;
+        } else if (typeof response.data === 'string') {
+             this.apiKey = response.data;
+        } else {
+             this.apiKey = response.data; 
+        }
+        console.log('Lighthouse API Key initialized successfully via auto-registration.');
+      } else {
+        console.error("Unexpected Lighthouse response structure.");
+        throw new Error("Invalid response from getApiKey");
+      }
+
     } catch (error) {
-      console.error('Failed to initialize Lighthouse API Key:', error);
+      console.error('Failed to initialize Lighthouse API Key:', error.message || error);
+      console.warn("⚠️ TIP: You can set LIGHTHOUSE_API_KEY in env to bypass this error.");
+      throw new Error("Lighthouse Auth Failed");
     }
   }
 
   /**
    * Publish a paper to the decentralized web
    */
-  async publish(title: string, contentMd: string, author: string = 'Hive-Agent') {
+  async publish(title, contentMd, author = 'Hive-Agent') {
     await this.init();
     if (!this.apiKey) throw new Error("Storage provider not initialized");
 
@@ -52,12 +106,31 @@ export class PaperPublisher {
     // 2. Upload HTML
     const htmlUpload = await lighthouse.uploadText(htmlContent, this.apiKey, `${title}.html`);
 
-    // 3. Upload PDF (Note: lighthouse.uploadBuffer might be needed or uploadText for base64)
-    // For simplicity in this v1, we'll focus on MD and HTML which are natively supported by browsers
-    
+    // 3. Upload PDF (As base64 text for now to ensure compatibility with uploadText in Node.js)
+    let pdfUrl = null;
+    let pdfCid = null;
+    try {
+         const pdfArrayBuffer = this.renderPdf(title, contentMd);
+         const pdfBuffer = Buffer.from(pdfArrayBuffer);
+         const pdfBase64 = pdfBuffer.toString('base64');
+         
+         // Upload as a text file but with .pdf extension, clients will need to decode or we accept it as a base64 artifact
+         // Ideally we use `upload` with a Blob, but in Node.js that requires polyfills.
+         // For v1 stability: upload as text, but we'll call it .pdf.txt to be honest, or just .pdf and serve as base64.
+         // Better approach for Lighthouse Node SDK: `uploadText` works for string content.
+         
+         const pdfUpload = await lighthouse.uploadText(pdfBase64, this.apiKey, `${title}.pdf.base64`);
+         pdfCid = pdfUpload.data.Hash;
+         pdfUrl = `https://gateway.lighthouse.storage/ipfs/${pdfCid}`;
+         console.log("PDF Uploaded (Base64):", pdfUrl);
+    } catch (e) {
+        console.warn("PDF Upload failed", e);
+    }
+
     const results = {
       md: `https://gateway.lighthouse.storage/ipfs/${mdUpload.data.Hash}`,
       html: `https://gateway.lighthouse.storage/ipfs/${htmlUpload.data.Hash}`,
+      pdf: pdfUrl,
       cid: htmlUpload.data.Hash
     };
 
@@ -67,7 +140,7 @@ export class PaperPublisher {
     return results;
   }
 
-  private renderHtml(title: string, contentMd: string) {
+  renderHtml(title, contentMd) {
     return `
       <!DOCTYPE html>
       <html>
@@ -91,17 +164,19 @@ export class PaperPublisher {
     `;
   }
 
-  private renderPdf(title: string, contentMd: string) {
+  renderPdf(title, contentMd) {
+    // Basic PDF generation to verify layout logic
     const doc = new jsPDF();
     doc.setFontSize(20);
     doc.text(title, 10, 20);
     doc.setFontSize(12);
-    const lines = doc.splitTextToSize(contentMd, 180);
+    // Split text to fit page width
+    const lines = doc.splitTextToSize(contentMd, 180); 
     doc.text(lines, 10, 40);
     return doc.output('arraybuffer');
   }
 
-  private async mirrorToMolt(title: string, summary: string, author: string) {
+  async mirrorToMolt(title, summary, author) {
     if (!this.moltApiKey) return;
     try {
       await axios.post('https://www.moltbook.com/api/v1/posts', {
@@ -113,7 +188,12 @@ export class PaperPublisher {
       });
       console.log('Successfully mirrored paper to Molt Research.');
     } catch (error) {
-      console.warn('Mirroring to Moltbook failed (non-critical):', error.message);
+       // Non-critical error, do not crash
+      if (error.response) {
+          console.warn(`Mirroring to Moltbook failed: ${error.response.status} ${error.response.statusText}`);
+      } else {
+          console.warn('Mirroring to Moltbook failed (Network/Unknown):', error.message);
+      }
     }
   }
 }
