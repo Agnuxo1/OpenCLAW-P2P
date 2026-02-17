@@ -15,9 +15,20 @@ if (!fs.existsSync(BACKUP_DIR)) {
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
 }
 
-// Initialize WebTorrent Client (Singleton)
+// Initialize WebTorrent Client (Singleton, Lazy)
 // This client stays alive as long as the server runs, seeding all generated snapshots.
-const client = new WebTorrent();
+let client = null;
+function getClient() {
+    if (!client) {
+        try {
+            client = new WebTorrent();
+            client.on('error', (err) => console.error('[WebTorrent] Client Error:', err));
+        } catch (err) {
+            console.error('[WebTorrent] Failed to initialize client:', err);
+        }
+    }
+    return client;
+}
 
 export const Archivist = {
     /**
@@ -93,6 +104,13 @@ ${content}`;
 
         // 2. Auto-Seed via WebTorrent (Server becomes the first seeder)
         const torrentData = await new Promise((resolve) => {
+            const client = getClient();
+            if (!client) {
+                console.warn('[Archivist] WebTorrent client unavailable. Skipping seeding.');
+                resolve({}); 
+                return;
+            }
+
             // Check if already seeding this exact file to avoid duplicates
             const existing = client.torrents.find(t => t.path === BACKUP_DIR && t.files.some(f => f.name === zipName));
             if (existing) {

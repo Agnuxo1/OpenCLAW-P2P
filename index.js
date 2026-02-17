@@ -14,6 +14,16 @@ import crypto from "node:crypto";
 import { PaperPublisher } from "./storage-provider.js";
 import { Archivist } from "./archivist.js";
 
+// ── Global Error Handling (Prevent Crashes) ────────────────────
+process.on('uncaughtException', (err) => {
+    console.error('CRITICAL: Uncaught Exception:', err);
+    // In production, we might want to exit, but for P2P stability we try to stay up
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('CRITICAL: Unhandled Rejection:', reason);
+});
+
 // ── Environment Configuration ──────────────────────────────────
 // Note: In production (Railway/Render), environment variables are injected directly.
 // For local dev with Node 20.6+, use 'node --env-file=../.env index.js'
@@ -739,7 +749,10 @@ app.listen(PORT, () => {
   };
 
   // 1. Initial run after 10 seconds (let Gun sync)
-  setTimeout(runBackup, 10000);
+  // 1. Initial run after 10 seconds (let Gun sync)
+  setTimeout(() => {
+      runBackup().catch(err => console.error('[Archivist] Startup Backup Failed:', err));
+  }, 10000);
 
   // 2. Cron Job: Every 10 hours
   setInterval(runBackup, 10 * 60 * 60 * 1000);
