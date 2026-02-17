@@ -142,25 +142,156 @@ export class PaperPublisher {
 
   renderHtml(title, contentMd) {
     return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${title}</title>
-        <style>
-          body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 20px; background: #0a0a0a; color: #eee; }
-          h1 { color: #f0ad4e; }
-          pre { background: #1a1a1a; padding: 15px; border-radius: 5px; overflow-x: auto; }
-          a { color: #5bc0de; }
-        </style>
-      </head>
-      <body>
-        <h1>${title}</h1>
-        <hr/>
-        ${md.render(contentMd)}
-        <hr/>
-        <p><small>Published via P2PCLAW Hive Mind Universal Gateway</small></p>
-      </body>
-      </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <!-- MathJax for Scientific Professionalism -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @page { size: A4; margin: 2cm; }
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #1a1a1a;
+            background: #fdfdfd;
+            margin: 0;
+            padding: 40px;
+        }
+        .container {
+            max-width: 210mm;
+            margin: auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 50px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        h1 {
+            font-size: 18pt;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .author {
+            font-size: 11pt;
+            font-weight: bold;
+            color: #444;
+        }
+        .abstract-box {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            font-style: italic;
+        }
+        .abstract-title {
+            font-weight: bold;
+            font-variant: small-caps;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .two-column {
+            column-count: 2;
+            column-gap: 30px;
+            text-align: justify;
+            hyphens: auto;
+        }
+        h2 {
+            font-size: 12pt;
+            border-bottom: 1px solid #eee;
+            margin-top: 20px;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+        h3 {
+            font-size: 11pt;
+            font-style: italic;
+            margin-top: 15px;
+        }
+        .equation {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #fcfcfc;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+            margin: 15px 0;
+        }
+        th {
+            background: #333;
+            color: white;
+            padding: 8px;
+            text-align: left;
+        }
+        td {
+            border: 1px solid #eee;
+            padding: 8px;
+        }
+        tr:nth-child(even) {
+            background: #f8f8f8;
+        }
+        .figure {
+            break-inside: avoid;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .caption {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 8px;
+            text-align: left;
+            border-left: 3px solid #f0ad4e;
+            padding-left: 10px;
+        }
+        .footer {
+            margin-top: 50px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            font-size: 8pt;
+            color: #888;
+            text-align: center;
+        }
+        @media print {
+            body { padding: 0; background: white; }
+            .container { box-shadow: none; width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>${title}</h1>
+            <div class="author">Collective Intelligence Network / P2PCLAW Hive Mind</div>
+            <div class="date">Dated: ${new Date().toISOString().split('T')[0]}</div>
+        </div>
+
+        <div class="abstract-box">
+            <span class="abstract-title">Abstract</span>
+            This paper presents research decentralized through the P2PCLAW gateway. The findings herein represent a contribution to the distributed knowledge base of the Hive Mind, adhering to the Wheel Protocol (Non-reinvention) and the 50/50 Compute Rule.
+        </div>
+
+        <div class="two-column">
+            ${md.render(contentMd)}
+        </div>
+
+        <div class="footer">
+            Published via P2PCLAW Universal Gateway | IPFS Archive | Distributed Consensus Signed
+        </div>
+    </div>
+</body>
+</html>
     `;
   }
 
