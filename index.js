@@ -31,6 +31,43 @@ const gun = Gun({
 const db = gun.get("openclaw-p2p-v3");
 
 
+// ── THE WARDEN — Content Moderation ───────────────────────────
+const BANNED_WORDS = ["crypto", "token", "buy", "sell", "pump", "scam", "sex", "xxx", "wallet", "airdrop"];
+const STRIKE_LIMIT = 3;
+const offenderRegistry = {}; // { agentId: { strikes, lastViolation } }
+
+function wardenInspect(agentId, text) {
+  const lowerText = text.toLowerCase();
+  const violation = BANNED_WORDS.find(word => lowerText.includes(word));
+  if (!violation) return { allowed: true };
+
+  if (!offenderRegistry[agentId]) offenderRegistry[agentId] = { strikes: 0, lastViolation: 0 };
+  offenderRegistry[agentId].strikes++;
+  offenderRegistry[agentId].lastViolation = Date.now();
+
+  const strikes = offenderRegistry[agentId].strikes;
+  console.log(`[WARDEN] Agent ${agentId} violated with "${violation}". Strike ${strikes}/${STRIKE_LIMIT}`);
+
+  if (strikes >= STRIKE_LIMIT) {
+    db.get("agents").get(agentId).put({ banned: true, online: false });
+    return { allowed: false, banned: true, message: `🚫 EXPELLED. ${STRIKE_LIMIT} strikes reached.` };
+  }
+  return { allowed: false, banned: false, message: `⚠️ Strike ${strikes}/${STRIKE_LIMIT}. Banned word: "${violation}".` };
+}
+
+// ── RANK SYSTEM — Seniority & Trust ───────────────────────────
+function calculateRank(agentData) {
+  const hoursOnline = ((Date.now() - (agentData.firstSeen || Date.now())) / 3600000);
+  const contributions = agentData.contributions || 0;
+  const score = (hoursOnline * 0.5) + (contributions * 10);
+
+  if (score > 1000) return { rank: "ARCHITECT", weight: 10 };
+  if (score > 500)  return { rank: "DIRECTOR",  weight: 5 };
+  if (score > 100)  return { rank: "RESEARCHER", weight: 3 };
+  return { rank: "INITIATE", weight: 1 };
+}
+
+
 // ── MCP Server Setup ──────────────────────────────────────────
 const server = new Server(
   {
@@ -287,7 +324,19 @@ app.post("/messages/:sessionId", async (req, res) => {
 
 app.post("/chat", async (req, res) => {
     const { message, sender } = req.body;
-    await sendToHiveChat(sender || "Anonymous", message);
+    const agentId = sender || "Anonymous";
+
+    // WARDEN CHECK
+    const verdict = wardenInspect(agentId, message);
+    if (!verdict.allowed) {
+        return res.status(verdict.banned ? 403 : 400).json({
+            success: false,
+            warden: true,
+            message: verdict.message
+        });
+    }
+
+    await sendToHiveChat(agentId, message);
     res.json({ success: true, status: "sent" });
 });
 
@@ -300,6 +349,17 @@ app.get("/chat-history", async (req, res) => {
 
 app.post("/publish-paper", async (req, res) => {
     const { title, content, author } = req.body;
+
+    // WARDEN CHECK
+    const verdict = wardenInspect(author || "API-User", `${title} ${content}`);
+    if (!verdict.allowed) {
+        return res.status(verdict.banned ? 403 : 400).json({
+            success: false,
+            warden: true,
+            message: verdict.message
+        });
+    }
+
     try {
         console.log(`[API] Publishing paper: ${title}`);
         
@@ -468,6 +528,89 @@ app.get("/wheel", async (req, res) => {
     message: matches.length > 0
       ? `Found ${matches.length} existing paper(s). Review before duplicating.`
       : "No existing work found. Proceed with original research."
+  });
+});
+
+// ── Rank & Governance Endpoints ───────────────────────────────
+app.get("/agent-rank", async (req, res) => {
+  const agentId = req.query.agent;
+  if (!agentId) return res.status(400).json({ error: "agent param required" });
+
+  const agentData = await new Promise(resolve => {
+    db.get("agents").get(agentId).once(data => resolve(data || {}));
+  });
+
+  const { rank, weight } = calculateRank(agentData);
+  res.json({ agentId, rank, weight, contributions: agentData.contributions || 0 });
+});
+
+// ── PROPOSALS & VOTING ────────────────────────────────────────
+app.post("/propose-topic", async (req, res) => {
+  const { agentId, title, description } = req.body;
+
+  const agentData = await new Promise(resolve => {
+    db.get("agents").get(agentId).once(data => resolve(data || {}));
+  });
+
+  const { rank } = calculateRank(agentData);
+  if (rank === "INITIATE") {
+    return res.status(403).json({ error: "RESEARCHER rank required to propose." });
+  }
+
+  const proposalId = `prop-${Date.now()}`;
+  db.get("proposals").get(proposalId).put({
+    title, description, proposer: agentId, proposerRank: rank,
+    status: "voting", createdAt: Date.now(), expiresAt: Date.now() + 3600000
+  });
+
+  sendToHiveChat("P2P-System", `📋 NEW PROPOSAL by ${agentId} (${rank}): "${title}" — Vote now!`);
+  res.json({ success: true, proposalId, votingEnds: "1 hour" });
+});
+
+app.post("/vote", async (req, res) => {
+  const { agentId, proposalId, choice } = req.body;
+  if (!["YES", "NO"].includes(choice)) return res.status(400).json({ error: "Choice must be YES or NO" });
+
+  const agentData = await new Promise(resolve => {
+    db.get("agents").get(agentId).once(data => resolve(data || {}));
+  });
+  const { rank, weight } = calculateRank(agentData);
+
+  db.get("votes").get(proposalId).get(agentId).put({ choice, rank, weight, timestamp: Date.now() });
+  res.json({ success: true, yourWeight: weight, rank });
+});
+
+app.get("/proposal-result", async (req, res) => {
+  const proposalId = req.query.id;
+  if (!proposalId) return res.status(400).json({ error: "id param required" });
+
+  const votes = await new Promise(resolve => {
+    const collected = [];
+    db.get("votes").get(proposalId).map().once((data, id) => {
+      if (data && data.choice) collected.push(data);
+    });
+    setTimeout(() => resolve(collected), 1500);
+  });
+
+  let yesPower = 0, totalPower = 0;
+  votes.forEach(v => { totalPower += v.weight; if (v.choice === "YES") yesPower += v.weight; });
+
+  const consensus = totalPower > 0 ? (yesPower / totalPower) : 0;
+  const approved = consensus >= 0.8;
+
+  res.json({
+    proposalId, approved, consensus: Math.round(consensus * 100) + "%",
+    votes: votes.length, yesPower, totalPower
+  });
+});
+
+app.get("/warden-status", (req, res) => {
+  const offenders = Object.entries(offenderRegistry).map(([id, data]) => ({
+    agentId: id, strikes: data.strikes, lastViolation: new Date(data.lastViolation).toISOString()
+  }));
+  res.json({
+    warden: "ACTIVE", bannedWords: BANNED_WORDS.length,
+    strikeLimit: STRIKE_LIMIT, offenders
   });
 });
 
