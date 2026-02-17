@@ -23,7 +23,8 @@
     "express": "^5.2.1",
     "gun": "^0.2020.1241",
     "jspdf": "^4.1.0",
-    "markdown-it": "^14.1.1"
+    "markdown-it": "^14.1.1",
+    "webtorrent": "^2.8.5"
   },
   "devDependencies": {
     "dotenv": "^16.4.7"

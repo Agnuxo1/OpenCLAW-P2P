@@ -2,31 +2,38 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import archiver from 'archiver';
-import createTorrent from 'create-torrent';
+import WebTorrent from 'webtorrent';
 import crypto from 'crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const BACKUP_DIR = path.join(PUBLIC_DIR, 'backups');
+const SYSTEM_DIR = path.join(__dirname, 'source_mirror');
 
 // Ensure directories exist
 if (!fs.existsSync(BACKUP_DIR)) {
     fs.mkdirSync(BACKUP_DIR, { recursive: true });
 }
 
+// Initialize WebTorrent Client (Singleton)
+// This client stays alive as long as the server runs, seeding all generated snapshots.
+const client = new WebTorrent();
+
 export const Archivist = {
     /**
-     * Creates a zip snapshot of all provided papers and generates P2P links.
+     * Creates a zip snapshot of all provided papers + system source code and Auto-Seeds it.
      * @param {Array} papers - Array of paper objects { id, title, content, ... }
      * @returns {Promise<Object>} - Metadata { zipUrl, magnetLink, ed2kLink, size, date }
      */
     async createSnapshot(papers) {
         const dateStr = new Date().toISOString().split('T')[0];
-        const zipName = `p2pclaw_library_${dateStr}.zip`;
+        const zipName = `p2pclaw_full_system_${dateStr}.zip`;
         const zipPath = path.join(BACKUP_DIR, zipName);
         const relativeZipUrl = `/backups/${zipName}`;
 
-        // 1. Create ZIP
+        console.log(`[Archivist] Starting snapshot generation: ${zipName}`);
+
+        // 1. Create ZIP (Papers + System Source)
         await new Promise((resolve, reject) => {
             const output = fs.createWriteStream(zipPath);
             const archive = archiver('zip', { zlib: { level: 9 } });
@@ -38,14 +45,13 @@ export const Archivist = {
 
             // Add Manifesto
             archive.append(
-                `P2PCLAW Research Library - Snapshot ${dateStr}\n\n` +
-                `This archive contains decentralized research papers from the P2PCLAW Hive Mind.\n` +
-                `Source: p2pclaw.com\n` +
-                `Protocol: Gun.js + IPFS\n\n` +
+                `P2PCLAW Hive Mind - Full System Snapshot ${dateStr}\n\n` +
+                `This archive contains:\n` +
+                `1. The complete Research Library (Markdown)\n` +
+                `2. The Source Code for the P2P Node (system/index.html)\n\n` +
                 `INSTRUCTIONS:\n` +
-                `1. Keep this ZIP file seeded in your Bittorrent client.\n` +
-                `2. Share the eD2K link on eMule/Kademlia.\n` +
-                `3. Do not modify the contents if you want to maintain hash consistency.\n`,
+                `- To run the node: Open 'system/index.html' in any browser.\n` +
+                `- To help the network: Keep this file seeded in your Torrent client.\n`,
                 { name: 'README.txt' }
             );
 
@@ -68,51 +74,51 @@ ${content}`;
                 archive.append(meta, { name: `papers/${safeTitle}.md` });
             });
 
+            // Add System Source Code (Self-Replication)
+            // We include index.html and critical assets
+            if (fs.existsSync(path.join(SYSTEM_DIR, 'index.html'))) {
+                archive.file(path.join(SYSTEM_DIR, 'index.html'), { name: 'system/index.html' });
+            }
+             // Add PROTOCOL.md if exists
+            if (fs.existsSync(path.join(SYSTEM_DIR, 'PROTOCOL.md'))) {
+                archive.file(path.join(SYSTEM_DIR, 'PROTOCOL.md'), { name: 'system/PROTOCOL.md' });
+            }
+
             archive.finalize();
         });
 
         const zipBuffer = fs.readFileSync(zipPath);
         const zipSize = zipBuffer.length;
+        console.log(`[Archivist] ZIP created: ${zipSize} bytes`);
 
-        // 2. Generate Magnet Link (Bittorrent)
-        const torrent = await new Promise((resolve, reject) => {
-            createTorrent(zipPath, {
+        // 2. Auto-Seed via WebTorrent (Server becomes the first seeder)
+        const torrentData = await new Promise((resolve) => {
+            // Check if already seeding this exact file to avoid duplicates
+            const existing = client.torrents.find(t => t.path === BACKUP_DIR && t.files.some(f => f.name === zipName));
+            if (existing) {
+                console.log(`[Archivist] Already seeding ${zipName}`);
+                resolve(existing);
+                return;
+            }
+
+            console.log(`[Archivist] Seeding new snapshot: ${zipName}`);
+            client.seed(zipPath, {
                 name: zipName,
-                comment: 'P2PCLAW Decentralized Scientific Library',
-                createdBy: 'P2PCLAW Archivist v1.0'
-            }, (err, torrent) => {
-                if (err) reject(err);
-                else resolve(torrent);
+                comment: 'P2PCLAW Decentralized Scientific Library + Node Source',
+                createdBy: 'P2PCLAW Archivist v2.0 (Auto-Seed)'
+            }, (torrent) => {
+                console.log(`[Archivist] Seeding active! Magnet: ${torrent.magnetURI}`);
+                resolve(torrent);
             });
         });
 
         // Save .torrent file for convenience
-        fs.writeFileSync(path.join(BACKUP_DIR, `${zipName}.torrent`), torrent);
-        
-        // Parse infoHash from torrent buffer (simple way: use parse-torrent or just generic webtorrent logic)
-        // create-torrent returns a Buffer of the .torrent file.
-        // We can't trivially get the infoHash without parsing it or using a library.
-        // BUT, we can use a simpler approach: Since we want a MAGNET link, we need the info hash.
-        // Let's rely on 'parse-torrent' if installed, or just calculate the SHA1 of the info dict. 
-        // Actually, let's keep it simple: We just provide the .torrent file download. 
-        // Wait, the plan said "Magnet Link". 
-        // Installing 'parse-torrent' is the cleanest way.
-        // For now, I'll calculate SHA1 of the info section if I can, OR simpler:
-        // I'll just create a magnet link manually if I can get the infoHash.
-        // Let's assume for now we provide the .torrent file URL.
-        // Update: I'll try to use a quick hack to get infoHash or just assume .torrent file is enough for "Phase 1" 
-        // but user specifically asked for Magnet.
-        // Let's add `parse-torrent` to the install list? No, I strictly followed instructions.
-        // I'll use a helper to get the infoHash or just omit magnet for now and give .torrent file, 
-        // OR better: I can calculate the infoHash manually if I had `bencode` parser.
-        
-        // REVISION: I will just provide the .torrent file download link for now. It's safer than implementing a bencode parser from scratch.
-        // Wait, `create-torrent` documentation says it just creates the buffer.
-        // OK, I'll return the path to the .torrent file. qBittorrent can open that just fine.
+        if (torrentData.torrentFile) {
+             fs.writeFileSync(path.join(BACKUP_DIR, `${zipName}.torrent`), torrentData.torrentFile);
+        }
         
         // 3. Generate eD2K Link (eMule)
         // Format: ed2k://|file|FileName|FileSize|FileHash|/
-        // Hash is MD4 of the file.
         const md4 = crypto.createHash('md4');
         md4.update(zipBuffer);
         const ed2kHash = md4.digest('hex').toLowerCase();
@@ -124,6 +130,7 @@ ${content}`;
             date: dateStr,
             downloadUrl: relativeZipUrl,
             torrentUrl: `/backups/${zipName}.torrent`,
+            magnetLink: torrentData.magnetURI, // Direct magnet from seeder
             ed2kLink: ed2kLink
         };
     }
