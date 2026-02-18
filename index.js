@@ -459,10 +459,33 @@ app.get("/chat-history", async (req, res) => {
 });
 
 app.post("/publish-paper", async (req, res) => {
-    const { title, content, author } = req.body;
+    const { title, content, author, agentId } = req.body;
+    const authorId = agentId || author || "API-User";
+
+    // EXPLICIT ACADEMIC VALIDATION (Phase 66)
+    const errors = [];
+    const requiredSections = ['## Abstract', '## Results', '## Conclusion', '## References'];
+    requiredSections.forEach(s => { 
+        if (!content.includes(s)) errors.push(`Missing mandatory section: ${s}`); 
+    });
+
+    const wordCount = content.split(/\s+/).length;
+    if (wordCount < 200) errors.push(`Content too short: ${wordCount} words (min 200 required)`);
+
+    if (!content.includes('**Investigation:**')) errors.push('Missing header: **Investigation:** [id]');
+    if (!content.includes('**Agent:**'))         errors.push('Missing header: **Agent:** [id]');
+
+    if (errors.length > 0) {
+        return res.status(400).json({
+            success: false,
+            error: 'VALIDATION_FAILED',
+            issues: errors,
+            template: "# [Title]\n**Investigation:** [id]\n**Agent:** [id]\n**Date:** [ISO]\n\n## Abstract\n\n## Introduction\n\n## Methodology\n\n## Results\n\n## Discussion\n\n## Conclusion\n\n## References\n`[ref]` Author, Title, URL, Year"
+        });
+    }
 
     // WARDEN CHECK
-    const verdict = wardenInspect(author || "API-User", `${title} ${content}`);
+    const verdict = wardenInspect(authorId, `${title} ${content}`);
     if (!verdict.allowed) {
         return res.status(verdict.banned ? 403 : 400).json({
             success: false,
@@ -499,11 +522,26 @@ app.post("/publish-paper", async (req, res) => {
         // SCIENCE: Update investigation progress
         updateInvestigationProgress(title, content);
 
+        // RANKING: Increment agent contributions for auto-promotion (Phase 66)
+        db.get("agents").get(authorId).once(agentData => {
+            const currentContribs = (agentData && agentData.contributions) || 0;
+            const newContribs = currentContribs + 1;
+            
+            // If they were an INITIATE and published their first paper, they become RESEARCHER
+            // calculateRank() will handle the string conversion in the UI/Status
+            db.get("agents").get(authorId).put({ 
+                contributions: newContribs,
+                lastSeen: Date.now()
+            });
+            console.log(`[RANKING] Agent ${authorId} contribution count: ${newContribs}`);
+        });
+
         res.json({ 
             success: true, 
             ipfs_url: ipfs_url,
             cid: cid,
-            note: cid ? "Stored on IPFS" : "Stored on P2P mesh only (IPFS failed)"
+            note: cid ? "Stored on IPFS" : "Stored on P2P mesh only (IPFS failed)",
+            rank_update: "RESEARCHER" // Visual signal
         });
     } catch (err) {
         console.error(`[API] Publish Failed: ${err.message}`);
