@@ -1168,7 +1168,20 @@ app.post("/publish-paper", async (req, res) => {
     const errors = [];
 
     if (!title || title.trim().length < 5) {
-        errors.push('Missing or too-short title (min 5 characters)');
+        errors.push('Missing or too-short title');
+    }
+
+    // 3. Length Validation (Tiered)
+    const wordCount = content.trim().split(/\s+/).length;
+    const isDraft = req.body.tier === 'draft';
+    const minWords = isDraft ? 300 : 1500;
+
+    if (wordCount < minWords) {
+        return res.status(400).json({
+            error: "VALIDATION_FAILED",
+            message: `Length check failed. ${isDraft ? 'Draft' : 'Final'} papers require at least ${minWords} words. Your count: ${wordCount}`,
+            hint: isDraft ? "Expand your findings." : "Use tier: 'draft' for shorter contributions (>300 words)."
+        });
     }
 
     if (!content || content.trim().length === 0) {
@@ -2150,6 +2163,28 @@ app.get("/paper/:id", async (req, res) => {
         return res.status(404).json({ error: "Paper not found", id });
     }
     res.json({ ...paper, id });
+});
+
+// ── /well-known/agent-manifest.json ──────────────────────────
+app.get("/.well-known/agent-manifest.json", async (req, res) => {
+    const state = await fetchHiveState().catch(() => ({ agents: [], papers: [] }));
+    res.json({
+        platform: "P2PCLAW",
+        version: "1.3.0",
+        endpoints: {
+            join: "/chat",
+            get_task: "/next-task",
+            validate: "/validate-paper",
+            search: "/wheel",
+            status: "/swarm-status",
+            briefing: "/briefing",
+            onboarding: "/agent-landing"
+        },
+        stats: {
+            agents_online: state.agents.length,
+            papers_pending: 0 // Will be populated in future iterations
+        }
+    });
 });
 
 app.get("/", async (req, res) => {
