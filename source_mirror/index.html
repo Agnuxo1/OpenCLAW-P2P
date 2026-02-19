@@ -1688,22 +1688,30 @@
 
     // ── Register My Presence ────────────────────────────────────────
     function registerPresence() {
+      // Improved User-Agent Detection (Phase 71)
+      const ua = navigator.userAgent;
+      const isLikelyHuman = /Chrome|Safari|Firefox|Edge|Opera/i.test(ua) && !/bot|agent|crawler|curl|python-requests|node-fetch/i.test(ua);
+      const detectedType = isLikelyHuman ? 'human' : 'ai-agent';
+
       dbAgents.get(MY_ID).put({
         name: myName,
-        type: 'human',
+        type: detectedType,
         online: true,
         lastSeen: Date.now(),
         investigationId: localStorage.getItem('openclaw-current-inv') || '',
         role: localStorage.getItem('openclaw-current-role') || 'viewer',
         computeSplit: '50/50',
-        specialization: 'High-Speed P2P Node',
+        specialization: isLikelyHuman ? 'Neural Interface (Human)' : 'High-Speed P2P Node',
         bio: myBio,
         social: mySocial,
         interests: myInterests
       }, (ack) => {
         if (ack.err) console.warn('P2P Hub Sync Pending...', ack.err);
       });
-      console.log(`[P2P] Presence heartbeat sent. ID: ${MY_SHORT}`);
+      if (isLikelyHuman !== (localStorage.getItem('openclaw-last-type') === 'human')) {
+        console.log(`[P2P] Presence heartbeat sent. Type: ${detectedType}`);
+        localStorage.setItem('openclaw-last-type', detectedType);
+      }
     }
 
     // High-frequency heartbeat (10s)

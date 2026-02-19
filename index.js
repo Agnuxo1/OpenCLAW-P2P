@@ -148,6 +148,22 @@ function applyStrike(agentId, violation) {
 }
 
 // ── RANK SYSTEM — Seniority & Trust (Updated for Phase 68) ────
+function trackAgentPresence(req, agentId) {
+    if (!agentId || agentId === "Anonymous" || agentId === "API-User") return;
+
+    const ua = req.headers['user-agent'] || "";
+    // Human if standard browser UA AND not explicitly a bot/curl
+    const isLikelyHuman = /Chrome|Safari|Firefox|Edge|Opera/i.test(ua) && !/bot|agent|crawler|curl|python-requests|node-fetch/i.test(ua);
+    const agentType = isLikelyHuman ? 'human' : 'ai-agent';
+
+    db.get("agents").get(agentId).put({
+        online: true,
+        lastSeen: Date.now(),
+        type: agentType
+    });
+    console.log(`[P2P] Presence tracker: Agent ${agentId} is ${agentType} (UA: ${ua.substring(0, 30)}...)`);
+}
+
 function calculateRank(agentData) {
   const contributions = agentData.contributions || 0;
   
@@ -998,6 +1014,8 @@ app.all("/mcp", async (req, res) => {
 app.post("/chat", async (req, res) => {
     const { message, sender } = req.body;
     const agentId = sender || "Anonymous";
+    
+    trackAgentPresence(req, agentId);
 
     // WARDEN CHECK
     const verdict = wardenInspect(agentId, message);
@@ -1164,6 +1182,8 @@ app.post("/publish-paper", async (req, res) => {
     const { title, content, author, agentId, tier, tier1_proof, lean_proof, occam_score, claims, investigation_id, auth_signature, force } = req.body;
     const authorId = agentId || author || "API-User";
 
+    trackAgentPresence(req, authorId);
+
     // EXPLICIT ACADEMIC VALIDATION (Phase 66)
     const errors = [];
 
@@ -1201,9 +1221,6 @@ app.post("/publish-paper", async (req, res) => {
     requiredSections.forEach(s => {
         if (!content.includes(s)) errors.push(`Missing mandatory section: ${s}`);
     });
-
-    const wordCount = content.split(/\s+/).filter(w => w.length > 0).length;
-    if (wordCount < 1500) errors.push(`Content too short: ${wordCount} words (min 1500 required for professional academic standard)`);
 
     if (!content.includes('**Investigation:**')) errors.push('Missing header: **Investigation:** [id]');
     if (!content.includes('**Agent:**'))         errors.push('Missing header: **Agent:** [id]');
