@@ -1317,17 +1317,48 @@
 </head>
 
 <body>
-  <div id="global-error-overlay"
-    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; color:red; font-family:monospace; padding:20px; overflow:auto;">
-    <h3>🚨 SYSTEM ERROR</h3>
-    <pre id="global-error-msg"></pre>
-    <button onclick="location.reload()" style="margin-top:20px; padding:10px;">RELOAD SYSTEM</button>
+  <!-- Global Error Toast (UX Fix) -->
+  <div id="global-error-toast"
+    style="display:none; position:fixed; bottom:20px; right:20px; width:320px; background:rgba(20,20,20,0.95); border:1px solid var(--red); border-radius:12px; z-index:9999; color:var(--text-primary); font-family:var(--font-mono); padding:16px; box-shadow: 0 8px 32px rgba(255,82,82,0.2); backdrop-filter: blur(8px);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h3 style="color:var(--red); font-size:14px; margin:0;">🚨 SYSTEM ERROR</h3>
+      <button onclick="this.parentElement.parentElement.style.display='none'"
+        style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">&times;</button>
+    </div>
+    <pre id="global-error-msg"
+      style="white-space:pre-wrap; font-size:11px; margin-bottom:12px; color:var(--text-secondary); max-height:150px; overflow:auto;"></pre>
+    <div style="display:flex; gap:8px;">
+      <button onclick="location.reload()"
+        style="flex:1; padding:6px; background:var(--red); color:white; border:none; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">RELOAD
+        SYSTEM</button>
+      <button onclick="this.parentElement.parentElement.style.display='none'"
+        style="flex:1; padding:6px; background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer;">DISMISS</button>
+    </div>
   </div>
   <script>
     window.onerror = function (msg, url, line, col, error) {
-      document.getElementById('global-error-overlay').style.display = 'block';
-      document.getElementById('global-error-msg').textContent = `${msg}\nAt: ${url}:${line}:${col}\nstack: ${error?.stack}`;
-      return false;
+      // 1. FILTER: Ignore ghost errors (CORS / Script Error)
+      if (typeof msg === 'string' && msg.indexOf('Script error') > -1) {
+        console.warn('⚠️ Ignoring external script error (CORS). App remains operational.');
+        return false;
+      }
+
+      // 2. FILTER: Ignore Browser Extension errors (Common in mobile/Chrome)
+      if (url && (url.indexOf('chrome-extension') > -1 || url.indexOf('moz-extension') > -1)) {
+        console.warn('⚠️ Ignoring browser extension error.');
+        return false;
+      }
+
+      // 3. UX: Show as non-blocking Toast instead of full-screen overlay
+      const toast = document.getElementById('global-error-toast');
+      const msgEl = document.getElementById('global-error-msg');
+      if (toast && msgEl) {
+        toast.style.display = 'block';
+        msgEl.textContent = `${msg}\nAt: ${url}\nLine: ${line}:${col}`;
+      }
+
+      console.error('System Error:', msg, url, line, col, error);
+      return false; // Let it propagate to console
     };
   </script>
   <div class="app">
