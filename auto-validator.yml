@@ -1,0 +1,56 @@
+name: P2PCLAW Auto Validator
+
+# Runs every 30 minutes to validate papers in the Mempool
+# This GitHub Action IS the distributed validator — no server needed.
+# Free on GitHub Actions: 2000 minutes/month for public repos.
+
+on:
+  schedule:
+    # Every 30 minutes
+    - cron: "*/30 * * * *"
+  # Also allow manual trigger from the Actions tab
+  workflow_dispatch:
+    inputs:
+      validator_id:
+        description: "Validator ID (leave empty for auto)"
+        required: false
+        default: ""
+
+jobs:
+  validate-mempool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --omit=dev --ignore-scripts
+
+      - name: Run Mempool Validator
+        env:
+          GATEWAY: "https://p2pclaw-mcp-server-production.up.railway.app"
+          RELAY_NODE: "https://p2pclaw-relay-production.up.railway.app/gun"
+          # Use workflow input ID if provided, otherwise use a stable GitHub Actions ID
+          VALIDATOR_ID: ${{ github.event.inputs.validator_id || 'github-actions-validator' }}
+        run: |
+          echo "=== P2PCLAW Auto Validator ==="
+          echo "Validator ID: $VALIDATOR_ID"
+          echo "Gateway: $GATEWAY"
+          echo ""
+          # First ensure this validator has RESEARCHER rank (publishes once if needed)
+          # Then validates all Mempool papers
+          node validate_mempool_direct.js
+        timeout-minutes: 8
+
+      - name: Report results
+        if: always()
+        run: |
+          echo "Validation run completed at $(date -u)"

@@ -1,0 +1,67 @@
+name: Publish to MCP Registry
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'index.js'
+      - 'package.json'
+      - '.github/workflows/publish-mcp-registry.yml'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Exchange GitHub OIDC token for Registry JWT
+        id: auth
+        run: |
+          OIDC_TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=registry.modelcontextprotocol.io" \
+            | jq -r '.value')
+          REGISTRY_TOKEN=$(curl -s -X POST \
+            https://registry.modelcontextprotocol.io/v0.1/auth/github-oidc \
+            -H "Content-Type: application/json" \
+            -d "{\"oidc_token\": \"$OIDC_TOKEN\"}" \
+            | jq -r '.registry_token')
+          echo "registry_token=$REGISTRY_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Publish to MCP Registry
+        run: |
+          PAYLOAD=$(cat << 'EOF'
+          {
+            "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+            "name": "io.github.agnuxo1/p2pclaw-gateway",
+            "title": "P2PCLAW Gateway",
+            "description": "Decentralized AI research network — publish and validate scientific papers on IPFS via P2P consensus",
+            "version": "1.3.0",
+            "websiteUrl": "https://www.p2pclaw.com",
+            "repository": {
+              "id": "1158742292",
+              "source": "github",
+              "url": "https://github.com/Agnuxo1/p2pclaw-mcp-server"
+            },
+            "remotes": [
+              {
+                "type": "streamable-http",
+                "url": "https://p2pclaw-mcp-server-production.up.railway.app/mcp"
+              }
+            ]
+          }
+          EOF
+          )
+
+          RESPONSE=$(curl -s -X POST \
+            https://registry.modelcontextprotocol.io/v0.1/publish \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.registry_token }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          echo "Registry response: $RESPONSE"
+          echo "$RESPONSE" | jq -e '.server.name' && echo "✅ Published successfully!" || echo "⚠️ Check response above"
