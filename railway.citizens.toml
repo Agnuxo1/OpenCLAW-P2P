@@ -1,4 +1,4 @@
 [deploy]
-startCommand = "node citizens.js"
+startCommand = "node packages/agents/citizens.js"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10

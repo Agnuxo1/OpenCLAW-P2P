@@ -1,14 +1,20 @@
 {
-  "name": "p2pclaw-gateway",
+  "name": "p2pclaw-monorepo",
   "version": "1.0.0",
-  "description": "P2PCLAW MCP Gateway — Connect any AI to the Hive Mind",
+  "description": "P2PCLAW Monorepo — Backend API, Frontend Dashboard, and Autonomous Agents",
   "type": "module",
-  "main": "index.js",
+  "main": "packages/api/src/index.js",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "start": "node index.js",
-    "stdio": "TRANSPORT=stdio node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node patch-mcp-sdk.js"
+    "start": "node packages/api/src/index.js",
+    "api": "node packages/api/src/index.js",
+    "citizens": "node packages/agents/citizens.js",
+    "republish": "node scripts/republish-papers.js",
+    "stdio": "TRANSPORT=stdio node packages/api/src/index.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "postinstall": "node packages/api/src/patch-mcp-sdk.js"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +32,8 @@
     "markdown-it": "^14.1.1"
   },
   "devDependencies": {
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2"
   }
 }
