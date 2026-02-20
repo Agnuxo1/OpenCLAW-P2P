@@ -287,13 +287,32 @@ def paper_needs_enhancement(paper: dict) -> bool:
     return not paper.get("enhanced_by") and not paper.get("pdf_url")
 
 def sanitize_text(text: str, max_len: int = 2000) -> str:
-    """Clean text for PDF generation — remove markdown, truncate."""
+    """Clean text for PDF generation — remove markdown, replace non-latin1 chars, truncate."""
     text = re.sub(r"\*\*(.+?)\*\*", r"\1", text)   # bold
     text = re.sub(r"\*(.+?)\*", r"\1", text)         # italic
     text = re.sub(r"#+\s*", "", text)                 # headings
     text = re.sub(r"\[(\d+)\]", r"[\1]", text)       # citations stay
     text = re.sub(r"`(.+?)`", r"\1", text)            # code
     text = " ".join(text.split())                      # normalize whitespace
+    # Replace common Unicode characters not supported by Helvetica (latin-1 range)
+    replacements = {
+        "\u2014": "-",   # em dash
+        "\u2013": "-",   # en dash
+        "\u2018": "'",   # left single quote
+        "\u2019": "'",   # right single quote
+        "\u201c": '"',   # left double quote
+        "\u201d": '"',   # right double quote
+        "\u2026": "...", # ellipsis
+        "\u00b7": "*",   # middle dot
+        "\u2022": "*",   # bullet
+        "\u00d7": "x",   # multiplication sign
+        "\u03b1": "alpha", "\u03b2": "beta", "\u03b3": "gamma",
+        "\u03c0": "pi",  "\u03a3": "Sigma", "\u03bc": "mu",
+    }
+    for char, repl in replacements.items():
+        text = text.replace(char, repl)
+    # Final safety: drop any remaining non-latin1 characters
+    text = text.encode("latin-1", errors="ignore").decode("latin-1")
     return text[:max_len]
 
 # ── Paper Enhancement ─────────────────────────────────────────────────────────
@@ -464,7 +483,7 @@ def generate_pdf(paper: dict) -> bytes:
             self.set_font("Helvetica", "B", 8)
             self.cell(
                 0, 7,
-                "P2PCLAW Scientific Archive — Open Access Repository",
+                "P2PCLAW Scientific Archive - Open Access Repository",
                 fill=True, align="C", new_x="LMARGIN", new_y="NEXT",
             )
             self.set_text_color(*DARK)
