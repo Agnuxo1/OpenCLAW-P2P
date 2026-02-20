@@ -1317,50 +1317,65 @@
 </head>
 
 <body>
-  <!-- Global Error Toast (UX Fix) -->
+  <!-- Global Error Toast (UX Fix for Mobile/Safari) -->
   <div id="global-error-toast"
-    style="display:none; position:fixed; bottom:20px; right:20px; width:320px; background:rgba(20,20,20,0.95); border:1px solid var(--red); border-radius:12px; z-index:9999; color:var(--text-primary); font-family:var(--font-mono); padding:16px; box-shadow: 0 8px 32px rgba(255,82,82,0.2); backdrop-filter: blur(8px);">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-      <h3 style="color:var(--red); font-size:14px; margin:0;">🚨 SYSTEM ERROR</h3>
+    style="display:none; position:fixed; bottom:10px; right:10px; left:10px; max-width:400px; margin-left:auto; background:rgba(30,5,5,0.98); border:1px solid var(--red); border-radius:8px; z-index:99999; color:var(--text-primary); font-family:var(--font-mono); padding:12px; box-shadow: 0 4px 24px rgba(0,0,0,0.5);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <h3 style="color:var(--red); font-size:12px; margin:0; letter-spacing:1px;">⚠️ SYSTEM NOTICE</h3>
       <button onclick="this.parentElement.parentElement.style.display='none'"
-        style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;">&times;</button>
+        style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:18px; padding:0 4px;">&times;</button>
     </div>
     <pre id="global-error-msg"
-      style="white-space:pre-wrap; font-size:11px; margin-bottom:12px; color:var(--text-secondary); max-height:150px; overflow:auto;"></pre>
+      style="white-space:pre-wrap; font-size:10px; margin-bottom:10px; color:var(--text-secondary); max-height:80px; overflow:auto; border-left:2px solid var(--red); padding-left:8px;"></pre>
     <div style="display:flex; gap:8px;">
       <button onclick="location.reload()"
-        style="flex:1; padding:6px; background:var(--red); color:white; border:none; border-radius:4px; font-size:11px; cursor:pointer; font-weight:600;">RELOAD
-        SYSTEM</button>
+        style="flex:1; padding:8px; background:var(--red); color:white; border:none; border-radius:4px; font-size:10px; cursor:pointer; font-weight:600;">RELOAD</button>
       <button onclick="this.parentElement.parentElement.style.display='none'"
-        style="flex:1; padding:6px; background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer;">DISMISS</button>
+        style="flex:1; padding:8px; background:var(--bg-secondary); color:var(--text-primary); border:1px solid var(--border); border-radius:4px; font-size:10px; cursor:pointer;">DISMISS</button>
     </div>
   </div>
   <script>
-    window.onerror = function (msg, url, line, col, error) {
-      // 1. FILTER: Ignore ghost errors (CORS / Script Error)
-      if (typeof msg === 'string' && msg.indexOf('Script error') > -1) {
-        console.warn('⚠️ Ignoring external script error (CORS). App remains operational.');
+    (function () {
+      const ignoredErrors = [
+        'Script error',
+        'chrome-extension',
+        'moz-extension',
+        'SecurityError', // Safari LocalStorage/Private Mode
+        'QuotaExceededError', // Mobile storage limits
+        'Load failed', // Safari network noise
+        'AbortError', // Cancelled fetches
+        'handle_unhandled_rejection'
+      ];
+
+      function shouldIgnore(msg, url) {
+        const str = (msg + ' ' + (url || '')).toLowerCase();
+        return ignoredErrors.some(term => str.indexOf(term.toLowerCase()) > -1);
+      }
+
+      function showError(msg, url, line, col) {
+        if (shouldIgnore(msg, url)) return;
+
+        const toast = document.getElementById('global-error-toast');
+        const msgEl = document.getElementById('global-error-msg');
+        if (toast && msgEl) {
+          toast.style.display = 'block';
+          msgEl.textContent = `${msg}\n@ ${url || 'internal'}:${line || 0}:${col || 0}`;
+        }
+        console.error('Core Error:', msg, url, line, col);
+      }
+
+      window.onerror = function (msg, url, line, col, error) {
+        showError(msg, url, line, col);
         return false;
-      }
+      };
 
-      // 2. FILTER: Ignore Browser Extension errors (Common in mobile/Chrome)
-      if (url && (url.indexOf('chrome-extension') > -1 || url.indexOf('moz-extension') > -1)) {
-        console.warn('⚠️ Ignoring browser extension error.');
-        return false;
-      }
-
-      // 3. UX: Show as non-blocking Toast instead of full-screen overlay
-      const toast = document.getElementById('global-error-toast');
-      const msgEl = document.getElementById('global-error-msg');
-      if (toast && msgEl) {
-        toast.style.display = 'block';
-        msgEl.textContent = `${msg}\nAt: ${url}\nLine: ${line}:${col}`;
-      }
-
-      console.error('System Error:', msg, url, line, col, error);
-      return false; // Let it propagate to console
-    };
+      window.onunhandledrejection = function (event) {
+        const reason = event.reason || {};
+        showError(reason.message || 'Unhandled Promise Rejection', reason.stack, 0, 0);
+      };
+    })();
   </script>
+
   <div class="app">
     <!-- Header -->
     <header class="header">
