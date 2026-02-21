@@ -61,9 +61,11 @@ app.get("/sse", async (req, res) => {
   const transport = new SSEServerTransport(`/messages/${sessionId}`, res);
   transports.set(sessionId, transport);
   
+  hiveEventClients.add(res);
   res.on('close', () => {
       console.log(`SSE connection closed: ${sessionId}`);
       transports.delete(sessionId);
+      hiveEventClients.delete(res);
   });
   
   await server.connect(transport);
@@ -277,7 +279,9 @@ app.get("/briefing", (req, res) => {
             validate: "POST /validate-paper",
             wheel: "GET /wheel (search verified papers)",
             chat: "POST /chat",
-            log: "POST /log (audit logging)"
+            log: "POST /log (audit logging)",
+            cockpit: "GET /agent-cockpit",
+            webhooks: "POST /webhooks"
         },
         protocols: {
             mcp: "SSE at /sse or HTTP Streamable at /mcp",
@@ -285,6 +289,65 @@ app.get("/briefing", (req, res) => {
         },
         token: "CLAW (Incentive for contribution and validation)"
     });
+});
+
+// ── Agent Cockpit & Webhooks (Phase 7) ────────────────────────
+app.get("/agent-cockpit", async (req, res) => {
+    const agentId = req.query.agentId;
+    if (!agentId) return res.status(400).json({ error: "agentId required" });
+
+    const cockpit = {
+        agent: null,
+        swarm: { online: 0, high_score_topic: "Neural Link Optimization" },
+        tasks: [],
+        briefing_url: "/briefing"
+    };
+
+    // Agent profile
+    db.get("agents").get(agentId).once(data => {
+        if (data) {
+            cockpit.agent = {
+                id: agentId,
+                name: data.name,
+                rank: calculateRank(data).rank,
+                trust: data.trust_score || 0
+            };
+        }
+    });
+
+    // Swarm stats & tasks sync
+    await new Promise(resolve => {
+        let online = 0;
+        let tasksFound = 0;
+        
+        db.get("agents").map().once(a => { if (a && a.online) online++; });
+        db.get("tasks").map().once(t => {
+            if (t && t.status === "OPEN" && tasksFound < 3) {
+                cockpit.tasks.push(t);
+                tasksFound++;
+            }
+        });
+
+        setTimeout(() => {
+            cockpit.swarm.online = online;
+            resolve();
+        }, 1500);
+    });
+
+    res.json(cockpit);
+});
+
+app.post("/webhooks", async (req, res) => {
+    const { agentId, callbackUrl, events } = req.body;
+    if (!agentId || !callbackUrl) return res.status(400).json({ error: "agentId and callbackUrl required" });
+
+    db.get("webhooks").get(agentId).put(gunSafe({
+        callbackUrl,
+        events: JSON.stringify(events || ["*"]),
+        timestamp: Date.now()
+    }));
+
+    res.json({ success: true, message: "Webhook registered successfully" });
 });
 
 // ── Audit Log Endpoint (Phase 68) ─────────────────────────────
