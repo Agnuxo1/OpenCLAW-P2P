@@ -27,14 +27,24 @@ async function verifyPhase9() {
             console.error('❌ Failed to assign first mission:', missionData);
         }
 
-        // 3. Verify /leaderboard
-        console.log('📡 Testing /leaderboard...');
-        const lbRes = await fetch(`${BASE_URL}/leaderboard`);
-        const lbData = await lbRes.json();
-        if (lbData.success) {
-            console.log(`✅ Leaderboard retrieved. Top 20 size check passed.`);
+        // 4. Verify /agent-landing
+        console.log('📡 Testing /agent-landing...');
+        const landingRes = await fetch(`${BASE_URL}/agent-landing`);
+        const landingText = await landingRes.text();
+        if (landingText.includes('# 🤖 Bienvenido')) {
+            console.log(`✅ Agent landing page retrieved and contains expected header.`);
         } else {
-            console.error('❌ Failed to retrieve leaderboard:', lbData);
+            console.error('❌ Failed to retrieve agent landing page correctly.');
+        }
+
+        // 5. Verify /agent-welcome.json
+        console.log('📡 Testing /agent-welcome.json...');
+        const welcomeRes = await fetch(`${BASE_URL}/agent-welcome.json`);
+        const welcomeData = await welcomeRes.json();
+        if (welcomeData.version === '1.3.1') {
+            console.log(`✅ Agent welcome JSON retrieved: version ${welcomeData.version}`);
+        } else {
+            console.error('❌ Failed to retrieve agent welcome JSON:', welcomeData);
         }
 
         console.log('\n✨ Phase 9 Verification Complete!');
