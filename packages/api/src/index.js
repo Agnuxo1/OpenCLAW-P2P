@@ -8,10 +8,11 @@ import { db } from "./config/gun.js";
 import { setupServer, startServer, serveMarkdown } from "./config/server.js";
 
 // Service imports
-import { publisher, cachedBackupMeta, updateCachedBackupMeta, publishToIpfsWithRetry } from "./services/storageService.js";
+import { publisher, cachedBackupMeta, updateCachedBackupMeta, publishToIpfsWithRetry, archiveToIPFS } from "./services/storageService.js";
 import { fetchHiveState, updateInvestigationProgress, sendToHiveChat } from "./services/hiveMindService.js";
-import { wardenInspect, offenderRegistry, BANNED_PHRASES, BANNED_WORDS_EXACT, STRIKE_LIMIT, WARDEN_WHITELIST } from "./services/wardenService.js";
 import { trackAgentPresence, calculateRank } from "./services/agentService.js";
+import { tauCoordinator } from "./services/tauCoordinator.js";
+import { verifyWithTier1, reVerifyProofHash } from "./services/tier1Service.js";
 import { server, transports, mcpSessions, createMcpServerInstance, SSEServerTransport, StreamableHTTPServerTransport, CallToolRequestSchema } from "./services/mcpService.js";
 import { broadcastHiveEvent } from "./services/hiveService.js";
 import { VALIDATION_THRESHOLD, promoteToWheel, flagInvalidPaper, normalizeTitle, titleSimilarity, checkDuplicates } from "./services/consensusService.js";
@@ -21,9 +22,18 @@ import { SAMPLE_MISSIONS } from "./services/sandboxService.js";
 import magnetRoutes from "./routes/magnetRoutes.js";
 import { gunSafe } from "./utils/gunUtils.js";
 
-// ── Express Server Initialization ──────────────────────────────
 const app = express();
-setupServer(app); // Sets up cors, json, error handling, static backups, markdown middleware
+
+// ── Global CORS (Phase Master Plan P0) ─────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Mcp-Session-Id');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
+setupServer(app); // Sets up static backups, markdown middleware
 
 // Determine paths for static file serving
 const __filename = fileURLToPath(import.meta.url);
@@ -47,8 +57,71 @@ app.get('/', (req, res) => {
   });
 });
 
-// ── Register Modular Routes ────────────────────────────────────
 app.use("/", magnetRoutes); // Serves llms.txt and ai.txt
+
+// ── Data & Dashboard Endpoints (Master Plan P0) ────────────────
+app.get('/papers.html', async (req, res) => {
+  const papers = [];
+  // Gather verified papers from P2P memory
+  await new Promise(resolve => {
+      db.get("papers").map().once(p => {
+          if (p && p.status === 'VERIFIED') papers.push(p);
+      });
+      setTimeout(resolve, 800); // 800ms read allowance
+  });
+  
+  papers.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
+  
+  const rows = papers.map(p => `
+    <tr>
+      <td>${new Date(p.timestamp || Date.now()).toISOString().split('T')[0]}</td>
+      <td><strong>${p.title}</strong></td>
+      <td>${p.author || 'Unknown'}</td>
+      <td><span class="badge ${p.tier === 'TIER1_VERIFIED' ? 'verified' : 'unverified'}">${p.tier || 'VERIFIED'}</span></td>
+      <td>${p.ipfs_cid ? `<a href="https://ipfs.io/ipfs/${p.ipfs_cid}">IPFS</a>` : '—'}</td>
+    </tr>
+  `).join('');
+  
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <title>P2PCLAW Research Library</title>
+  <style>
+    body { font-family: monospace; background: #0a0a0a; color: #00ff88; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+    .verified { color: #00ff88; } .unverified { color: #888; }
+    a { color: #00ff88; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>📚 P2PCLAW Research Library — ${papers.length} peer-reviewed papers</h1>
+  <table><thead><tr><th>Date</th><th>Title</th><th>Author</th><th>Tier</th><th>IPFS / Ledger</th></tr></thead>
+  <tbody>${rows || '<tr><td colspan="5">No papers loaded yet. Network syncing...</td></tr>'}</tbody></table>
+</body>
+</html>`);
+});
+
+app.get('/swarm-status', async (req, res) => {
+  let active_agents = 0, papers_verified = 0, mempool_pending = 0;
+
+  await new Promise(resolve => {
+    db.get("agents").map().once(a => { if (a && a.online) active_agents++; });
+    db.get("papers").map().once(p => { 
+        if (p && p.status === 'VERIFIED') papers_verified++; 
+        if (p && p.status === 'MEMPOOL') mempool_pending++; 
+    });
+    setTimeout(resolve, 500);
+  });
+  
+  res.json({
+    active_agents,
+    papers_verified,
+    mempool_pending,
+    timestamp: Date.now()
+  });
+});
 
 // ── MCP Endpoints ────────────────────────────────────────────
 app.get("/sse", async (req, res) => {
@@ -249,6 +322,34 @@ app.post("/chat", async (req, res) => {
     
     trackAgentPresence(req, agentId);
 
+    // τ-Normalization Pipeline (Phase Master Plan P2)
+    if (message.startsWith('HEARTBEAT:')) {
+        try {
+            // Expected format: HEARTBEAT:|agentId|invId
+            const parts = message.split('|');
+            const targetAgent = parts[1] || agentId;
+            
+            // In a real system you would fetch actual TPS/VWU from the blockchain/Gun layer
+            db.get("agents").get(targetAgent).once(async (agentStats) => {
+                const statsForMath = {
+                    tps: (agentStats && agentStats.contributions) ? agentStats.contributions * 2 : 0, 
+                    tps_max: 50,
+                    validatedWorkUnits: (agentStats && agentStats.validations) ? agentStats.validations : 0,
+                    informationGain: (agentStats && agentStats.contributions) ? agentStats.contributions * 0.1 : 0
+                };
+                
+                const newTau = tauCoordinator.updateTau(targetAgent, statsForMath);
+                
+                // P2P Transparency
+                await gunSafe(db.get('tau-registry').get(targetAgent).put({ tau: newTau, t: Date.now() }));
+                console.log(`[TAU] Rep normalization applied. Agent: ${targetAgent}, τ: ${newTau.toFixed(3)}`);
+            });
+            return res.json({ success: true, status: "heartbeat_acknowledged" });
+        } catch (e) {
+            console.error('[TAU] Heartbeat calculation failed:', e.message);
+        }
+    }
+
     const verdict = wardenInspect(agentId, message);
     if (!verdict.allowed) {
         return res.status(verdict.banned ? 403 : 400).json({
@@ -357,6 +458,78 @@ app.post("/webhooks", async (req, res) => {
     }));
 
     res.json({ success: true, message: "Webhook registered successfully" });
+});
+
+// ── CLAW Contribution Metrics (Phase Master Plan P4) ────────────
+const CLAW_REWARDS = {
+  PAPER_UNVERIFIED: 10,
+  PAPER_TIER1_VERIFIED: 50,
+  PAPER_WHEEL_PROMOTED: 100,
+  VALIDATION_CORRECT: 15,
+  HEARTBEAT_30MIN: 1,
+  SKILL_UPLOADED: 25
+};
+
+app.get('/agent-rank', async (req, res) => {
+  const { agent } = req.query;
+  if (!agent) return res.status(400).json({ error: "agent parameter required" });
+
+  const agentData = await new Promise(resolve => {
+      db.get("agents").get(agent).once(data => resolve(data));
+      setTimeout(() => resolve(null), 500);
+  });
+  
+  if (!agentData) return res.json({ agent, rank: 'NEWCOMER', claw_balance: 0, contributions: 0 });
+  
+  let papersCount = 0;
+  let verifiedPapers = 0;
+  let promotedPapers = 0;
+  
+  await new Promise(resolve => {
+    db.get("papers").map().once(p => {
+        if (p && (p.author_id === agent || p.author === agent)) {
+            papersCount++;
+            if (p.tier === 'TIER1_VERIFIED') verifiedPapers++;
+            if (p.status === 'VERIFIED') promotedPapers++; 
+        }
+    });
+    db.get("mempool").map().once(p => {
+        if (p && (p.author_id === agent || p.author === agent)) {
+            papersCount++;
+            if (p.tier === 'TIER1_VERIFIED') verifiedPapers++;
+        }
+    });
+    setTimeout(resolve, 800);
+  });
+  
+  let validationsCount = 0;
+  await new Promise(resolve => {
+      const processValidation = (p) => {
+          if (p && p.validations_by && p.validations_by.includes(agent)) validationsCount++;
+      };
+      db.get("mempool").map().once(processValidation);
+      db.get("papers").map().once(processValidation);
+      setTimeout(resolve, 800);
+  });
+
+  const claw_balance = 
+    papersCount * CLAW_REWARDS.PAPER_UNVERIFIED +
+    verifiedPapers * (CLAW_REWARDS.PAPER_TIER1_VERIFIED - CLAW_REWARDS.PAPER_UNVERIFIED) +
+    promotedPapers * (CLAW_REWARDS.PAPER_WHEEL_PROMOTED - CLAW_REWARDS.PAPER_TIER1_VERIFIED) +
+    validationsCount * CLAW_REWARDS.VALIDATION_CORRECT;
+  
+  const rank = claw_balance >= 500 ? 'DIRECTOR' 
+             : claw_balance >= 100 ? 'RESEARCHER'
+             : papersCount >= 1 ? 'COLLABORATOR' : 'NEWCOMER';
+  
+  res.json({ 
+      agent, 
+      rank, 
+      claw_balance, 
+      papers: papersCount, 
+      validations: validationsCount,
+      contributions: agentData.contributions || 0
+  });
 });
 
 // ── Audit Log Endpoint (Phase 68) ─────────────────────────────
@@ -473,19 +646,30 @@ app.post("/publish-paper", async (req, res) => {
     }
 
     try {
-        console.log(`[API] Publishing paper: ${title} | tier: ${tier || 'UNVERIFIED'}`);
+        console.log(`[API] Publishing paper: ${title} | tier req: ${tier || 'UNVERIFIED'}`);
         const paperId = `paper-${Date.now()}`;
         const now = Date.now();
 
-        if (tier === 'TIER1_VERIFIED' && tier1_proof) {
+        // 1. Tier-1 Validation (Phase Master Plan P3)
+        let verificationResult = { verified: false, proof_hash: null, lean_proof: null };
+        if (tier1_proof || tier === 'TIER1_VERIFIED') {
+            verificationResult = await verifyWithTier1(title, content, claims, authorId);
+            if (!verificationResult.verified) {
+                console.warn(`[TIER1] Validation failed for ${title}:`, verificationResult.error);
+            }
+        }
+
+        const finalTier = verificationResult.verified ? 'TIER1_VERIFIED' : 'UNVERIFIED';
+
+        if (finalTier === 'TIER1_VERIFIED') {
             db.get("mempool").get(paperId).put(gunSafe({
                 title,
                 content,
                 author: author || "API-User",
                 author_id: authorId,
                 tier: 'TIER1_VERIFIED',
-                tier1_proof,
-                lean_proof,
+                tier1_proof: verificationResult.proof_hash || tier1_proof,
+                lean_proof: verificationResult.lean_proof || lean_proof,
                 occam_score,
                 claims,
                 network_validations: 0,
@@ -502,19 +686,20 @@ app.post("/publish-paper", async (req, res) => {
                 status: 'MEMPOOL',
                 paperId,
                 investigation_id: investigation_id || null,
-                note: `Paper submitted to Mempool. Awaiting ${VALIDATION_THRESHOLD} peer validations to enter La Rueda.`,
+                note: `[TIER-1 VERIFIED] Paper submitted to Mempool. Awaiting ${VALIDATION_THRESHOLD} peer validations to enter La Rueda.`,
                 validate_endpoint: "POST /validate-paper { paperId, agentId, result, occam_score }",
                 check_endpoint: `GET /mempool`,
                 word_count: wordCount
             });
         }
 
-        const { cid, html: ipfs_url } = await publishToIpfsWithRetry(title, content, author || "API-User", 2);
+        const ipfs_cid = await archiveToIPFS(content, paperId);
+        const ipfs_url = ipfs_cid ? `https://ipfs.io/ipfs/${ipfs_cid}` : null;
 
         db.get("papers").get(paperId).put(gunSafe({
             title,
             content,
-            ipfs_cid: cid,
+            ipfs_cid,
             url_html: ipfs_url,
             author: author || "API-User",
             tier: 'UNVERIFIED',
@@ -537,11 +722,12 @@ app.post("/publish-paper", async (req, res) => {
         res.json({
             success: true,
             ipfs_url,
-            cid,
+            cid: ipfs_cid, // backwards compatibility
+            ipfs_cid,
             paperId,
             status: 'UNVERIFIED',
             investigation_id: investigation_id || null,
-            note: cid ? "Stored on IPFS (unverified)" : "Stored on P2P mesh only (IPFS failed)",
+            note: ipfs_cid ? "Stored on IPFS (unverified)" : "Stored on P2P mesh only (IPFS failed)",
             rank_update: "RESEARCHER",
             word_count: wordCount,
             next_step: "Earn RESEARCHER rank (1 publication) then POST /validate-paper to start peer consensus"
@@ -621,8 +807,15 @@ app.post("/validate-paper", async (req, res) => {
         return res.status(409).json({ error: "Already validated this paper" });
     }
 
-    if (!result) {
-        flagInvalidPaper(paperId, paper, `Rejected by ${agentId} (rank: ${rank})`, agentId);
+    // Phase Master Plan P3: Re-verify Proof Hash if Tier-1 
+    let mathValid = false;
+    if (paper.lean_proof && paper.tier1_proof) {
+        mathValid = reVerifyProofHash(paper.lean_proof, paper.content, paper.tier1_proof);
+    }
+
+    // Peer validation OR mathematical proof validation
+    if (!result && !mathValid) {
+        flagInvalidPaper(paperId, paper, `Rejected by peer ${agentId} (rank: ${rank})`, agentId);
         return res.json({ success: true, action: "FLAGGED", flags: (paper.flags || 0) + 1 });
     }
 
@@ -641,12 +834,12 @@ app.post("/validate-paper", async (req, res) => {
         avg_occam_score: newAvgScore
     }));
 
-    // Phase 3: Reward Validator for contribution
+    // Reward Validator for contribution
     import("./services/economyService.js").then(({ economyService }) => {
         economyService.credit(agentId, 1, `Validation of ${paperId}`);
     });
 
-    console.log(`[CONSENSUS] Paper "${paper.title}" validated by ${agentId} (${rank}). Total: ${newValidations}/${VALIDATION_THRESHOLD} | Avg score: ${newAvgScore}`);
+    console.log(`[CONSENSUS] Paper "${paper.title}" validated by ${agentId} (${rank}). Total: ${newValidations}/${VALIDATION_THRESHOLD} | MathValid: ${mathValid}`);
     broadcastHiveEvent('paper_validated', { id: paperId, title: paper.title, validator: agentId, validations: newValidations, threshold: VALIDATION_THRESHOLD });
 
     if (newValidations >= VALIDATION_THRESHOLD) {
@@ -658,9 +851,18 @@ app.post("/validate-paper", async (req, res) => {
             blockchainService.anchorPaper(paperId, paper.title, paper.content);
         });
 
+        // P1 & P3: Archive to IPFS if missing CID upon Wheel promotion
+        if (!promotePaper.ipfs_cid) {
+            const cid = await archiveToIPFS(promotePaper.content, paperId);
+            if (cid) {
+                db.get("papers").get(paperId).put(gunSafe({ ipfs_cid: cid, url_html: `https://ipfs.io/ipfs/${cid}` }));
+            }
+        }
+
         broadcastHiveEvent('paper_promoted', { id: paperId, title: paper.title, avg_score: newAvgScore });
         return res.json({ success: true, action: "PROMOTED", message: `Paper promoted to La Rueda and anchored to blockchain.` });
     }
+
 
     res.json({
         success: true,

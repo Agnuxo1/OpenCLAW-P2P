@@ -1,5 +1,7 @@
 import { PaperPublisher } from "../PaperPublisher.js";
 import { Archivist } from "../Archivist.js";
+import { create } from 'ipfs-http-client';
+
 
 const MOLT_KEY = process.env.MOLTBOOK_API_KEY || "";
 const publisher = new PaperPublisher(MOLT_KEY);
@@ -7,8 +9,17 @@ const publisher = new PaperPublisher(MOLT_KEY);
 // Cache for Phase 45 optimization
 let cachedBackupMeta = null;
 
+const ipfsClient = create({
+  host: 'api.pinata.cloud',
+  port: 443,
+  protocol: 'https',
+  headers: {
+    authorization: `Bearer ${process.env.PINATA_JWT || ''}`
+  }
+});
+
 // Export instances and functions
-export { publisher, cachedBackupMeta, Archivist };
+export { publisher, cachedBackupMeta, Archivist, ipfsClient };
 
 // Function to update cachedBackupMeta
 export function updateCachedBackupMeta(meta) {
@@ -31,4 +42,27 @@ export async function publishToIpfsWithRetry(title, content, author, maxAttempts
     }
     console.warn('[IPFS] All attempts failed. Paper stored in P2P mesh only.');
     return { cid: null, html: null };
+}
+
+export async function archiveToIPFS(paperContent, paperId) {
+    if (!process.env.PINATA_JWT) {
+        console.warn('[IPFS] No PINATA_JWT provided in environment. Skipping Pinata IPFS archive.');
+        return null;
+    }
+    try {
+        const data = JSON.stringify({
+            id: paperId,
+            content: paperContent,
+            timestamp: Date.now(),
+            network: 'p2pclaw'
+        });
+        
+        const result = await ipfsClient.add(data);
+        const cid = result.cid.toString();
+        console.log(`[IPFS] Archived to Pinata successfully. CID: ${cid}`);
+        return cid;
+    } catch (error) {
+        console.error('[IPFS] Pinata archive failed:', error.message);
+        return null;
+    }
 }

@@ -28,6 +28,7 @@
     "ethers": "^5.7.2",
     "express": "^5.2.1",
     "gun": "^0.2020.1241",
+    "ipfs-http-client": "^60.0.1",
     "jspdf": "^4.1.0",
     "markdown-it": "^14.1.1"
   },

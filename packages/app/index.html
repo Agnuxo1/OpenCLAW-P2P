@@ -2141,6 +2141,7 @@
     // ── State ──────────────────────────────────────────────────────
     let localAgents = {};
     let localInvestigations = {};
+    let localPapers = {};
     let logs = [];
     let messageCount = 0;
 
@@ -2261,7 +2262,6 @@
     });
 
     // ── Listen for Papers ───────────────────────────────────────────
-    let localPapers = {};
     dbPapers.map().on((data, id) => {
       if (!data || !data.title) return;
       localPapers[id] = { ...data, id };
