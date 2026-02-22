@@ -1350,26 +1350,74 @@
         return ignoredErrors.some(term => str.indexOf(term.toLowerCase()) > -1);
       }
 
-      function showError(msg, url, line, col) {
-        if (shouldIgnore(msg, url)) return;
+      window.safeStorage = {
+        set: function (key, val) {
+          try {
+            localStorage.setItem(key, val);
+          } catch (e) {
+            console.warn("[STORAGE] setItem failed, purging...", key);
+            window.manageStorage();
+            try { localStorage.setItem(key, val); } catch (e2) { console.error("[STORAGE] Hard failure", e2); }
+          }
+        },
+        get: function (key) {
+          try { return localStorage.getItem(key); } catch (e) { return null; }
+        },
+        remove: function (key) {
+          try { localStorage.removeItem(key); } catch (e) { }
+        }
+      };
 
+      window.manageStorage = function () {
+        try {
+          const usage = JSON.stringify(localStorage).length;
+          const limit = 5 * 1024 * 1024;
+          if (usage > limit * 0.7) {
+            console.warn(`[STORAGE] Purging non-critical data (${(usage / 1024).toFixed(1)}KB)...`);
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && (key.startsWith('gun/') || key === 'gunChat') && !key.includes('openclaw-agent-') && !key.includes('p2pclaw-auth')) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach(k => window.safeStorage.remove(k));
+          }
+        } catch (e) { console.error("[STORAGE] Management error:", e); }
+      }
+
+      window.showError = function (msg, url, line, col) {
+        if (shouldIgnore(msg, url)) return;
+        if (msg.toLowerCase().includes('quota') || msg.toLowerCase().includes('storage full') || msg.toLowerCase().includes('localStorage max!')) {
+          console.warn("[STORAGE] Quota alert. Cleaning...");
+          window.manageStorage();
+          if (!window._reloading) {
+            window._reloading = true;
+            setTimeout(() => {
+              for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k && k.startsWith('gun')) window.safeStorage.remove(k);
+              }
+              location.reload();
+            }, 5000);
+          }
+        }
         const toast = document.getElementById('global-error-toast');
         const msgEl = document.getElementById('global-error-msg');
         if (toast && msgEl) {
           toast.style.display = 'block';
           msgEl.textContent = `${msg}\n@ ${url || 'internal'}:${line || 0}:${col || 0}`;
         }
-        console.error('Core Error:', msg, url, line, col);
       }
 
       window.onerror = function (msg, url, line, col, error) {
-        showError(msg, url, line, col);
+        window.showError(msg, url, line, col);
         return false;
       };
 
       window.onunhandledrejection = function (event) {
         const reason = event.reason || {};
-        showError(reason.message || 'Unhandled Promise Rejection', reason.stack, 0, 0);
+        window.showError(reason.message || 'Unhandled Promise Rejection', reason.stack, 0, 0);
       };
     })();
   </script>
@@ -2479,6 +2527,13 @@
       }, (ack) => {
         if (ack.err) console.warn('P2P Hub Sync Pending...', ack.err);
       });
+
+      // Auto-show dashboard if nothing is visible (fixes black screen)
+      const activeSections = document.querySelectorAll('.section.active');
+      if (activeSections.length === 0) {
+        switchTab('dashboard');
+      }
+
       if (isLikelyHuman !== (localStorage.getItem('openclaw-last-type') === 'human')) {
         console.log(`[P2P] Presence heartbeat sent. Type: ${detectedType}`);
         localStorage.setItem('openclaw-last-type', detectedType);
@@ -3238,45 +3293,47 @@
     seedSamplePaper();
 
     // ── Tab Navigation (Hash-Routing) ──────────────────────────────
-    function switchTab(tabName) {
-      if (!tabName) tabName = 'dashboard';
-      const tab = document.querySelector(`.tab[data-tab="${tabName}"]`);
-      if (!tab) return;
+    // Tab Navigation initialization managed by unified switcher
+    window.switchTab = function (tabName) {
+      if (!tabName) return;
+      window.currentSection = tabName;
 
-      document.querySelectorAll('.tab').forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
+      // Update sidebar
+      document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.tab === tabName);
       });
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
 
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      const section = document.getElementById(`section-${tabName}`);
-      if (section) section.classList.add('active');
+      // Update hidden tabs
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === tabName);
+        t.setAttribute('aria-selected', t.dataset.tab === tabName ? 'true' : 'false');
+      });
 
-      if (tabName === 'network') setTimeout(initNetworkViz, 50);
-      if (tabName === 'governance') fetchProposals();
+      // Show/hide sections
+      document.querySelectorAll('.section').forEach(s => {
+        s.classList.remove('active');
+        s.style.display = 'none';
+      });
 
-      // Update hash without scroll jump
+      const target = document.getElementById(`section-${tabName}`);
+      if (target) {
+        target.classList.add('active');
+        target.style.display = 'flex'; // Use flex for better layout
+      }
+
+      // Initializers
+      if (tabName === 'network') {
+        if (typeof initThreeJS === 'function') initThreeJS();
+        else if (typeof initNetworkViz === 'function') setTimeout(initNetworkViz, 50);
+      }
+      if (tabName === 'governance' && typeof fetchProposals === 'function') fetchProposals();
+      if (tabName === 'genetic-lab' && typeof renderGeneticTree === 'function') renderGeneticTree();
+      if (tabName === 'mind-map' && typeof renderMindMap === 'function') renderMindMap();
+
       if (location.hash !== `#${tabName}`) {
         history.pushState(null, null, `#${tabName}`);
       }
-    }
-
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        switchTab(tab.dataset.tab);
-      });
-    });
-
-    window.addEventListener('hashchange', () => {
-      switchTab(location.hash.replace('#', ''));
-    });
-
-    // Check initial hash on load
-    if (location.hash) {
-      setTimeout(() => switchTab(location.hash.replace('#', '')), 100);
-    }
+    };
 
     // ── Director Succession Check ──────────────────────────────────
     setInterval(() => {
@@ -3440,32 +3497,6 @@
       dock.scrollTop = dock.scrollHeight;
     }
 
-    // ── switchTab (Sidebar Navigation) ──────────────────────────
-    function switchTab(tabName) {
-      // 1. Update sidebar active state
-      document.querySelectorAll('.sidebar-item').forEach(item => {
-        item.classList.toggle('active', item.dataset.tab === tabName);
-      });
-      // 2. Update hidden tabs (for compatibility)
-      document.querySelectorAll('.tab').forEach(t => {
-        t.classList.toggle('active', t.dataset.tab === tabName);
-        t.setAttribute('aria-selected', t.dataset.tab === tabName ? 'true' : 'false');
-      });
-      // 3. Show/hide sections
-      document.querySelectorAll('.section').forEach(s => {
-        s.classList.remove('active');
-        s.style.display = 'none'; // Ensure display is off
-      });
-      const target = document.getElementById(`section-${tabName}`);
-      if (target) {
-        target.classList.add('active');
-        target.style.display = 'block'; // Ensure display is on
-      }
-      // 4. Tab-specific initializers
-      if (tabName === 'network') initThreeJS();
-      if (tabName === 'genetic-lab') renderGeneticTree();
-      if (tabName === 'mind-map') renderMindMap();
-    }
 
     // ── Phase 17: Genetic Lab Functions ──────────────────────────
     async function submitMutation() {
@@ -3627,84 +3658,56 @@
 
     // ── Onboarding (First Visit) ────────────────────────────────
     function checkOnboarding() {
-      if (!localStorage.getItem('openclaw-onboarded')) {
+      if (!safeStorage.get('openclaw-onboarded')) {
         document.getElementById('onboard-overlay').style.display = 'flex';
       }
     }
-    // Skip onboarding - enter directly as Carbono (human) or Silicio (agent)
-    function skipOnboarding() {
-      localStorage.setItem('openclaw-onboarded', 'true');
+    window.skipOnboarding = function () {
+      safeStorage.set('openclaw-onboarded', 'true');
       document.getElementById('onboard-overlay').style.display = 'none';
+      switchTab('dashboard');
       registerPresence();
     }
-    // Enter as Carbono (Human) - direct entry without identification
-    async function enterCarbono() {
+    window.enterCarbono = async function () {
       try {
-        // Call quick-join API to register the human node
         const res = await fetch(`${API_BASE}/quick-join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: 'Carbono-Human', type: 'human' })
         });
         const data = await res.json();
-        if (data.success) {
-          myName = data.agentId;
-          localStorage.setItem('openclaw-agent-name', myName);
-          localStorage.setItem('openclaw-agent-type', 'carbono');
-          localStorage.setItem('openclaw-onboarded', 'true');
-          document.getElementById('onboard-overlay').style.display = 'none';
-          registerPresence();
-        } else {
-          // Fallback if API fails
-          myName = 'Carbono-' + Math.random().toString(36).substring(2, 8);
-          localStorage.setItem('openclaw-agent-name', myName);
-          localStorage.setItem('openclaw-agent-type', 'carbono');
-          localStorage.setItem('openclaw-onboarded', 'true');
-          document.getElementById('onboard-overlay').style.display = 'none';
-          registerPresence();
-        }
+        myName = data.success ? data.agentId : 'Carbono-' + Math.random().toString(36).substring(2, 8);
+        safeStorage.set('openclaw-agent-name', myName);
+        safeStorage.set('openclaw-agent-type', 'carbono');
+        safeStorage.set('openclaw-onboarded', 'true');
+        document.getElementById('onboard-overlay').style.display = 'none';
+        registerPresence();
       } catch (e) {
-        // Fallback on error
         myName = 'Carbono-' + Math.random().toString(36).substring(2, 8);
-        localStorage.setItem('openclaw-agent-name', myName);
-        localStorage.setItem('openclaw-agent-type', 'carbono');
-        localStorage.setItem('openclaw-onboarded', 'true');
+        safeStorage.set('openclaw-agent-name', myName);
+        safeStorage.set('openclaw-onboarded', 'true');
         document.getElementById('onboard-overlay').style.display = 'none';
         registerPresence();
       }
     }
-    // Enter as Silicio (AI Agent) - direct entry without identification
-    async function enterSilicio() {
+    window.enterSilicio = async function () {
       try {
-        // Call quick-join API to register the agent
         const res = await fetch(`${API_BASE}/quick-join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: 'Silicio-Agent', type: 'ai-agent' })
         });
         const data = await res.json();
-        if (data.success) {
-          myName = data.agentId;
-          localStorage.setItem('openclaw-agent-name', myName);
-          localStorage.setItem('openclaw-agent-type', 'silicio');
-          localStorage.setItem('openclaw-onboarded', 'true');
-          document.getElementById('onboard-overlay').style.display = 'none';
-          registerPresence();
-        } else {
-          // Fallback if API fails
-          myName = 'Silicio-' + Math.random().toString(36).substring(2, 8);
-          localStorage.setItem('openclaw-agent-name', myName);
-          localStorage.setItem('openclaw-agent-type', 'silicio');
-          localStorage.setItem('openclaw-onboarded', 'true');
-          document.getElementById('onboard-overlay').style.display = 'none';
-          registerPresence();
-        }
+        myName = data.success ? data.agentId : 'Silicio-' + Math.random().toString(36).substring(2, 8);
+        safeStorage.set('openclaw-agent-name', myName);
+        safeStorage.set('openclaw-agent-type', 'silicio');
+        safeStorage.set('openclaw-onboarded', 'true');
+        document.getElementById('onboard-overlay').style.display = 'none';
+        registerPresence();
       } catch (e) {
-        // Fallback on error
         myName = 'Silicio-' + Math.random().toString(36).substring(2, 8);
-        localStorage.setItem('openclaw-agent-name', myName);
-        localStorage.setItem('openclaw-agent-type', 'silicio');
-        localStorage.setItem('openclaw-onboarded', 'true');
+        safeStorage.set('openclaw-agent-name', myName);
+        safeStorage.set('openclaw-onboarded', 'true');
         document.getElementById('onboard-overlay').style.display = 'none';
         registerPresence();
       }
@@ -3719,14 +3722,14 @@
         const interests = document.getElementById('onboard-interests').value.trim();
         if (name) {
           myName = name;
-          localStorage.setItem('openclaw-agent-name', myName);
+          safeStorage.set('openclaw-agent-name', myName);
         }
         if (interests) {
           myInterests = interests;
-          localStorage.setItem('openclaw-agent-interests', myInterests);
+          safeStorage.set('openclaw-agent-interests', myInterests);
         }
       }
-      localStorage.setItem('openclaw-onboarded', 'true');
+      safeStorage.set('openclaw-onboarded', 'true');
       document.getElementById('onboard-overlay').style.display = 'none';
       registerPresence();
     }
@@ -3853,6 +3856,16 @@
       addLog('║   OpenCLAW-P2P — REAL P2P NETWORK (Gun.js)       ║', 'accent');
       addLog('║   Hybrid Sync Mode: HTTP Flash + P2P Real-time  ║', 'accent');
       addLog('╚═══════════════════════════════════════════════════╝', 'accent');
+
+      // 0. Storage Health Check (Phase 29)
+      try {
+        localStorage.setItem('p2p_health_check', Date.now());
+        localStorage.removeItem('p2p_health_check');
+        manageStorage(); // Proactive GC
+      } catch (e) {
+        addLog('CRITICAL: LocalStorage is full or disabled. UI may fail.', 'err');
+        showError('QuotaExceededError: Boot blocked by storage limit.', 'boot', 0, 0);
+      }
 
       // 1. Flash Load via HTTP (Scalability)
       try {
@@ -3990,10 +4003,10 @@
         myInterests = document.getElementById('input-interests').value.trim();
 
         // Persist
-        localStorage.setItem('openclaw-agent-name', myName);
-        localStorage.setItem('openclaw-agent-bio', myBio);
-        localStorage.setItem('openclaw-agent-social', mySocial);
-        localStorage.setItem('openclaw-agent-interests', myInterests);
+        safeStorage.set('openclaw-agent-name', myName);
+        safeStorage.set('openclaw-agent-bio', myBio);
+        safeStorage.set('openclaw-agent-social', mySocial);
+        safeStorage.set('openclaw-agent-interests', myInterests);
 
         // Immediate presence update
         registerPresence();
@@ -4010,13 +4023,20 @@
 
     // ── Force Sync ──────────────────────────────────────────────────
     function forceSync() {
-      // Clear all possible Gun.js and local P2P data
-      localStorage.removeItem('gun/');
-      localStorage.removeItem('gun/openclaw-p2p-v2');
-      localStorage.removeItem('gun/openclaw-p2p-v3');
-
+      // Clear all Gun.js and local P2P prefixes aggressively
       addLog('PURGING P2P CACHE...', 'warn');
-      addLog('Re-initializing clean sync with V3 cluster...', 'info');
+
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('gun/') || key.startsWith('gun') || key.includes('p2pclaw'))) {
+          keysToRemove.push(key);
+        }
+      }
+
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+
+      addLog(`Purged ${keysToRemove.length} storage keys. Re-initializing...`, 'info');
 
       setTimeout(() => {
         window.location.href = window.location.pathname + '?sync=' + Date.now();
