@@ -3318,7 +3318,7 @@
       const target = document.getElementById(`section-${tabName}`);
       if (target) {
         target.classList.add('active');
-        target.style.display = 'flex'; // Use flex for better layout
+        target.style.display = 'block'; // Reverted to block to fix black screen
       }
 
       // Initializers
