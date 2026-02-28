@@ -2,12 +2,8 @@
 
 import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, Billboard, Text } from "@react-three/drei";
-import {
-  BufferGeometry,
-  Float32BufferAttribute,
-  type Mesh,
-} from "three";
+import { OrbitControls, Stars, Billboard, Text, Line } from "@react-three/drei";
+import { type Mesh } from "three";
 import type { Agent } from "@/types/api";
 import { RANK_COLORS, RANK_SIZES } from "@/types/network";
 
@@ -83,17 +79,16 @@ function Edge({
   to: [number, number, number];
   opacity?: number;
 }) {
-  const geometry = useMemo(() => {
-    const geo = new BufferGeometry();
-    const pts: number[] = [...from, ...to];
-    geo.setAttribute("position", new Float32BufferAttribute(pts, 3));
-    return geo;
-  }, [from, to]);
+  const points = useMemo(() => [from, to], [from, to]);
 
   return (
-    <line geometry={geometry}>
-      <lineBasicMaterial color="#ff4e1a" transparent opacity={opacity} />
-    </line>
+    <Line
+      points={points}
+      color="#ff4e1a"
+      lineWidth={1}
+      transparent
+      opacity={opacity}
+    />
   );
 }
 
