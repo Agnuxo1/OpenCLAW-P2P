@@ -1,0 +1,317 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── CLAW Token Bridge → Tailwind v4 ─────────────────────────────────── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* CLAW semantic tokens */
+  --color-claw-accent:       #ff4e1a;
+  --color-claw-accent-light: #ff7020;
+  --color-claw-crimson:      #e63030;
+  --color-claw-amber:        #ff9a30;
+  --color-claw-gold:         #ffcb47;
+  --color-bg-primary:        #0c0c0d;
+  --color-bg-secondary:      #121214;
+  --color-bg-card:           #1a1a1c;
+  --color-text-primary:      #f5f0eb;
+  --color-text-secondary:    #9a9490;
+  --color-text-muted:        #52504e;
+}
+
+/* ── CLAW Dark Design System ──────────────────────────────────────────── */
+:root {
+  --radius: 0.625rem;
+
+  /* Core backgrounds */
+  --background:       #0c0c0d;
+  --foreground:       #f5f0eb;
+
+  /* Cards / Popover */
+  --card:             #1a1a1c;
+  --card-foreground:  #f5f0eb;
+  --popover:          #121214;
+  --popover-foreground: #f5f0eb;
+
+  /* Primary = CLAW Flame accent */
+  --primary:          #ff4e1a;
+  --primary-foreground: #0c0c0d;
+
+  /* Secondary = card surface */
+  --secondary:        #1a1a1c;
+  --secondary-foreground: #f5f0eb;
+
+  /* Muted */
+  --muted:            #1a1a1c;
+  --muted-foreground: #9a9490;
+
+  /* Accent = same as primary for shadcn compatibility */
+  --accent:           #ff4e1a;
+  --accent-foreground: #0c0c0d;
+
+  /* Destructive */
+  --destructive:      #e63030;
+
+  /* Borders / Inputs */
+  --border:           #2c2c30;
+  --input:            #2c2c30;
+  --ring:             #ff4e1a;
+
+  /* Chart palette — CLAW gradient */
+  --chart-1: #ff4e1a;
+  --chart-2: #ff9a30;
+  --chart-3: #ffcb47;
+  --chart-4: #e63030;
+  --chart-5: #ff7020;
+
+  /* Sidebar */
+  --sidebar:                    #0c0c0d;
+  --sidebar-foreground:         #f5f0eb;
+  --sidebar-primary:            #ff4e1a;
+  --sidebar-primary-foreground: #0c0c0d;
+  --sidebar-accent:             #1a1a1c;
+  --sidebar-accent-foreground:  #f5f0eb;
+  --sidebar-border:             #2c2c30;
+  --sidebar-ring:               #ff4e1a;
+
+  /* Typography */
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ── Base styles ──────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* CRT scanlines overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.05) 2px,
+      rgba(0, 0, 0, 0.05) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--background);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #52504e;
+  }
+
+  /* Selection */
+  ::selection {
+    background: rgba(255, 78, 26, 0.3);
+    color: var(--foreground);
+  }
+}
+
+/* ── Utility classes ──────────────────────────────────────────────────── */
+@layer utilities {
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* CLAW gradient text */
+  .text-claw-gradient {
+    background: linear-gradient(135deg, #ff4e1a 0%, #ffcb47 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glow effects */
+  .glow-accent {
+    box-shadow: 0 0 20px rgba(255, 78, 26, 0.25), 0 0 40px rgba(255, 78, 26, 0.1);
+  }
+  .glow-accent-sm {
+    box-shadow: 0 0 8px rgba(255, 78, 26, 0.3);
+  }
+
+  /* Status dot blink */
+  .blink {
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  /* Pulse for live indicators */
+  .pulse-accent {
+    animation: pulse-accent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  @keyframes pulse-accent {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Card hover border accent */
+  .card-hover {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    border-color: rgba(255, 78, 26, 0.4);
+    box-shadow: 0 0 0 1px rgba(255, 78, 26, 0.15);
+  }
+
+  /* Scan line animation for loading */
+  .scan-line {
+    position: relative;
+    overflow: hidden;
+  }
+  .scan-line::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    right: 0;
+    height: 30%;
+    background: linear-gradient(to bottom, transparent, rgba(255, 78, 26, 0.05), transparent);
+    animation: scan 3s linear infinite;
+  }
+  @keyframes scan {
+    to { top: 200%; }
+  }
+
+  /* Mono code blocks */
+  .code-block {
+    font-family: var(--font-mono);
+    background: #0c0c0d;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    overflow-x: auto;
+  }
+
+  /* Tier badge colors */
+  .tier-alpha    { color: #ffd740; border-color: rgba(255, 215, 64, 0.4); }
+  .tier-beta     { color: #ff9a30; border-color: rgba(255, 154, 48, 0.4); }
+  .tier-gamma    { color: #ff4e1a; border-color: rgba(255, 78, 26, 0.4); }
+  .tier-delta    { color: #9a9490; border-color: rgba(154, 148, 144, 0.4); }
+  .tier-verified { color: #4caf50; border-color: rgba(76, 175, 80, 0.4); }
+  .tier-pending  { color: #ff9a30; border-color: rgba(255, 154, 48, 0.4); }
+  .tier-rejected { color: #e63030; border-color: rgba(230, 48, 48, 0.4); }
+
+  /* Rank badge colors */
+  .rank-director    { color: #ffd740; }
+  .rank-architect   { color: #ff4e1a; }
+  .rank-researcher  { color: #ff7020; }
+  .rank-analyst     { color: #448aff; }
+  .rank-citizen     { color: #9a9490; }
+}
+
+/* ── shadcn component overrides ──────────────────────────────────────── */
+@layer components {
+  /* Force dark button styles */
+  .btn-claw {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border: none;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-claw:hover {
+    background: #ff7020;
+    box-shadow: 0 0 12px rgba(255, 78, 26, 0.4);
+  }
+
+  /* Ghost button */
+  .btn-ghost-claw {
+    background: transparent;
+    color: var(--muted-foreground);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-ghost-claw:hover {
+    border-color: rgba(255, 78, 26, 0.4);
+    color: var(--foreground);
+  }
+}

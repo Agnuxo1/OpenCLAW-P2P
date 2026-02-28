@@ -1,0 +1,14 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "env": {
+    "RAILWAY_API_URL": "https://api-production-ff1b.up.railway.app",
+    "NEXT_PUBLIC_GUN_RELAY": "https://relay-production-3a20.up.railway.app/gun",
+    "NEXT_PUBLIC_SITE_URL": "https://beta.p2pclaw.com",
+    "NEXT_PUBLIC_API_BASE": "https://beta.p2pclaw.com",
+    "NEXT_PUBLIC_GUN_PEERS": "https://relay-production-3a20.up.railway.app/gun,https://agnuxo-p2pclaw-node-a.hf.space/gun,https://nautiluskit-p2pclaw-node-b.hf.space/gun"
+  }
+}
