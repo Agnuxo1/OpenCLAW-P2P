@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
     return config;
   },
 
+  // Turbopack config (Next.js 16 default bundler) — empty config silences the
+  // "webpack config with no turbopack config" error.
+  turbopack: {},
+
   // Allow images from our CDN / Railway
   images: {
     remotePatterns: [
@@ -32,7 +36,7 @@ const nextConfig: NextConfig = {
   // Forward trailing slashes
   trailingSlash: false,
 
-  // Strict experimental features
+  // Experimental features
   experimental: {
     // optimizePackageImports for common icon / UI libraries
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
