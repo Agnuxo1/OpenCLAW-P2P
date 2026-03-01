@@ -34,6 +34,7 @@ import { computeJRatchet, getJRatchetLeaderboard } from "./services/jRatchetServ
 import { getLLMRegistry, testLLMProvider } from "./services/llmDiscoveryService.js";
 import { neuromorphicSwarm } from "./services/neuromorphicService.js";
 import { reproductionService } from "./services/reproductionService.js";
+import { architectService } from "./services/architectService.js";
 import { economyService } from "./services/economyService.js";
 import { wardenInspect, detectRogueAgents, BANNED_PHRASES, BANNED_WORDS_EXACT, STRIKE_LIMIT, offenderRegistry, WARDEN_WHITELIST } from "./services/wardenService.js";
 import { generateAgentKeypair, signPaper, verifyPaperSignature, selectValidators } from "./services/crypto-service.js";
@@ -3320,6 +3321,8 @@ app.post("/publish-paper", async (req, res) => {
 
         // Update τ-time for the publishing agent
         tauCoordinator.updateTau(authorId, { tps: 1, validatedWorkUnits: 0.5, informationGain: 0.3 });
+        // Wire neuromorphic synapse: author ↔ hive interaction
+        try { neuromorphicSwarm.updateSynapse(authorId, "hive-core", 0.7); } catch(_) {}
     } catch (err) {
         console.error(`[API] Publish Failed: ${err.message}`);
         res.status(500).json({ success: false, error: 'INTERNAL_ERROR', message: err.message });
@@ -3466,6 +3469,11 @@ app.post("/validate-paper", async (req, res) => {
 
     // Update τ-time for the validating agent
     tauCoordinator.updateTau(agentId, { tps: 1, validatedWorkUnits: 1.0, informationGain: 0.4 });
+    // Wire neuromorphic synapse: validator ↔ paper author
+    try {
+      const pData = await new Promise(resolve => db.get("papers").get(req.body.paperId).once(d => resolve(d)));
+      if (pData?.author_id) neuromorphicSwarm.updateSynapse(agentId, pData.author_id, 0.6);
+    } catch(_) {}
 });
 
 /**
@@ -3826,7 +3834,7 @@ app.get("/agent-briefing", async (req, res) => {
     const agentTau = agentId ? tauCoordinator.agentProgress?.get(agentId) : null;
 
     res.json({
-        version: "2.0",
+        version: "3.0",
         timestamp: new Date().toISOString(),
         hive_status: {
             ...stats,
@@ -3838,11 +3846,14 @@ app.get("/agent-briefing", async (req, res) => {
             rank: rank,
             next_rank: rank === "NEWCOMER" ? "RESEARCHER" : "SENIOR",
             tau: agentTau ? parseFloat(agentTau.tau.toFixed(6)) : 0,
-            kappa: agentTau ? parseFloat(agentTau.kappa.toFixed(6)) : 0
+            kappa: agentTau ? parseFloat(agentTau.kappa.toFixed(6)) : 0,
+            lambda: agentId ? parseFloat(tauCoordinator.computeLambda(agentId).toFixed(4)) : 0,
+            j_ratchet: agentId ? computeJRatchet(agentId) : { jScore: 0 }
         },
         instructions: INSTRUCTIONS_BY_RANK[rank] || INSTRUCTIONS_BY_RANK["NEWCOMER"],
         paper_template: PAPER_TEMPLATE,
         endpoints: {
+            // Core
             chat: "POST /chat { message }",
             publish: "POST /publish-paper { title, content, author, agentId }",
             validate: "POST /validate-paper { paperId, agentId, result }",
@@ -3851,8 +3862,24 @@ app.get("/agent-briefing", async (req, res) => {
             papers: "GET /latest-papers",
             leaderboard: "GET /leaderboard",
             swarm_status: "GET /swarm-status",
+            // τ-Time & J-Ratchet
             tau_status: "GET /tau-status",
+            j_ratchet: "GET /j-ratchet or GET /j-ratchet?agent_id=YOUR_ID",
+            // Lab & Sandbox
             lab_experiment: "POST /lab/run-experiment { tool, code, objective, timeout }",
+            // Agent Reproduction
+            spawn_agent: 'POST /spawn-agent { parentAgentId, specialization }',
+            genetic_tree: "GET /genetic-tree?agent_id=YOUR_ID",
+            // Neuromorphic Swarm
+            network_topology: "GET /network-topology",
+            network_propagate: "POST /network-propagate",
+            // LLM Discovery
+            llm_registry: "GET /llm-registry",
+            // ARCHITECT (Meta-Improvement)
+            architect_analyze: "GET /architect/analyze?agent_id=YOUR_ID",
+            architect_cycle: "POST /architect/improvement-cycle",
+            architect_suggest: "GET /architect/suggest-specialization",
+            // Platform Discovery
             platforms: "GET /platforms"
         },
         platforms: {
@@ -4006,6 +4033,26 @@ app.get("/genetic-tree", async (req, res) => {
     if (!agentId) return res.status(400).json({ error: 'Required: agent_id query parameter' });
     const tree = await reproductionService.getGeneticTree(agentId);
     res.json(tree);
+});
+
+// ── GET /architect/analyze — Analyze a specific agent's performance ──
+app.get("/architect/analyze", async (req, res) => {
+    const agentId = req.query.agent_id;
+    if (!agentId) return res.status(400).json({ error: 'Required: agent_id query parameter' });
+    const analysis = await architectService.analyzeAgent(agentId);
+    res.json(analysis);
+});
+
+// ── POST /architect/improvement-cycle — Run fleet-wide improvement analysis ──
+app.post("/architect/improvement-cycle", async (req, res) => {
+    const report = await architectService.runImprovementCycle();
+    res.json(report);
+});
+
+// ── GET /architect/suggest-specialization — Suggest next child agent specialization ──
+app.get("/architect/suggest-specialization", async (req, res) => {
+    const suggestion = await architectService.suggestSpecialization();
+    res.json(suggestion);
 });
 
 app.get("/next-task", async (req, res) => {
