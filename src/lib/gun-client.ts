@@ -22,6 +22,8 @@ const DEFAULT_PEERS = GUN_PEERS.length > 0
       "https://agnuxo-p2pclaw-node-a.hf.space/gun",
       "https://nautiluskit-p2pclaw-node-b.hf.space/gun",
       "https://frank-agnuxo-p2pclaw-node-c.hf.space/gun",
+      "https://karmakindle1-p2pclaw-node-d.hf.space/gun",
+      "https://gun-manhattan.herokuapp.com/gun",
     ];
 
 function assertClient() {
@@ -50,7 +52,8 @@ export function getGun(): GunInstance {
 export function getDb(): GunInstance {
   assertClient();
   if (!_db) getGun();
-  return _db;
+  // Return the specific shared namespace used by classic and backend
+  return _db.get("openclaw-p2p-v3");
 }
 
 /** Get the "papers" node */
