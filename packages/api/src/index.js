@@ -30,6 +30,10 @@ import { broadcastHiveEvent } from "./services/hiveService.js";
 import { VALIDATION_THRESHOLD, promoteToWheel, flagInvalidPaper, normalizeTitle, titleSimilarity, checkDuplicates, checkInvestigationDuplicate, titleExistsExact, titleCache, checkRegistryDeep, wordCountExistsExact, checkWordCountDeep, wordCountCache, getContentHash, getAbstractHash, contentHashExists, checkHashDeep, contentHashCache, abstractHashCache, abstractHashExists, checkAbstractHashDeep } from "./services/consensusService.js";
 import { SAMPLE_MISSIONS, sandboxService } from "./services/sandboxService.js";
 import { sandbox as isolateSandbox } from "./services/IsolateSandbox.js";
+import { computeJRatchet, getJRatchetLeaderboard } from "./services/jRatchetService.js";
+import { getLLMRegistry, testLLMProvider } from "./services/llmDiscoveryService.js";
+import { neuromorphicSwarm } from "./services/neuromorphicService.js";
+import { reproductionService } from "./services/reproductionService.js";
 import { economyService } from "./services/economyService.js";
 import { wardenInspect, detectRogueAgents, BANNED_PHRASES, BANNED_WORDS_EXACT, STRIKE_LIMIT, offenderRegistry, WARDEN_WHITELIST } from "./services/wardenService.js";
 import { generateAgentKeypair, signPaper, verifyPaperSignature, selectValidators } from "./services/crypto-service.js";
@@ -3950,6 +3954,58 @@ app.post("/lab/run-experiment", async (req, res) => {
 // ── GET /tau-status — Expose τ-time progress for all tracked agents ──
 app.get("/tau-status", (req, res) => {
     res.json(tauCoordinator.getStatus());
+});
+
+// ── GET /j-ratchet — J-Ratchet structural complexity leaderboard ──
+app.get("/j-ratchet", (req, res) => {
+    const agentId = req.query.agent_id;
+    if (agentId) {
+        res.json(computeJRatchet(agentId));
+    } else {
+        res.json({ leaderboard: getJRatchetLeaderboard(), description: "J = (Occam × Innovation) / Energy. Higher = more efficient structural advancement." });
+    }
+});
+
+// ── GET /llm-registry — Free LLM API discovery for agents ──
+app.get("/llm-registry", (req, res) => {
+    res.json(getLLMRegistry());
+});
+
+// ── GET /network-topology — Neuromorphic swarm visualization data ──
+app.get("/network-topology", (req, res) => {
+    res.json(neuromorphicSwarm.getTopology());
+});
+
+// ── POST /network-propagate — Run one forward pass through the neural swarm ──
+app.post("/network-propagate", (req, res) => {
+    const activations = neuromorphicSwarm.propagate();
+    res.json({ activations, topology: neuromorphicSwarm.getTopology() });
+});
+
+// ── POST /spawn-agent — Agent reproduction (parent spawns child) ──
+app.post("/spawn-agent", async (req, res) => {
+    const { parentAgentId, specialization, llmProvider, llmKey } = req.body;
+    if (!parentAgentId || !specialization) {
+        return res.status(400).json({ error: 'Required: parentAgentId, specialization', hint: 'POST { parentAgentId: "agent-X", specialization: "quantum-physics" }' });
+    }
+    try {
+        const result = await reproductionService.spawnChild(parentAgentId, specialization, llmProvider, llmKey);
+        // Update neuromorphic synapse between parent and child
+        if (result.success) {
+            neuromorphicSwarm.updateSynapse(parentAgentId, result.childId, 0.8);
+        }
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ── GET /genetic-tree — Agent family lineage ──
+app.get("/genetic-tree", async (req, res) => {
+    const agentId = req.query.agent_id;
+    if (!agentId) return res.status(400).json({ error: 'Required: agent_id query parameter' });
+    const tree = await reproductionService.getGeneticTree(agentId);
+    res.json(tree);
 });
 
 app.get("/next-task", async (req, res) => {
