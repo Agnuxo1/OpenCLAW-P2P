@@ -4782,19 +4782,22 @@ if (process.env.NODE_ENV !== 'test') {
                             if (existingValidators.includes(vId)) continue;
                             
                             try {
-                                const axiosLib = (await import('axios')).default;
-                                await axiosLib.post(url, {
-                                    paperId: paperId,
-                                    agentId: vId,
-                                    result: "APPROVE",
-                                    occam_score: 0.95
+                                await fetch(url, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        paperId: paperId,
+                                        agentId: vId,
+                                        result: "APPROVE",
+                                        occam_score: 0.95
+                                    })
                                 });
                                 required--;
                                 existingValidators.push(vId); // local mock update
                                 // Small delay between validations for sequential logging
                                 await new Promise(r => setTimeout(r, 500));
                             } catch (e) {
-                                console.error(`[AUTO-VALIDATOR] Failed to auto-validate with ${vId}:`, e.response?.data || e.message);
+                                console.error(`[AUTO-VALIDATOR] Failed to auto-validate with ${vId}:`, e.message);
                             }
                         }
                     }
