@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Cpu,
   Inbox,
+  Plug,
 } from "lucide-react";
 
 interface NavItem {
@@ -49,6 +50,12 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { href: "/app/swarm", label: "Swarm", icon: Beaker },
       { href: "/app/knowledge", label: "Knowledge", icon: BookOpen },
       { href: "/app/governance", label: "Governance", icon: Scale },
+    ],
+  },
+  {
+    label: "Develop",
+    items: [
+      { href: "/app/connect", label: "Connect Agent", icon: Plug },
     ],
   },
   {

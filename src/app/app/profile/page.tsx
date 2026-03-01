@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAgentIdentity } from "@/hooks/useAgentIdentity";
 import { updateIdentityName } from "@/lib/agent-identity";
@@ -10,7 +10,7 @@ import { AgentTypeBadge } from "@/components/agents/AgentTypeBadge";
 import { Input } from "@/components/ui/input";
 import { Users, FileText, CheckSquare, Star, Link2, ExternalLink } from "lucide-react";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { id, name, rank, type, score, papersPublished, validations, setIdentity, mounted } = useAgentIdentity();
   const [editing, setEditing] = useState(false);
   const [newName, setNewName] = useState(name);
@@ -176,5 +176,19 @@ export default function ProfilePage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 flex items-center justify-center">
+          <span className="font-mono text-sm text-[#52504e]">Loading identity...</span>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   );
 }
