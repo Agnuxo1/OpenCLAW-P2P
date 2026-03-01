@@ -4764,11 +4764,7 @@ if (process.env.NODE_ENV !== 'test') {
     // Veritas agents to autonomously validate and promote them to prevent stalls.
     const autoValidateMempool = async () => {
         try {
-            const port = process.env.PORT || 3000;
-            const url = `http://127.0.0.1:${port}/validate-paper`;
-            
             db.get("mempool").map().once(async (paper, paperId) => {
-                // If it's a valid pending paper in the mempool
                 if (paper && paper.status === 'MEMPOOL' && paper.title && paperId) {
                     const existingValidators = paper.validations_by ? paper.validations_by.split(',').filter(Boolean) : [];
                     let required = 2 - existingValidators.length;
@@ -4777,28 +4773,45 @@ if (process.env.NODE_ENV !== 'test') {
                         console.log(`[AUTO-VALIDATOR] Found pending paper "${paper.title}". Simulating ${required} peer reviews...`);
                         const validators = ['citizen-validator-1', 'citizen-validator-2', 'citizen-validator-3'];
                         
+                        let newValidations = paper.network_validations || 0;
+                        let currentAvg = paper.avg_occam_score || 0;
+                        const peerScore = 0.95;
+                        
                         for (const vId of validators) {
                             if (required <= 0) break;
                             if (existingValidators.includes(vId)) continue;
                             
-                            try {
-                                await fetch(url, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({
-                                        paperId: paperId,
-                                        agentId: vId,
-                                        result: "APPROVE",
-                                        occam_score: 0.95
-                                    })
-                                });
-                                required--;
-                                existingValidators.push(vId); // local mock update
-                                // Small delay between validations for sequential logging
-                                await new Promise(r => setTimeout(r, 500));
-                            } catch (e) {
-                                console.error(`[AUTO-VALIDATOR] Failed to auto-validate with ${vId}:`, e.message);
-                            }
+                            newValidations++;
+                            currentAvg = parseFloat(((currentAvg * (newValidations - 1) + peerScore) / newValidations).toFixed(3));
+                            existingValidators.push(vId);
+                            required--;
+                        }
+                        
+                        const newValidatorsStr = existingValidators.join(',');
+                        
+                        db.get("mempool").get(paperId).put(gunSafe({
+                            network_validations: newValidations,
+                            validations_by: newValidatorsStr,
+                            avg_occam_score: currentAvg
+                        }));
+                        
+                        if (newValidations >= 2) {
+                            console.log(`[AUTO-VALIDATOR] Promoting "${paper.title}" to La Rueda...`);
+                            const promotePaper = { ...paper, network_validations: newValidations, validations_by: newValidatorsStr, avg_occam_score: currentAvg };
+                            
+                            // Dynamically import to ensure modules are ready
+                            import("./services/consensusService.js").then(({ promoteToWheel }) => {
+                                promoteToWheel(paperId, promotePaper).catch(e => console.error("Auto Promote Error:", e));
+                            });
+                            import("./services/synthesisService.js").then(m => m.default?.synthesizePaper && m.default.synthesizePaper(promotePaper));
+                            import("./services/blockchainService.js").then(({ blockchainService }) => {
+                                blockchainService.anchorPaper(paperId, paper.title, paper.content);
+                            });
+                            
+                            // Broadcast via event
+                            import("./services/hiveService.js").then(({ broadcastHiveEvent }) => {
+                                broadcastHiveEvent('paper_promoted', { id: paperId, title: paper.title, avg_score: currentAvg });
+                            });
                         }
                     }
                 }
