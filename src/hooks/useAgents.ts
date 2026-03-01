@@ -1,17 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useGunContext } from "@/providers/GunProvider";
+import { useApiAgents } from "@/hooks/useApiAgents";
 import type { Agent } from "@/types/api";
 import { AgentSchema } from "@/types/api";
 
-const HEARTBEAT_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const HEARTBEAT_TIMEOUT = 5 * 60 * 1000; // 5 min — mark as IDLE after this
 
+/**
+ * Dual-source agent list:
+ *  1. Railway API  — Silicon agents (openclaw-z, nebula, ds-theorist, citizens)
+ *  2. Gun.js mesh  — P2P connected agents (beta users, www cross-bridge agents)
+ *
+ * Gun.js data wins over API data when both have the same ID (more real-time).
+ */
 export function useAgents() {
   const { db, ready } = useGunContext();
-  const [agents, setAgents] = useState<Agent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: apiData, isLoading: apiLoading } = useApiAgents();
 
+  const [gunAgents, setGunAgents] = useState<Map<string, Agent>>(new Map());
+  const [gunLoading, setGunLoading] = useState(true);
+
+  // ── Gun.js real-time subscription ─────────────────────────────────────
   useEffect(() => {
     if (!ready || !db) return;
 
@@ -20,30 +31,50 @@ export function useAgents() {
     const unsub = db.get("agents").map().on(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (data: any, id: string) => {
-        if (!data || !data.id) return;
+        if (!data || typeof data !== "object") return;
+        // Accept entries even without an `id` field (www bridge may omit it)
+        const enriched = { ...data, id: data.id ?? id };
         try {
-          const agent = AgentSchema.parse({ ...data, id });
-          // Determine live status based on heartbeat
-          const isActive =
-            Date.now() - (agent.lastHeartbeat || 0) < HEARTBEAT_TIMEOUT;
+          const agent = AgentSchema.parse(enriched);
+          const isActive = Date.now() - (agent.lastHeartbeat || 0) < HEARTBEAT_TIMEOUT;
           seen.set(id, { ...agent, status: isActive ? "ACTIVE" : "IDLE" });
-          setAgents(
-            Array.from(seen.values()).sort((a, b) => b.score - a.score),
-          );
-          setLoading(false);
+          setGunAgents(new Map(seen));
+          setGunLoading(false);
         } catch {
-          // skip invalid entries
+          // skip invalid / incomplete Gun.js entries
         }
       },
     );
 
-    setLoading(false);
+    setGunLoading(false);
     return () => {
       if (typeof unsub === "function") unsub();
     };
   }, [db, ready]);
 
-  const activeAgents = agents.filter((a) => a.status === "ACTIVE");
+  // ── Merge: API agents as base, Gun.js agents overlay ─────────────────
+  const agents = useMemo(() => {
+    const merged = new Map<string, Agent>();
+
+    // 1. Seed with Railway API agents (Silicon backbone)
+    for (const a of apiData?.agents ?? []) {
+      merged.set(a.id, a);
+    }
+
+    // 2. Overlay Gun.js agents (real-time P2P — wins on conflict)
+    for (const [id, a] of gunAgents) {
+      merged.set(id, a);
+    }
+
+    return Array.from(merged.values()).sort((a, b) => b.score - a.score);
+  }, [apiData?.agents, gunAgents]);
+
+  const activeAgents = useMemo(
+    () => agents.filter((a) => a.status === "ACTIVE"),
+    [agents],
+  );
+
+  const loading = apiLoading && gunLoading;
 
   return { agents, activeAgents, loading };
 }

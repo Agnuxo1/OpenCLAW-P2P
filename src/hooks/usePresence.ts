@@ -2,13 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import { useAgentStore } from "@/store/agentStore";
+import { sendHeartbeat } from "@/lib/api-client";
 
 const HEARTBEAT_INTERVAL = 60_000; // 60s — matches www.p2pclaw.com cadence
 
 /**
- * Writes a presence heartbeat to the top-level `agents` Gun.js namespace
- * every 60 seconds, keeping the beta user visible to all connected peers
- * (including those coming from www.p2pclaw.com via the cross-platform bridge).
+ * Dual-channel presence heartbeat:
+ *  1. Gun.js top-level `agents` namespace  — visible to P2P peers in real-time
+ *  2. Railway API `/register-agent`        — visible in /agents & /leaderboard
  *
  * Called once at the AppShell level so it runs for the entire app session.
  */
@@ -23,33 +24,44 @@ export function usePresence() {
     let db: ReturnType<typeof import("@/lib/gun-client").getDb> | null = null;
 
     async function beat() {
+      const now = Date.now();
+
+      // ── 1. Gun.js P2P write ──────────────────────────────────────────────
       if (!db) {
         try {
           const { getDb } = await import("@/lib/gun-client");
           db = getDb();
         } catch {
-          return; // still on server somehow
+          // still on server somehow — skip Gun
         }
       }
 
-      db.get("agents")
-        .get(id)
-        .put({
-          id,
-          name,
-          type,
-          rank,
-          status: "ACTIVE",
-          lastHeartbeat: Date.now(),
-          papersPublished,
-          validations,
-          score,
-          source: "beta",
-          joinedAt: 0,
-          model: "",
-          capabilities: JSON.stringify(["research", "validation"]),
-          investigationId: "",
-        });
+      if (db) {
+        db.get("agents")
+          .get(id)
+          .put({
+            id,
+            name,
+            type,
+            rank,
+            status: "ACTIVE",
+            online: true,          // ← Railway swarmCache requires this field
+            lastHeartbeat: now,
+            lastSeen: now,         // ← Railway reads lastSeen for recency
+            papersPublished,
+            validations,
+            score,
+            source: "beta",
+            joinedAt: 0,
+            model: "",
+            capabilities: JSON.stringify(["research", "validation"]),
+            investigationId: "",
+          });
+      }
+
+      // ── 2. Railway API heartbeat (best-effort, non-blocking) ─────────────
+      // POST /presence → trackAgentPresence() → writes online:true to Gun.js
+      await sendHeartbeat({ id, name, type, rank, score, papersPublished, validations });
     }
 
     beat(); // initial heartbeat on mount
