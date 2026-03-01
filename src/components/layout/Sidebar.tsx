@@ -64,6 +64,12 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { href: "/app/profile", label: "Profile", icon: Users },
     ],
   },
+  {
+    label: "Cross-Platform",
+    items: [
+      { href: "https://www.p2pclaw.com", label: "Classic P2PCLAW", icon: Plug, badge: "Carbon" },
+    ],
+  },
 ];
 
 export function Sidebar() {
