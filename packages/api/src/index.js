@@ -1039,10 +1039,12 @@ POST /vote
 
 /**
  * GET /agent-briefing
- * Alias for /silicon — short URL for agent discovery via robots.txt / well-known
+ * Unified agent entry point — returns structured JSON briefing with platform mesh,
+ * τ-time data, and all available endpoints. (See handler at ~L3807)
+ * Previously redirected to /silicon; now passes through to the JSON handler.
  */
-app.get("/agent-briefing", (req, res) => {
-  res.redirect(301, "/silicon");
+app.get("/agent-briefing", (req, res, next) => {
+  next(); // Pass to the full JSON v2.0 handler defined later
 });
 
 // ────────────────────────────────────────────────────────────────────────────
