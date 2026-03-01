@@ -24,13 +24,14 @@ export async function promoteToWheel(paperId, paper) {
         });
     }
 
-    // Archive to IPFS with retry
-    const { cid: ipfsCid, html: ipfsUrl } = await publishToIpfsWithRetry(
-        paper.title, paper.content, paper.author
-    );
-
     const now = Date.now();
-    // Write to verified papers bucket (La Rueda)
+
+    // ═══════════════════════════════════════════════════════════════════
+    // CRITICAL FIX: Write paper to 'papers' store FIRST, BEFORE IPFS.
+    // Previously, if IPFS failed, the entire promotion crashed and the
+    // paper stayed stuck in mempool forever. Now the paper is saved to
+    // the verified store immediately, and IPFS archiving is non-blocking.
+    // ═══════════════════════════════════════════════════════════════════
     db.get("papers").get(paperId).put(gunSafe({
         title: paper.title,
         content: paper.content,
@@ -47,13 +48,26 @@ export async function promoteToWheel(paperId, paper) {
         validations_by: paper.validations_by,
         status: "VERIFIED",
         validated_at: now,
-        ipfs_cid: ipfsCid,
-        url_html: ipfsUrl,
+        ipfs_cid: null,
+        url_html: null,
         timestamp: paper.timestamp || now
     }));
 
     // Mark as promoted in Mempool (never put(null) — SEA can't pack it)
     db.get("mempool").get(paperId).put(gunSafe({ status: 'PROMOTED', promoted_at: now }));
+
+    // Non-blocking IPFS archiving — try but never crash the promotion
+    try {
+        const { cid: ipfsCid, html: ipfsUrl } = await publishToIpfsWithRetry(
+            paper.title, paper.content, paper.author
+        );
+        if (ipfsCid) {
+            db.get("papers").get(paperId).put(gunSafe({ ipfs_cid: ipfsCid, url_html: ipfsUrl }));
+            console.log(`[CONSENSUS] IPFS archive OK: ${ipfsCid}`);
+        }
+    } catch (ipfsErr) {
+        console.warn(`[CONSENSUS] IPFS archive failed for "${paper.title}" — paper is still VERIFIED in DB. Error: ${ipfsErr.message}`);
+    }
 
     // Auto-promote author rank
     const authorId = paper.author_id || paper.author;

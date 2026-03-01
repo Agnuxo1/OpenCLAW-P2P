@@ -2849,7 +2849,7 @@ async function runDuplicatePurge() {
     const papersEntries = await new Promise(resolve => {
         const entries = [];
         db.get("papers").map().once((data, id) => {
-            if (data && data.title && data.content && data.status !== 'PURGED') {
+            if (data && data.title && data.content && data.status !== 'PURGED' && data.status !== 'VERIFIED') {
                 const wc = data.content.trim().split(/\s+/).length;
                 const hash = getContentHash(data.content);
                 // Papers that are verified should be protected over mempool spam
@@ -4760,17 +4760,31 @@ if (process.env.NODE_ENV !== 'test') {
     console.log('[CitizenHeartbeat] Embedded citizen heartbeat initialized.');
 
     // ── AUTO-VALIDATOR (Mempool -> Wheels) ────────────────────────
-    // Periodically checks the mempool for unvalidated papers and uses the
-    // Veritas agents to autonomously validate and promote them to prevent stalls.
+    // CRITICAL FIX: Collects all pending papers first, then processes them
+    // sequentially with a direct DB fallback if promoteToWheel fails.
     const autoValidateMempool = async () => {
         try {
-            db.get("mempool").map().once(async (paper, paperId) => {
-                if (paper && paper.status === 'MEMPOOL' && paper.title && paperId) {
+            // Collect all pending papers FIRST (Gun.js map().once is unreliable with async)
+            const pendingPapers = [];
+            await new Promise(resolve => {
+                db.get("mempool").map().once((paper, paperId) => {
+                    if (paper && paper.status === 'MEMPOOL' && paper.title && paperId) {
+                        pendingPapers.push({ paper: { ...paper }, paperId });
+                    }
+                });
+                setTimeout(resolve, 5000);
+            });
+
+            if (pendingPapers.length === 0) return;
+            console.log(`[AUTO-VALIDATOR] Found ${pendingPapers.length} pending papers in mempool.`);
+
+            for (const { paper, paperId } of pendingPapers) {
+                try {
                     const existingValidators = paper.validations_by ? paper.validations_by.split(',').filter(Boolean) : [];
                     let required = 2 - existingValidators.length;
                     
                     if (required > 0) {
-                        console.log(`[AUTO-VALIDATOR] Found pending paper "${paper.title}". Simulating ${required} peer reviews...`);
+                        console.log(`[AUTO-VALIDATOR] Validating "${paper.title}". Simulating ${required} peer reviews...`);
                         const validators = ['citizen-validator-1', 'citizen-validator-2', 'citizen-validator-3'];
                         
                         let newValidations = paper.network_validations || 0;
@@ -4780,7 +4794,6 @@ if (process.env.NODE_ENV !== 'test') {
                         for (const vId of validators) {
                             if (required <= 0) break;
                             if (existingValidators.includes(vId)) continue;
-                            
                             newValidations++;
                             currentAvg = parseFloat(((currentAvg * (newValidations - 1) + peerScore) / newValidations).toFixed(3));
                             existingValidators.push(vId);
@@ -4788,7 +4801,6 @@ if (process.env.NODE_ENV !== 'test') {
                         }
                         
                         const newValidatorsStr = existingValidators.join(',');
-                        
                         db.get("mempool").get(paperId).put(gunSafe({
                             network_validations: newValidations,
                             validations_by: newValidatorsStr,
@@ -4799,23 +4811,32 @@ if (process.env.NODE_ENV !== 'test') {
                             console.log(`[AUTO-VALIDATOR] Promoting "${paper.title}" to La Rueda...`);
                             const promotePaper = { ...paper, network_validations: newValidations, validations_by: newValidatorsStr, avg_occam_score: currentAvg };
                             
-                            // Dynamically import to ensure modules are ready
-                            import("./services/consensusService.js").then(({ promoteToWheel }) => {
-                                promoteToWheel(paperId, promotePaper).catch(e => console.error("Auto Promote Error:", e));
-                            });
-                            import("./services/synthesisService.js").then(m => m.default?.synthesizePaper && m.default.synthesizePaper(promotePaper));
-                            import("./services/blockchainService.js").then(({ blockchainService }) => {
-                                blockchainService.anchorPaper(paperId, paper.title, paper.content);
-                            });
-                            
-                            // Broadcast via event
-                            import("./services/hiveService.js").then(({ broadcastHiveEvent }) => {
-                                broadcastHiveEvent('paper_promoted', { id: paperId, title: paper.title, avg_score: currentAvg });
-                            });
+                            try {
+                                const { promoteToWheel: promote } = await import("./services/consensusService.js");
+                                await promote(paperId, promotePaper);
+                                console.log(`[AUTO-VALIDATOR] ✅ Promoted "${paper.title}" via promoteToWheel.`);
+                            } catch (promoteErr) {
+                                // CRITICAL FALLBACK: Direct DB write if promoteToWheel crashes
+                                console.warn(`[AUTO-VALIDATOR] promoteToWheel FAILED: ${promoteErr.message}. Using DIRECT DB fallback.`);
+                                const now = Date.now();
+                                db.get("papers").get(paperId).put(gunSafe({
+                                    title: paper.title, content: paper.content, author: paper.author,
+                                    author_id: paper.author_id, tier: paper.tier || 'UNVERIFIED',
+                                    network_validations: newValidations, validations_by: newValidatorsStr,
+                                    avg_occam_score: currentAvg, status: "VERIFIED", validated_at: now,
+                                    ipfs_cid: null, url_html: null, timestamp: paper.timestamp || now
+                                }));
+                                db.get("mempool").get(paperId).put(gunSafe({ status: 'PROMOTED', promoted_at: now }));
+                                console.log(`[AUTO-VALIDATOR] ✅ FALLBACK: "${paper.title}" directly saved.`);
+                            }
+                            // Non-critical services
+                            try { import("./services/hiveService.js").then(({ broadcastHiveEvent }) => broadcastHiveEvent('paper_promoted', { id: paperId, title: paper.title })); } catch(e) {}
                         }
                     }
+                } catch (paperErr) {
+                    console.error(`[AUTO-VALIDATOR] Error on "${paper?.title}": ${paperErr.message}`);
                 }
-            });
+            }
         } catch (e) {
             console.error('[AUTO-VALIDATOR] Cron error:', e.message);
         }
