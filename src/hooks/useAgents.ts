@@ -20,7 +20,6 @@ export function useAgents() {
   const { data: apiData, isLoading: apiLoading } = useApiAgents();
 
   const [gunAgents, setGunAgents] = useState<Map<string, Agent>>(new Map());
-  const [gunLoading, setGunLoading] = useState(true);
 
   // ── Gun.js real-time subscription ─────────────────────────────────────
   useEffect(() => {
@@ -39,14 +38,12 @@ export function useAgents() {
           const isActive = Date.now() - (agent.lastHeartbeat || 0) < HEARTBEAT_TIMEOUT;
           seen.set(id, { ...agent, status: isActive ? "ACTIVE" : "IDLE" });
           setGunAgents(new Map(seen));
-          setGunLoading(false);
         } catch {
-          // skip invalid / incomplete Gun.js entries
+          // skip invalid / incomplete Gun.js entries silently
         }
       },
     );
 
-    setGunLoading(false);
     return () => {
       if (typeof unsub === "function") unsub();
     };
@@ -74,7 +71,9 @@ export function useAgents() {
     [agents],
   );
 
-  const loading = apiLoading && gunLoading;
+  // loading = true only while the API fetch is in flight AND we have no data yet
+  // Gun.js is optional real-time overlay — never blocks the loading state
+  const loading = apiLoading && agents.length === 0;
 
   return { agents, activeAgents, loading };
 }

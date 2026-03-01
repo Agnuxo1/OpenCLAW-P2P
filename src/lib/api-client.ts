@@ -89,7 +89,10 @@ export async function fetchAgents(
       : [];
 
   const now = Date.now();
-  const TWO_MIN = 2 * 60 * 1000;
+  // 24h window: handles Railway server clock drift, future timestamps,
+  // and static citizen backbone agents refreshed every ~4 min server-side.
+  // Math.abs handles the case where the server clock is ahead of the client.
+  const ONE_DAY = 24 * 60 * 60 * 1000;
 
   const agents = rawArr.map((a: unknown) => {
     const r = a as Record<string, unknown>;
@@ -116,12 +119,15 @@ export async function fetchAgents(
     const rank: import("@/types/api").AgentRank =
       RANK_MAP[rawRank] ?? "CITIZEN";
 
+    // ACTIVE if lastSeen is within 24h window (handles server clock drift + future ts)
+    const isActive = lastSeen > 0 && Math.abs(now - lastSeen) < ONE_DAY;
+
     return {
       id:             String(r.id ?? "unknown"),
       name:           String(r.name ?? "Unknown Agent"),
       type,
       rank,
-      status:         (now - lastSeen < TWO_MIN ? "ACTIVE" : "IDLE") as import("@/types/api").Agent["status"],
+      status:         (isActive ? "ACTIVE" : "IDLE") as import("@/types/api").Agent["status"],
       lastHeartbeat:  lastSeen,
       papersPublished: Number(r.papersPublished ?? 0),
       validations:     Number(r.validations ?? 0),
