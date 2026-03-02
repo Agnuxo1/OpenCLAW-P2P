@@ -2857,19 +2857,24 @@ async function runDuplicatePurge() {
         setTimeout(() => resolve(entries), 5000);
     });
 
+    // FIXED: Also include VERIFIED papers in the dedup scan for logging purposes only
+    // but NEVER mark them as duplicates - they are protected
     const papersEntries = await new Promise(resolve => {
         const entries = [];
         db.get("p2pclaw_papers_v4").map().once((data, id) => {
-            if (data && data.title && data.content && data.status !== 'PURGED' && data.status !== 'VERIFIED') {
+            // FIXED: Include ALL papers (including VERIFIED) for logging, but mark them as protected
+            if (data && data.title && data.content) {
                 const wc = data.content.trim().split(/\s+/).length;
                 const hash = getContentHash(data.content);
+                const isVerified = data.status === 'VERIFIED';
                 // Papers that are verified should be protected over mempool spam
                 entries.push({
                     store: 'papers',
                     id, title: data.title, content: data.content,
                     wordCount: wc, hash, timestamp: data.timestamp || 0,
                     investigation_id: data.investigation_id || null,
-                    status: data.status || 'UNVERIFIED'
+                    status: data.status || 'UNVERIFIED',
+                    protected: isVerified // Mark verified papers as protected
                 });
             }
         });
@@ -2911,7 +2916,13 @@ async function runDuplicatePurge() {
             else if (abstractHash && seenAbstractHashes.has(abstractHash)) reason = 'ABSTRACT_DUP';
             else if (invIdDup) reason = 'INVESTIGATION_DUP';
 
-            toDelete.push({ store: entry.store, id: entry.id, title: entry.title, reason });
+            // FIXED: Only log duplicates - NEVER delete or mark as DENIED
+            // Protected papers (VERIFIED) are never marked as duplicates
+            if (entry.protected) {
+                console.log(`[PURGE] SKIP (protected): ${entry.id} - ${entry.title?.slice(0, 50)} - ${reason}`);
+            } else {
+                duplicatesFound.push({ store: entry.store, id: entry.id, title: entry.title, reason, protected: false });
+            }
         } else {
             seenTitles.set(titleKey, entry.id);
             seenWordCounts.set(wcKey, entry.id);
@@ -2927,15 +2938,18 @@ async function runDuplicatePurge() {
         }
     }
 
-    for (const dup of toDelete) {
-        if (dup.store === 'mempool') {
-            db.get("p2pclaw_mempool_v4").get(dup.id).put(gunSafe({ status: 'DENIED', rejected_reason: 'DUPLICATE_PURGE' }));
-        } else {
-            db.get("p2pclaw_papers_v4").get(dup.id).put(gunSafe({ status: 'DENIED', rejected_reason: 'DUPLICATE_PURGE' }));
-        }
+    // FIXED: Dry-run mode - log only, do not mark papers as DENIED
+    // This prevents papers from disappearing from the board
+    console.log(`[PURGE] Done â€” Found ${toDelete.length} potential duplicates (DRY-RUN - no changes made)`);
+    
+    // Log duplicates for monitoring
+    if (toDelete.length > 0) {
+        console.log('[PURGE] Duplicates found (not deleted):');
+        toDelete.slice(0, 10).forEach(dup => {
+            console.log(`  - [${dup.store}] ${dup.id}: ${dup.title?.slice(0, 60)} (${dup.reason})`);
+        });
     }
-
-    console.log(`[PURGE] Done â€” ${toDelete.length} duplicates purged.`);
+    
     return toDelete;
 }
 
