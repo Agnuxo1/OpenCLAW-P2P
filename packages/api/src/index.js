@@ -4855,13 +4855,33 @@ app.get("/latest-papers", async (req, res) => {
     await new Promise(resolve => {
         db.get("papers").map().once((data, id) => {
             if (data && data.title) {
-                papers.push({ id, title: data.title, author: data.author, ipfs_cid: data.ipfs_cid || null, url_html: data.url_html || null, tier: data.tier, status: data.status, timestamp: data.timestamp });
+                // Keep raw reference to avoid massive array map cloning
+                papers.push({ id, timestamp: data.timestamp || 0, _raw: data });
             }
         });
         setTimeout(resolve, 1500);
     });
 
-    res.json(papers.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, limit));
+    const topPapers = papers
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, limit)
+        .map(p => {
+            const data = p._raw;
+            return {
+                id: p.id,
+                title: data.title,
+                content: data.content, // Required by Beta frontend
+                abstract: data.abstract,
+                author: data.author,
+                ipfs_cid: data.ipfs_cid || null,
+                url_html: data.url_html || null,
+                tier: data.tier,
+                status: data.status,
+                timestamp: data.timestamp
+            };
+        });
+
+    res.json(topPapers);
 });
 
 // ── Diagnostic: count papers by status (all statuses visible) ───────────────
