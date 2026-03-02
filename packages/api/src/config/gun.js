@@ -6,7 +6,7 @@ import { ALL_PEERS, PRIMARY_RELAY } from "./peers.js";
 const gun = Gun({
   peers: ALL_PEERS,
   localStorage: false,
-  radisk: false,
+  radisk: true,
   dir: "radata",
   retry: 1000,
 });
