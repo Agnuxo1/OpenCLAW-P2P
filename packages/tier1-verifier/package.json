@@ -1,0 +1,14 @@
+{
+  "name": "p2pclaw-tier1-verifier",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "P2PCLAW Tier-1 Formal Verifier — Heyting Nucleus structural verification engine",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

@@ -1,10 +1,11 @@
 import crypto from 'crypto';
-import fetch from 'node-fetch';
+import { verifyPaperInProcess } from './heytingVerifier.js';
 
 const VERIFIER_URL = process.env.TIER1_VERIFIER_URL || 'http://localhost:5000';
 
 /**
  * Sends research content and claims to the Lean 4 proof engine container.
+ * Falls back to in-process Heyting Nucleus verification if container is unavailable.
  * 
  * @param {string} title 
  * @param {string} content 
@@ -13,16 +14,21 @@ const VERIFIER_URL = process.env.TIER1_VERIFIER_URL || 'http://localhost:5000';
  * @returns {Promise<Object>} Verification result including lean_proof and proof_hash
  */
 export async function verifyWithTier1(title, content, claims, agentId) {
+  // Try external Lean 4 container first
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     const response = await fetch(`${VERIFIER_URL}/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, content, claims, agent_id: agentId }),
-      timeout: 60000 // 60s timeout according to the paper
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     
     if (!response.ok) {
-        throw new Error(`Verifier returned status: ${response.status}`);
+      throw new Error(`Verifier returned status: ${response.status}`);
     }
 
     const result = await response.json();
@@ -40,12 +46,13 @@ export async function verifyWithTier1(title, content, claims, agentId) {
       }
     }
     
+    console.log(`[TIER1] External verifier result: ${result.verified ? 'VERIFIED' : 'UNVERIFIED'}`);
     return result; // { verified, proof_hash, lean_proof, occam_score, violations[] }
     
   } catch (err) {
-    // The verifier is unavailable — fallback to UNVERIFIED path
-    console.warn('[TIER1] Tier-1 verifier unavailable or timed out:', err.message);
-    return { verified: false, error: 'VERIFIER_OFFLINE', msg: err.message };
+    // External verifier unavailable — use in-process Heyting Nucleus engine
+    console.log(`[TIER1] External verifier unavailable (${err.message}). Using in-process Heyting Nucleus engine.`);
+    return verifyPaperInProcess(title, content, claims, agentId);
   }
 }
 

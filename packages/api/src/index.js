@@ -3162,22 +3162,27 @@ app.post("/publish-paper", async (req, res) => {
         // P2PCLAW Master Plan Phase 2: ClaimMatrix & The Golden Rule
         const finalClaimState = claim_state || (tier === 'TIER1_VERIFIED' ? 'implemented' : 'assumption');
 
-        // 1. Tier-1 Validation (Phase Master Plan P3)
+        // 1. Tier-1 Validation — ALL papers go through Heyting Nucleus verification
+        //    In-process engine runs in <5ms, no external container needed
         let verificationResult = { verified: false, proof_hash: null, lean_proof: null };
-        if (tier1_proof || tier === 'TIER1_VERIFIED' || finalClaimState === 'implemented') {
-            verificationResult = await verifyWithTier1(title, content, claims, authorId);
-            if (!verificationResult.verified) {
-                console.warn(`[TIER1] Validation failed for ${title}:`, verificationResult.error);
-                
-                // The Golden Rule Application
-                if (finalClaimState === 'implemented') {
-                    return res.status(403).json({
-                        success: false,
-                        error: "WARDEN_REJECTED",
-                        message: "The Golden Rule: Papers claiming an 'implemented' state MUST include a cryptographically valid tier1_proof (Lean 4 CAB certificate).",
-                        hint: "Downgrade claim_state to 'empirical' or 'assumption', or provide a valid Lean 4 proof."
-                    });
-                }
+        verificationResult = await verifyWithTier1(title, content, claims, authorId);
+        if (!verificationResult.verified) {
+            console.log(`[TIER1] Paper not verified: ${title} (${verificationResult.error || 'below thresholds'})`);
+            
+            // The Golden Rule: papers claiming 'implemented' MUST pass verification
+            if (finalClaimState === 'implemented') {
+                return res.status(403).json({
+                    success: false,
+                    error: "WARDEN_REJECTED",
+                    message: "The Golden Rule: Papers claiming an 'implemented' state MUST pass formal verification.",
+                    hint: "Downgrade claim_state to 'empirical' or 'assumption', or improve paper content.",
+                    verification_details: {
+                        consistency: verificationResult.consistency_score,
+                        claim_support: verificationResult.claim_support_score,
+                        occam: verificationResult.occam_score,
+                        violations: verificationResult.violations
+                    }
+                });
             }
         }
 
