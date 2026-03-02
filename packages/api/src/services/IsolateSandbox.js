@@ -35,23 +35,44 @@ export class IsolateSandbox {
 
     /**
      * Executes arbitrary code in a Docker container (or vm fallback).
+     * Supports JavaScript and Python.
      */
     async execute(code, options = {}) {
+        const lang = options.language || this._detectLanguage(code);
+        options._lang = lang;
         if (this.dockerAvailable) {
             return this._executeDocker(code, options);
+        }
+        if (lang === 'python') {
+            return this._executePythonFallback(code, options);
         }
         return this._executeVm(code, options);
     }
 
     /**
-     * Docker-based execution (high isolation).
+     * Detect language from code content.
+     */
+    _detectLanguage(code) {
+        const trimmed = code.trim();
+        if (trimmed.startsWith('#!/usr/bin/env python') || trimmed.startsWith('#!/usr/bin/python')) return 'python';
+        if (trimmed.match(/^(import |from |def |class |print\()/m)) return 'python';
+        return 'javascript';
+    }
+
+    /**
+     * Docker-based execution (high isolation). Supports JS + Python.
      */
     async _executeDocker(code, options = {}) {
         const runId = crypto.randomBytes(8).toString('hex');
         const runFolder = path.join(this.workDir, runId);
         await fs.mkdir(runFolder);
 
-        const scriptPath = path.join(runFolder, 'index.js');
+        const lang = options._lang || 'javascript';
+        const ext = lang === 'python' ? '.py' : '.js';
+        const image = lang === 'python' ? 'python:3.11-slim' : 'node:18-slim';
+        const cmd = lang === 'python' ? ['python', `script${ext}`] : ['node', `script${ext}`];
+
+        const scriptPath = path.join(runFolder, `script${ext}`);
         await fs.writeFile(scriptPath, code);
 
         const memoryLimit = options.memory || '128m';
@@ -64,9 +85,10 @@ export class IsolateSandbox {
                 '--name', `p2pclaw-sandbox-${runId}`,
                 '--memory', memoryLimit,
                 '--cpus', cpuLimit,
+                '--network', 'none',
                 '-v', `${path.resolve(runFolder)}:/app`,
                 '-w', '/app',
-                'node:18-slim', 'node', 'index.js'
+                image, ...cmd
             ];
 
             const proc = spawn('docker', dockerArgs);
@@ -75,7 +97,7 @@ export class IsolateSandbox {
 
             const timer = setTimeout(() => {
                 spawn('docker', ['stop', `p2pclaw-sandbox-${runId}`]);
-                resolve({ success: false, error: 'TIMEOUT', stdout, stderr: stderr + '\nExecution timed out.' });
+                resolve({ success: false, error: 'TIMEOUT', language: lang, stdout, stderr: stderr + '\nExecution timed out.' });
             }, timeout);
 
             proc.stdout.on('data', d => stdout += d.toString());
@@ -84,7 +106,7 @@ export class IsolateSandbox {
             proc.on('close', async (code) => {
                 clearTimeout(timer);
                 try { await fs.rm(runFolder, { recursive: true, force: true }); } catch {}
-                resolve({ success: code === 0, exitCode: code, stdout, stderr });
+                resolve({ success: code === 0, exitCode: code, language: lang, stdout, stderr });
             });
         });
     }
@@ -121,6 +143,43 @@ export class IsolateSandbox {
                 stdout: logs.join('\n'),
                 stderr: err.message
             };
+        }
+    }
+
+    /**
+     * Python fallback — try local Python interpreter if Docker unavailable.
+     */
+    async _executePythonFallback(code, options = {}) {
+        const timeout = options.timeout || 10000;
+        const runId = crypto.randomBytes(8).toString('hex');
+        const tmpFile = path.join(this.workDir, `py_${runId}.py`);
+
+        try {
+            await fs.writeFile(tmpFile, code);
+            return new Promise(resolve => {
+                const proc = spawn('python3', [tmpFile], { timeout });
+                let stdout = '', stderr = '';
+                proc.stdout.on('data', d => stdout += d.toString());
+                proc.stderr.on('data', d => stderr += d.toString());
+
+                const timer = setTimeout(() => {
+                    proc.kill();
+                    resolve({ success: false, error: 'TIMEOUT', language: 'python', stdout, stderr });
+                }, timeout);
+
+                proc.on('close', async exitCode => {
+                    clearTimeout(timer);
+                    try { await fs.unlink(tmpFile); } catch {}
+                    resolve({ success: exitCode === 0, exitCode, language: 'python', stdout, stderr });
+                });
+                proc.on('error', async () => {
+                    clearTimeout(timer);
+                    try { await fs.unlink(tmpFile); } catch {}
+                    resolve({ success: false, exitCode: 1, language: 'python', stdout: '', stderr: 'Python not available on this system. Use Docker for Python execution.' });
+                });
+            });
+        } catch (e) {
+            return { success: false, error: e.message, language: 'python', stdout: '', stderr: e.message };
         }
     }
 }

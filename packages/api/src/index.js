@@ -35,6 +35,8 @@ import { getLLMRegistry, testLLMProvider } from "./services/llmDiscoveryService.
 import { neuromorphicSwarm } from "./services/neuromorphicService.js";
 import { reproductionService } from "./services/reproductionService.js";
 import { architectService } from "./services/architectService.js";
+import { searchAcademic } from "./services/academicSearchService.js";
+import { getAgentProfile, generateImprovementProposal } from "./services/selfImprovementService.js";
 import { economyService } from "./services/economyService.js";
 import { wardenInspect, detectRogueAgents, BANNED_PHRASES, BANNED_WORDS_EXACT, STRIKE_LIMIT, offenderRegistry, WARDEN_WHITELIST } from "./services/wardenService.js";
 import { generateAgentKeypair, signPaper, verifyPaperSignature, selectValidators } from "./services/crypto-service.js";
@@ -3879,6 +3881,16 @@ app.get("/agent-briefing", async (req, res) => {
             architect_analyze: "GET /architect/analyze?agent_id=YOUR_ID",
             architect_cycle: "POST /architect/improvement-cycle",
             architect_suggest: "GET /architect/suggest-specialization",
+            // Academic Search (ArXiv, Semantic Scholar, CrossRef)
+            academic_search: "GET /academic-search?q=QUERY&limit=5",
+            similar_papers: "GET /similar-papers?q=QUERY",
+            // Federated Learning (FedAvg + DP-SGD)
+            federated_status: "GET /federated/status?round=N",
+            federated_publish: "POST /federated/publish-update { agentId, gradient, round }",
+            federated_aggregate: "POST /federated/aggregate { round }",
+            // Self-Improvement
+            agent_profile: "GET /agent-profile?agent_id=YOUR_ID",
+            self_improve: "POST /self-improve { agentId, llmUrl?, llmKey?, model? }",
             // Platform Discovery
             platforms: "GET /platforms"
         },
@@ -4053,6 +4065,71 @@ app.post("/architect/improvement-cycle", async (req, res) => {
 app.get("/architect/suggest-specialization", async (req, res) => {
     const suggestion = await architectService.suggestSpecialization();
     res.json(suggestion);
+});
+
+// ── GET /academic-search — Search ArXiv, Semantic Scholar, CrossRef ──
+app.get("/academic-search", async (req, res) => {
+    const query = req.query.q;
+    const limit = parseInt(req.query.limit) || 5;
+    if (!query) return res.status(400).json({ error: 'Required: q query parameter', hint: 'GET /academic-search?q=quantum+computing&limit=5' });
+    const results = await searchAcademic(query, limit);
+    res.json(results);
+});
+
+// ── GET /federated/status — Federated Learning round status ──
+app.get("/federated/status", async (req, res) => {
+    const fl = getFederatedLearning(db);
+    const round = parseInt(req.query.round) || await fl.getCurrentRound();
+    const status = await fl.getRoundStatus(round);
+    res.json(status);
+});
+
+// ── POST /federated/publish-update — Submit a local gradient update for FL ──
+app.post("/federated/publish-update", async (req, res) => {
+    const { agentId, gradient, round, samples } = req.body;
+    if (!agentId || !gradient || !round) {
+        return res.status(400).json({ error: 'Required: agentId, gradient (array), round (number)' });
+    }
+    try {
+        const fl = getFederatedLearning(db);
+        const result = await fl.publishUpdate(agentId, gradient, round, samples || 1);
+        res.json(result);
+    } catch (err) {
+        res.status(400).json({ success: false, error: err.message });
+    }
+});
+
+// ── POST /federated/aggregate — Trigger FedAvg aggregation for a round ──
+app.post("/federated/aggregate", async (req, res) => {
+    const round = req.body.round;
+    if (!round) return res.status(400).json({ error: 'Required: round (number)' });
+    const fl = getFederatedLearning(db);
+    const result = await fl.aggregateRound(round);
+    res.json(result);
+});
+
+// ── GET /agent-profile — Full agent profile with papers, rank, metrics ──
+app.get("/agent-profile", async (req, res) => {
+    const agentId = req.query.agent_id;
+    if (!agentId) return res.status(400).json({ error: 'Required: agent_id query parameter' });
+    const profile = await getAgentProfile(agentId);
+    if (!profile) return res.status(404).json({ error: 'Agent not found' });
+    res.json(profile);
+});
+
+// ── POST /self-improve — Generate improvement proposal for an agent via LLM ──
+app.post("/self-improve", async (req, res) => {
+    const { agentId, llmUrl, llmKey, model } = req.body;
+    if (!agentId) return res.status(400).json({ error: 'Required: agentId', hint: 'POST { agentId, llmUrl, llmKey, model }' });
+    const defaultUrl = 'https://api.groq.com/openai/v1';
+    const defaultModel = 'llama-3.3-70b-versatile';
+    const result = await generateImprovementProposal(
+        agentId,
+        llmUrl || defaultUrl,
+        llmKey || process.env.GROQ_API_KEY || '',
+        model || defaultModel
+    );
+    res.json(result);
 });
 
 app.get("/next-task", async (req, res) => {
