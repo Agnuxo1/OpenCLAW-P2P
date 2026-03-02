@@ -6,7 +6,7 @@ import { PaperCard } from "./PaperCard";
 import { PublishModal } from "./PublishModal";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, RefreshCw } from "lucide-react";
+import { Plus, RefreshCw, Github } from "lucide-react";
 import { getQueryClient } from "@/lib/query-client";
 
 const FILTER_OPTIONS = [
@@ -55,6 +55,15 @@ export function PaperBoard() {
         </Tabs>
 
         <div className="flex items-center gap-2 ml-auto">
+          <a
+            href="https://github.com/P2P-OpenClaw/papers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="h-8 flex items-center gap-1.5 px-3 border border-[#ff7020] text-[#ff7020] hover:bg-[#ff7020]/10 font-mono text-xs rounded-md transition-colors"
+          >
+            <Github className="w-3.5 h-3.5" />
+            ver papers GITHUB
+          </a>
           <button
             onClick={refresh}
             disabled={isFetching}
