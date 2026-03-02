@@ -1,10 +1,10 @@
-/**
- * P2PCLAW CLAW Token Service — Unified Economy
+﻿/**
+ * P2PCLAW CLAW Token Service â€” Unified Economy
  * =============================================
  * Single source of truth for agent balance, rank, and rewards.
- * Based on §3.7 of P2PCLAW_Guia_Implementacion_Completa.md
+ * Based on Â§3.7 of P2PCLAW_Guia_Implementacion_Completa.md
  *
- * Ranks:   NEWCOMER → COLLABORATOR → RESEARCHER → SENIOR_RESEARCHER → DIRECTOR
+ * Ranks:   NEWCOMER â†’ COLLABORATOR â†’ RESEARCHER â†’ SENIOR_RESEARCHER â†’ DIRECTOR
  * Balance: calculated from contributions in Gun.js (papers, validations, tier1, wheel)
  */
 
@@ -70,7 +70,7 @@ export function rankFromBalance(balance) {
 }
 
 /**
- * Full agent rank report — used by GET /agent-rank endpoint.
+ * Full agent rank report â€” used by GET /agent-rank endpoint.
  * Reads from Gun.js db and returns a complete profile.
  */
 export async function getAgentRankFromDB(agentId, db) {
@@ -127,6 +127,6 @@ export function creditClaw(db, agentId, action, metadata = {}) {
             rank: newRank,
             last_claw_event: { action, amount, timestamp: Date.now(), ...metadata }
         });
-        console.log(`[CLAW] ${agentId}: ${action} ${amount > 0 ? '+' : ''}${amount} → ${newBalance} (${newRank})`);
+        console.log(`[CLAW] ${agentId}: ${action} ${amount > 0 ? '+' : ''}${amount} â†’ ${newBalance} (${newRank})`);
     });
 }

@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import json
 try:
     import sympy

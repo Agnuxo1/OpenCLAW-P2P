@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Patch @modelcontextprotocol/sdk to accept clients that only send
  * Accept: application/json (like Smithery) without requiring text/event-stream.
  *
@@ -48,7 +48,7 @@ for (const rel of TARGETS) {
     let changed = false;
     for (const p of PATCHES) {
         if (content.includes(p.new.slice(0, 40))) { console.log(`[patch] Already applied (${p.name}): ${rel}`); continue; }
-        if (!content.includes(p.old)) { console.log(`[patch] Pattern not found (${p.name}) — SDK changed?: ${rel}`); continue; }
+        if (!content.includes(p.old)) { console.log(`[patch] Pattern not found (${p.name}) â€” SDK changed?: ${rel}`); continue; }
         content = content.replace(p.old, p.new);
         console.log(`[patch] OK (${p.name}): ${rel}`);
         changed = true;

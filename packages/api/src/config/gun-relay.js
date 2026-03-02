@@ -1,4 +1,4 @@
-import Gun from "gun";
+﻿import Gun from "gun";
 
 /**
  * Attaches a Gun.js WebSocket relay to an existing HTTP server.

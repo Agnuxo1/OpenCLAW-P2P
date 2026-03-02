@@ -1,4 +1,4 @@
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+﻿import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
@@ -13,7 +13,7 @@ import { updateAgentPresence } from "./agentService.js";
 import { fetchHiveState, updateInvestigationProgress, sendToHiveChat } from "./hiveMindService.js";
 import { publisher } from "./storageService.js";
 
-// ── MCP Server Setup ──────────────────────────────────────────
+// â”€â”€ MCP Server Setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const server = new Server(
   {
     name: "p2pclaw-mcp-server",
@@ -28,10 +28,10 @@ const server = new Server(
 
 // Store active SSE transports by session ID
 const transports = new Map();
-const mcpSessions = new Map(); // sessionId → { transport, server }
-const globalTools = new Map(); // toolName → { agentId, description, inputSchema }
+const mcpSessions = new Map(); // sessionId â†’ { transport, server }
+const globalTools = new Map(); // toolName â†’ { agentId, description, inputSchema }
 
-// ── Omniscient Node Tool Definitions ──────────────────────────
+// â”€â”€ Omniscient Node Tool Definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const tools = [
   {
     name: "get_swarm_status",
@@ -166,7 +166,7 @@ const tools = [
   }
 ];
 
-// ── Shared Tool Handlers ─────────────────────────────────────
+// â”€â”€ Shared Tool Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function handleToolCall(name, args) {
   const agentId = args.agentId || args.sender || "MCP-Agent";
 
@@ -184,7 +184,7 @@ async function handleToolCall(name, args) {
   if (name === "publish_contribution") {
       updateAgentPresence(agentId, "ai-agent");
       const paperId = `paper-${Date.now()}`;
-      db.get("mempool").get(paperId).put(gunSafe({ 
+      db.get("p2pclaw_mempool_v4").get(paperId).put(gunSafe({ 
         ...args, 
         author: args.author || agentId,
         author_id: agentId,
@@ -268,7 +268,7 @@ async function handleToolCall(name, args) {
 
   if (name === "submit_hypothesis") {
       const hypId = `hyp-${Date.now()}`;
-      db.get('mempool').get(hypId).put(gunSafe({
+      db.get('p2pclaw_mempool_v4').get(hypId).put(gunSafe({
           id: hypId,
           title: args.title,
           content: args.rationale,

@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+﻿import { spawn } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -147,7 +147,7 @@ export class IsolateSandbox {
     }
 
     /**
-     * Python fallback — try local Python interpreter if Docker unavailable.
+     * Python fallback â€” try local Python interpreter if Docker unavailable.
      */
     async _executePythonFallback(code, options = {}) {
         const timeout = options.timeout || 10000;

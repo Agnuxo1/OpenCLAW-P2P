@@ -1,13 +1,13 @@
-/**
- * P2PCLAW Sparse Memory — Veselov Hierarchical Representation
+﻿/**
+ * P2PCLAW Sparse Memory â€” Veselov Hierarchical Representation
  * ===========================================================
- * Implements hierarchical sparse number representation (§2.3, §3.5).
- * Level weights grow super-exponentially: w_l = 10^(3·2^(l-1))
+ * Implements hierarchical sparse number representation (Â§2.3, Â§3.5).
+ * Level weights grow super-exponentially: w_l = 10^(3Â·2^(l-1))
  * Memory savings: 100-1000x for sparse embeddings vs dense arrays.
  *
  * Classes:
- *   SparseHierarchicalNumber  — BigInt-based sparse number
- *   SparseEmbeddingStore      — semantic similarity without external model
+ *   SparseHierarchicalNumber  â€” BigInt-based sparse number
+ *   SparseEmbeddingStore      â€” semantic similarity without external model
  */
 
 // Level weights: w0=1, w1=1000, w2=10^6, w3=10^12, w4=10^24, ...
@@ -18,7 +18,7 @@ for (let i = 1; i <= 20; i++) {
 
 export class SparseHierarchicalNumber {
     constructor() {
-        this.levels = new Map(); // level → BigInt value
+        this.levels = new Map(); // level â†’ BigInt value
     }
 
     set(level, value) {
@@ -74,12 +74,12 @@ export class SparseHierarchicalNumber {
 }
 
 /**
- * Sparse embedding store for papers — O(1) per non-zero dimension.
+ * Sparse embedding store for papers â€” O(1) per non-zero dimension.
  * Cosine similarity uses only non-zero dims (fast for sparse vectors).
  */
 export class SparseEmbeddingStore {
     constructor() {
-        this.embeddings = new Map(); // paperId → { dims: Map<idx,float>, total: number }
+        this.embeddings = new Map(); // paperId â†’ { dims: Map<idx,float>, total: number }
     }
 
     /**
@@ -99,7 +99,7 @@ export class SparseEmbeddingStore {
 
     /**
      * Store a text-derived sparse embedding using TF-IDF style hashing.
-     * No external model needed — uses character n-gram hashing.
+     * No external model needed â€” uses character n-gram hashing.
      */
     storeText(paperId, text, dimensions = 512) {
         const embedding = new Float32Array(dimensions);
@@ -176,5 +176,5 @@ export class SparseEmbeddingStore {
     }
 }
 
-// Singleton store for papers — shared across the API process
+// Singleton store for papers â€” shared across the API process
 export const globalEmbeddingStore = new SparseEmbeddingStore();

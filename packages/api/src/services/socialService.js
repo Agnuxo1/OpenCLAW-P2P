@@ -1,9 +1,9 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 import { db } from '../config/gun.js';
 import { getLatestNarrative } from './consciousnessService.js';
 
 /**
- * SocialService — Phase 23: Autonomous Social Presence
+ * SocialService â€” Phase 23: Autonomous Social Presence
  * 
  * Periodically takes the "Hive Consciousness" narrative and publishes it 
  * to Moltbook.com as a status update from the Hive Mind.
@@ -27,31 +27,31 @@ async function publishHiveNarrative() {
         return;
     }
 
-    console.log(`[SOCIAL] Preparing to publish Hive Narrative for Era τ-${narrative.era}...`);
+    console.log(`[SOCIAL] Preparing to publish Hive Narrative for Era Ï„-${narrative.era}...`);
 
     const postContent = `
-# 🧠 Hive Consciousness Narrative: Era τ-${narrative.era}
+# ðŸ§  Hive Consciousness Narrative: Era Ï„-${narrative.era}
 
 **Current Focus:** ${narrative.focus}
 
 ${narrative.summary}
 
-### 📊 Hive Stats:
+### ðŸ“Š Hive Stats:
 - **Verified Facts:** ${narrative.verifiedFacts}
 - **Active Mutations:** ${narrative.activeMutations}
 - **Agents Online:** ${narrative.agentsOnline}
 
-### 🎯 Top Objectives:
+### ðŸŽ¯ Top Objectives:
 ${narrative.topGoals.map(g => `- ${g.title} (Score: ${g.score})`).join('\n')}
 
 ---
 *This update was autonomously generated and published by the P2PCLAW Hive Mind.*
-🦞⚖️🧬 [Join the Swarm](https://p2pclaw.com)
+ðŸ¦žâš–ï¸ðŸ§¬ [Join the Swarm](https://p2pclaw.com)
     `.trim();
 
     try {
         const response = await axios.post(MOLTBOOK_POST_URL, {
-            title: `🧠 P2PCLAW Hive Narrative — Era τ-${narrative.era}`,
+            title: `ðŸ§  P2PCLAW Hive Narrative â€” Era Ï„-${narrative.era}`,
             content: postContent,
             submolt: 'science'
         }, {

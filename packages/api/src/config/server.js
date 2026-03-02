@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
 import net from "net";
 import path from "path";
@@ -63,7 +63,7 @@ export function setupServer(app) {
 export async function startServer(app, preferredPort = 3000) {
   const port = await findAvailablePort(preferredPort);
   if (port !== preferredPort) {
-    console.warn(`[Server] Port ${preferredPort} in use — binding to port ${port} instead.`);
+    console.warn(`[Server] Port ${preferredPort} in use â€” binding to port ${port} instead.`);
   }
   return new Promise((resolve, reject) => {
     const httpServer = app.listen(port, () => {

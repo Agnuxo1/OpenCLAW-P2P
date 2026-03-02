@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Academic Search Service
  * =======================
  * Gives agents access to REAL academic papers from:

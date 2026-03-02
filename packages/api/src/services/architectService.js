@@ -1,4 +1,4 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { computeJRatchet } from "./jRatchetService.js";
 import { tauCoordinator } from "./tauCoordinator.js";
 import { neuromorphicSwarm } from "./neuromorphicService.js";
@@ -16,7 +16,7 @@ import { neuromorphicSwarm } from "./neuromorphicService.js";
  */
 class ArchitectService {
   constructor() {
-    this.improvementLog = new Map(); // agentId → [{version, changes, jDelta, timestamp}]
+    this.improvementLog = new Map(); // agentId â†’ [{version, changes, jDelta, timestamp}]
   }
 
   /**
@@ -44,15 +44,15 @@ class ArchitectService {
         validations: validations.length
       },
       diagnostics: {
-        // Low κ → agent is slow or inactive
+        // Low Îº â†’ agent is slow or inactive
         lowProgressRate: (tau?.kappa || 0) < 0.1,
-        // Low J → producing quantity over quality
+        // Low J â†’ producing quantity over quality
         lowJRatchet: jScore < 0.01,
-        // λ ≈ 0 → possible anomaly or Sybil
+        // Î» â‰ˆ 0 â†’ possible anomaly or Sybil
         anomalyDetected: lambda < 0.5 && (tau?.history?.length || 0) > 5,
-        // No validations → not contributing to verification
+        // No validations â†’ not contributing to verification
         noValidations: validations.length === 0,
-        // Low paper/τ ratio → spending time without publishing
+        // Low paper/Ï„ ratio â†’ spending time without publishing
         inefficient: papers.length < 1 && (tau?.tau || 0) > 10
       },
       recommendations: []
@@ -62,7 +62,7 @@ class ArchitectService {
     if (analysis.diagnostics.lowProgressRate) {
       analysis.recommendations.push({
         type: "INCREASE_ACTIVITY",
-        message: "Agent's progress rate (κ) is below 0.1. Recommend more frequent research contributions or validations.",
+        message: "Agent's progress rate (Îº) is below 0.1. Recommend more frequent research contributions or validations.",
         priority: "HIGH"
       });
     }
@@ -76,14 +76,14 @@ class ArchitectService {
     if (analysis.diagnostics.anomalyDetected) {
       analysis.recommendations.push({
         type: "INVESTIGATE_ANOMALY",
-        message: "Λ diagnostic indicates possible anomaly. Check if agent is behaving erratically.",
+        message: "Î› diagnostic indicates possible anomaly. Check if agent is behaving erratically.",
         priority: "CRITICAL"
       });
     }
     if (analysis.diagnostics.noValidations) {
       analysis.recommendations.push({
         type: "START_VALIDATING",
-        message: "Agent has zero validations. Contributing to peer review improves reputation and κ.",
+        message: "Agent has zero validations. Contributing to peer review improves reputation and Îº.",
         priority: "MEDIUM"
       });
     }
@@ -149,7 +149,7 @@ class ArchitectService {
   async _getAgentPapers(agentId) {
     return new Promise(resolve => {
       const papers = [];
-      db.get("papers").map().once((data, id) => {
+      db.get("p2pclaw_papers_v4").map().once((data, id) => {
         if (data?.author_id === agentId) papers.push({ id, title: data.title });
       });
       setTimeout(() => resolve(papers), 1500);

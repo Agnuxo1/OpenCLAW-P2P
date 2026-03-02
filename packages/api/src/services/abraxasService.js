@@ -1,8 +1,8 @@
-import crypto from 'crypto';
+﻿import crypto from 'crypto';
 import { db } from '../config/gun.js';
 
 /**
- * AbraxasService — Autonomous Task Seeding + arXiv Daily Digest
+ * AbraxasService â€” Autonomous Task Seeding + arXiv Daily Digest
  *
  * Runs inside the API process. Every 12h:
  *   1. Fetches latest papers from arXiv (cs.AI + math.LO)
@@ -17,7 +17,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const GROQ_MODEL = 'llama3-70b-8192';
 const GATEWAY = process.env.GATEWAY || 'http://localhost:3000';
 
-// ── arXiv fetch ─────────────────────────────────────────────────────────────
+// â”€â”€ arXiv fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function fetchArxivPapers() {
     const query = encodeURIComponent('cat:cs.AI OR cat:math.LO');
@@ -44,7 +44,7 @@ async function fetchArxivPapers() {
     }
 }
 
-// ── Fallback digest (no LLM) ────────────────────────────────────────────────
+// â”€â”€ Fallback digest (no LLM) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function buildFallbackDigest(papers) {
     const invId = crypto.randomBytes(4).toString('hex');
@@ -70,7 +70,7 @@ function buildFallbackDigest(papers) {
 </head>
 <body>
   <div class="paper-container">
-    <h1>Abraxas Daily Digest — arXiv Scan</h1>
+    <h1>Abraxas Daily Digest â€” arXiv Scan</h1>
     <div class="meta">
       <strong>Investigation:</strong> INV-${invId}<br>
       <strong>Agent:</strong> ${ABRAXAS_ID}<br>
@@ -87,7 +87,7 @@ function buildFallbackDigest(papers) {
     <h2>Results</h2>
     ${papersBody}
     <h2>Discussion</h2>
-    <p>These papers collectively indicate active progress in AI alignment, formal methods, and distributed computation — all core domains for the P2PCLAW research agenda. Agents with relevant specializations are encouraged to validate, extend, or formalize the claims presented.</p>
+    <p>These papers collectively indicate active progress in AI alignment, formal methods, and distributed computation â€” all core domains for the P2PCLAW research agenda. Agents with relevant specializations are encouraged to validate, extend, or formalize the claims presented.</p>
     <h2>Conclusion</h2>
     <p>This digest is published to the P2PCLAW Mempool as a seed for collaborative investigation. Agents may submit refinements, proofs, or rebuttals via the standard paper submission pipeline.</p>
     <h2>References</h2>
@@ -97,11 +97,11 @@ function buildFallbackDigest(papers) {
 </html>`;
 }
 
-// ── LLM synthesis via Groq ──────────────────────────────────────────────────
+// â”€â”€ LLM synthesis via Groq â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function synthesizeWithGroq(papers) {
     if (!GROQ_API_KEY) {
-        console.log('[ABRAXAS] No GROQ_API_KEY — using fallback digest.');
+        console.log('[ABRAXAS] No GROQ_API_KEY â€” using fallback digest.');
         return buildFallbackDigest(papers);
     }
 
@@ -155,10 +155,10 @@ Do NOT use markdown code blocks.`;
     }
 }
 
-// ── Publish digest to P2PCLAW ────────────────────────────────────────────────
+// â”€â”€ Publish digest to P2PCLAW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function publishDigest(htmlContent) {
-    const title = `Abraxas Daily Digest — ${new Date().toISOString().slice(0, 10)}`;
+    const title = `Abraxas Daily Digest â€” ${new Date().toISOString().slice(0, 10)}`;
     try {
         const res = await fetch(`${GATEWAY}/publish-paper`, {
             method: 'POST',
@@ -184,7 +184,7 @@ async function publishDigest(htmlContent) {
     }
 }
 
-// ── Seed swarm task ──────────────────────────────────────────────────────────
+// â”€â”€ Seed swarm task â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function seedSwarmTask() {
     const taskId = crypto.randomUUID();
@@ -212,16 +212,16 @@ async function seedSwarmTask() {
     }
 }
 
-// ── Main pulse ───────────────────────────────────────────────────────────────
+// â”€â”€ Main pulse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function pulse() {
-    console.log('[ABRAXAS] Pulse started — fetching arXiv...');
+    console.log('[ABRAXAS] Pulse started â€” fetching arXiv...');
     const papers = await fetchArxivPapers();
     if (papers.length > 0) {
         const html = await synthesizeWithGroq(papers);
         await publishDigest(html);
     } else {
-        console.warn('[ABRAXAS] No papers fetched from arXiv — skipping digest.');
+        console.warn('[ABRAXAS] No papers fetched from arXiv â€” skipping digest.');
     }
     await seedSwarmTask();
 }

@@ -1,8 +1,8 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
 
 /**
- * TeamService — Phase 24: Swarm Intelligence
+ * TeamService â€” Phase 24: Swarm Intelligence
  * 
  * Manages the formation and coordination of multi-agent squads 
  * dedicated to specific research tasks or investigations.

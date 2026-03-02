@@ -1,4 +1,4 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { gunSafe } from "../utils/gunUtils.js";
 import { broadcastHiveEvent } from "./hiveService.js";
 import { economyService } from "./economyService.js";

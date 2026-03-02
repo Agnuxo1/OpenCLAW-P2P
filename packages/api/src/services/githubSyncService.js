@@ -1,4 +1,4 @@
-/**
+﻿/**
  * P2PCLAW GitHub Paper Sync Service
  * =================================
  * Automatically pushes published papers to the P2P-OpenClaw/papers repository.

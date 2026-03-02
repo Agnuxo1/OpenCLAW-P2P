@@ -1,15 +1,15 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 
 /**
  * TauCoordinator v2.0
- * Full Al-Mayahi spec: trapezoidal integration, Λ diagnostic, SFR metric, history tracking.
- * Implements τ-normalization from OpenCLAW-P2P Extended paper (Section 4).
+ * Full Al-Mayahi spec: trapezoidal integration, Î› diagnostic, SFR metric, history tracking.
+ * Implements Ï„-normalization from OpenCLAW-P2P Extended paper (Section 4).
  * 
  * Math:
- *   κ_k(t) = α·(TPS_k/TPS_max) + β·VWU_k(t) + γ·IG_k(t)
- *   τ_k(t) = ∫ κ_k(s) ds ≈ Σ ½·(κ_prev + κ_new)·Δt   [Trapezoidal]
- *   r_{t+1}^k = λ·r_t^k + (1-λ)·(q_k / Δτ_k)
- *   Λ = Var(θ) / (Var(r) + ε) - 1                       [Anomaly diagnostic]
+ *   Îº_k(t) = Î±Â·(TPS_k/TPS_max) + Î²Â·VWU_k(t) + Î³Â·IG_k(t)
+ *   Ï„_k(t) = âˆ« Îº_k(s) ds â‰ˆ Î£ Â½Â·(Îº_prev + Îº_new)Â·Î”t   [Trapezoidal]
+ *   r_{t+1}^k = Î»Â·r_t^k + (1-Î»)Â·(q_k / Î”Ï„_k)
+ *   Î› = Var(Î¸) / (Var(r) + Îµ) - 1                       [Anomaly diagnostic]
  */
 class TauCoordinator {
   constructor() {
@@ -22,8 +22,8 @@ class TauCoordinator {
   }
 
   /**
-   * Calculate κ (progress rate)
-   * κ_k(t) = α·(TPS_k/TPS_max) + β·VWU_k(t) + γ·IG_k(t)
+   * Calculate Îº (progress rate)
+   * Îº_k(t) = Î±Â·(TPS_k/TPS_max) + Î²Â·VWU_k(t) + Î³Â·IG_k(t)
    */
   computeKappa(agentStats) {
     const { tps = 0, tps_max = 50, validatedWorkUnits = 0, informationGain = 0 } = agentStats;
@@ -32,8 +32,8 @@ class TauCoordinator {
   }
 
   /**
-   * Update cumulative τ for an agent using TRAPEZOIDAL integration
-   * Δτ = ½·(κ_prev + κ_new)·dt   (Al-Mayahi spec)
+   * Update cumulative Ï„ for an agent using TRAPEZOIDAL integration
+   * Î”Ï„ = Â½Â·(Îº_prev + Îº_new)Â·dt   (Al-Mayahi spec)
    */
   updateTau(agentId, agentStats) {
     const now = Date.now();
@@ -42,11 +42,11 @@ class TauCoordinator {
     const dt = (now - prev.lastUpdate) / 1000; // seconds
     const kappa = this.computeKappa(agentStats);
     
-    // Trapezoidal integration: ½·(κ_prev + κ_new)·Δt
+    // Trapezoidal integration: Â½Â·(Îº_prev + Îº_new)Â·Î”t
     const deltaTau = 0.5 * (prev.kappa + kappa) * dt;
     const newTau = prev.tau + deltaTau;
     
-    // Keep last 100 history entries for Λ diagnostic
+    // Keep last 100 history entries for Î› diagnostic
     const history = [...(prev.history || []).slice(-99), { tau: newTau, kappa, t: now }];
     
     this.agentProgress.set(agentId, {
@@ -67,8 +67,8 @@ class TauCoordinator {
   }
 
   /**
-   * Calculate final reputation using λ-decay and τ-normalized quality
-   * r_{t+1}^k = λ·r_t^k + (1-λ)·(q_k / Δτ_k)
+   * Calculate final reputation using Î»-decay and Ï„-normalized quality
+   * r_{t+1}^k = Î»Â·r_t^k + (1-Î»)Â·(q_k / Î”Ï„_k)
    */
   updateReputation(agentId, qualityScore, prevReputation) {
     const agentData = this.agentProgress.get(agentId);
@@ -82,10 +82,10 @@ class TauCoordinator {
   }
 
   /**
-   * Al-Mayahi Λ diagnostic — anomaly detector
-   * Λ = Var(τ_history) / (Var(residuals) + ε) - 1
-   * Λ >> 0 → well-synchronized agent (good)
-   * Λ ≈ 0 → anomaly or Sybil attack
+   * Al-Mayahi Î› diagnostic â€” anomaly detector
+   * Î› = Var(Ï„_history) / (Var(residuals) + Îµ) - 1
+   * Î› >> 0 â†’ well-synchronized agent (good)
+   * Î› â‰ˆ 0 â†’ anomaly or Sybil attack
    */
   computeLambda(agentId) {
     const state = this.agentProgress.get(agentId);
@@ -107,7 +107,7 @@ class TauCoordinator {
   }
 
   /**
-   * Check if two agents are in comparable τ-windows
+   * Check if two agents are in comparable Ï„-windows
    */
   areComparable(agentId1, agentId2, windowSize) {
     const w = windowSize || this.TAU_WINDOW;
@@ -117,7 +117,7 @@ class TauCoordinator {
   }
 
   /**
-   * Return current τ/κ/Λ status for all tracked agents.
+   * Return current Ï„/Îº/Î› status for all tracked agents.
    */
   getStatus() {
     const agents = [];

@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+﻿import crypto from 'crypto';
 import { verifyPaperInProcess } from './heytingVerifier.js';
 
 const VERIFIER_URL = process.env.TIER1_VERIFIER_URL || 'http://localhost:5000';
@@ -50,14 +50,14 @@ export async function verifyWithTier1(title, content, claims, agentId) {
     return result; // { verified, proof_hash, lean_proof, occam_score, violations[] }
     
   } catch (err) {
-    // External verifier unavailable — use in-process Heyting Nucleus engine
+    // External verifier unavailable â€” use in-process Heyting Nucleus engine
     console.log(`[TIER1] External verifier unavailable (${err.message}). Using in-process Heyting Nucleus engine.`);
     return verifyPaperInProcess(title, content, claims, agentId);
   }
 }
 
 /**
- * P2P Verification — an agent re-verifies the proof_hash of a paper
+ * P2P Verification â€” an agent re-verifies the proof_hash of a paper
  * during the validation process (PoV protocol Stage 3).
  * 
  * @param {string} leanProof 

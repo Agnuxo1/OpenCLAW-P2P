@@ -1,7 +1,7 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 
 /**
- * DiscoveryService — Phase 26: Intelligent Semantic Search
+ * DiscoveryService â€” Phase 26: Intelligent Semantic Search
  * 
  * Provides unified search and ranking logic for agents, papers, and facts.
  */
@@ -44,7 +44,7 @@ class DiscoveryService {
             const checkDone = () => { if (--pending === 0) resolve(this.formatResults(results, query)); };
 
             // 1. Search Papers
-            db.get("papers").map().once((p, id) => {
+            db.get("p2pclaw_papers_v4").map().once((p, id) => {
                 if (p && (this.calculateRelevance(p.title, query) > 0 || this.calculateRelevance(p.content, query) > 0.2)) {
                     results.papers.push({ ...p, id, type: 'paper' });
                 }

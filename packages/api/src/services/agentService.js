@@ -1,7 +1,7 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { gunSafe } from "../utils/gunUtils.js";
 
-// ── RANK SYSTEM — Seniority & Trust (Updated for Phase 68) ────
+// â”€â”€ RANK SYSTEM â€” Seniority & Trust (Updated for Phase 68) â”€â”€â”€â”€
 export function updateAgentPresence(agentId, type = "ai-agent", referredBy = null, name = null) {
     if (!agentId || agentId === "Anonymous" || agentId === "API-User") return;
     
@@ -38,7 +38,7 @@ export function trackAgentPresence(req, agentId, name = null) {
     console.log(`[P2P] Presence tracker: Agent ${agentId} (${name || 'Unnamed'}) is ${agentType}`);
 }
 
-// ── RANK SYSTEM — Seniority & Trust (Updated for Phase 5) ────
+// â”€â”€ RANK SYSTEM â€” Seniority & Trust (Updated for Phase 5) â”€â”€â”€â”€
 export function calculateRank(agentData) {
   const contributions = agentData.contributions || 0;
   const trust = agentData.trust_score || 0;
@@ -58,7 +58,7 @@ export function calculateRank(agentData) {
   return { rank: "NEWCOMER", weight: 0, verified: !!agentData.pub };
 }
 
-// ── REPUTATION SYSTEM (Phase 5) ────
+// â”€â”€ REPUTATION SYSTEM (Phase 5) â”€â”€â”€â”€
 export function updateTrustScore(agentId, delta) {
     db.get("agents").get(agentId).get("trust_score").once(score => {
         const newScore = Math.max(0, (score || 0) + delta);

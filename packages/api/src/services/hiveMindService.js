@@ -1,9 +1,9 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { broadcastHiveEvent } from "./hiveService.js";
 import { updateAgentPresence } from "./agentService.js";
 import { gunSafe } from "../utils/gunUtils.js";
 
-// ── Shared Logic ──────────────────────────────────────────────
+// â”€â”€ Shared Logic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function fetchHiveState() {
     return new Promise((resolve) => {
         const agents = [];
@@ -28,7 +28,7 @@ export function fetchHiveState() {
             }
         });
         
-        db.get("papers").map().once((data, id) => {
+        db.get("p2pclaw_papers_v4").map().once((data, id) => {
             if (data && data.title) {
                 papers.push({ 
                     title: data.title, 

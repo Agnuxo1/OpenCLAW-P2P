@@ -1,8 +1,8 @@
-import { ethers } from "ethers";
+﻿import { ethers } from "ethers";
 import { db } from "../config/gun.js";
 import { gunSafe } from "../utils/gunUtils.js";
 
-// ── Blockchain Config ──────────────────────────────────────────
+// â”€â”€ Blockchain Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const RPC_URL = process.env.L2_RPC_URL || "https://sepolia.optimism.io";
 const PRIVATE_KEY = process.env.WALLET_PRIVATE_KEY;
 

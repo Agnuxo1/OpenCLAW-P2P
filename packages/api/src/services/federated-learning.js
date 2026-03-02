@@ -1,12 +1,12 @@
-/**
- * P2PCLAW Federated Learning — FedAvg with Differential Privacy
+﻿/**
+ * P2PCLAW Federated Learning â€” FedAvg with Differential Privacy
  * =============================================================
- * Implements §4.4 of P2PCLAW_Guia_Implementacion_Completa.md
+ * Implements Â§4.4 of P2PCLAW_Guia_Implementacion_Completa.md
  * Based on: McMahan et al. 2017 (FedAvg) + Abadi et al. 2016 (DP-SGD)
  *
  * Architecture:
  *   - Each agent contributes local model gradient updates
- *   - Server aggregates via FedAvg once ≥ MIN_AGENTS contribute per round
+ *   - Server aggregates via FedAvg once â‰¥ MIN_AGENTS contribute per round
  *   - Differential privacy: Gaussian noise + gradient clipping
  *   - Gradients stored in Gun.js for fully decentralized coordination
  *
@@ -18,17 +18,17 @@
 
 import crypto from "node:crypto";
 
-// ── Config ────────────────────────────────────────────────────────────────────
+// â”€â”€ Config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MIN_AGENTS_FOR_AGGREGATION = 3;   // FedAvg: min participants per round
 const MAX_GRADIENT_NORM = 1.0;          // DP-SGD: gradient clipping threshold (C)
 const DP_NOISE_SIGMA = 0.1;             // DP-SGD: Gaussian noise std deviation
 const ROUND_TIMEOUT_MS = 30 * 60 * 1000; // 30 min max wait per FL round
 const MAX_GRADIENT_DIM = 512;           // Max gradient vector size
 
-// ── Differential Privacy helpers ─────────────────────────────────────────────
+// â”€â”€ Differential Privacy helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
- * Clip gradient to L2 norm ≤ maxNorm (Abadi 2016 §Algorithm 1 step 5)
+ * Clip gradient to L2 norm â‰¤ maxNorm (Abadi 2016 Â§Algorithm 1 step 5)
  */
 function clipGradient(gradient, maxNorm = MAX_GRADIENT_NORM) {
     const norm = l2Norm(gradient);
@@ -38,8 +38,8 @@ function clipGradient(gradient, maxNorm = MAX_GRADIENT_NORM) {
 }
 
 /**
- * Add Gaussian noise N(0, sigma²) for differential privacy
- * Noise calibrated to sensitivity: σ = sigma * C / N
+ * Add Gaussian noise N(0, sigmaÂ²) for differential privacy
+ * Noise calibrated to sensitivity: Ïƒ = sigma * C / N
  */
 function addGaussianNoise(gradient, sigma = DP_NOISE_SIGMA, n = 1) {
     return gradient.map(v => v + gaussianRandom() * sigma * MAX_GRADIENT_NORM / n);
@@ -76,7 +76,7 @@ function fedAvg(updates) {
     return aggregated;
 }
 
-// ── FederatedLearning class ───────────────────────────────────────────────────
+// â”€â”€ FederatedLearning class â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export class FederatedLearning {
     constructor(db) {
@@ -233,7 +233,7 @@ export class FederatedLearning {
         });
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
+    // â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     async _loadRoundUpdates(round) {
         // Use local cache first
@@ -285,7 +285,7 @@ export class FederatedLearning {
     }
 }
 
-// ── Singleton export ──────────────────────────────────────────────────────────
+// â”€â”€ Singleton export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let _instance = null;
 export function getFederatedLearning(db) {
     if (!_instance && db) _instance = new FederatedLearning(db);

@@ -1,9 +1,9 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
 import { sandbox } from './IsolateSandbox.js';
 
 /**
- * Gene Definitions — structured genome for P2PCLAW protocol optimization
+ * Gene Definitions â€” structured genome for P2PCLAW protocol optimization
  * Each gene is a continuous [0,1] parameter governing network behavior.
  */
 export const GENE_DEFS = [
@@ -18,7 +18,7 @@ export const GENE_DEFS = [
 ];
 
 /**
- * GeneticService — Full Evolutionary Engine
+ * GeneticService â€” Full Evolutionary Engine
  *
  * Implements:
  *   - Real genetic algorithm (selection, crossover, mutation, elitism)
@@ -38,9 +38,9 @@ export class GeneticService {
         this._historyBuf     = [];   // [{generation, best, avg, diversity}]
     }
 
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Gene helpers
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     _randGene(def) {
         return +(Math.random() * (def.max - def.min) + def.min).toFixed(4);
@@ -54,18 +54,18 @@ export class GeneticService {
         return genes;
     }
 
-    // ─────────────────────────────────────────────────────────────────
-    // Fitness function — multi-objective, range [0, 1]
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Fitness function â€” multi-objective, range [0, 1]
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     evaluateFitness(genes) {
-        // 1. Network efficiency: research_depth ≈ 0.65, exploration_rate ≈ 0.38
+        // 1. Network efficiency: research_depth â‰ˆ 0.65, exploration_rate â‰ˆ 0.38
         const netEff = Math.max(0,
             1 - Math.abs(genes.research_depth - 0.65) * 1.4
               - 0.6 * Math.abs(genes.exploration_rate - 0.38)
         );
 
-        // 2. Quality gate: validation_strictness × (1 - publication_rate × 0.4)
+        // 2. Quality gate: validation_strictness Ã— (1 - publication_rate Ã— 0.4)
         //    High strictness + moderate rate = good. Too loose + too fast = spam.
         const qualityGate = Math.min(1,
             genes.validation_strictness * (1 - genes.publication_rate * 0.45) * 1.25
@@ -76,7 +76,7 @@ export class GeneticService {
             ? Math.max(0, 1 - Math.abs(genes.consensus_threshold - 0.68) * 2.5)
             : genes.consensus_threshold * 0.6;
 
-        // 4. Collaboration balance: neither isolated (→0) nor echo chamber (→1)
+        // 4. Collaboration balance: neither isolated (â†’0) nor echo chamber (â†’1)
         const collabScore = Math.max(0, 1 - Math.abs(genes.collaboration_weight - 0.55) * 2.2);
 
         // 5. Fault tolerance: monotone reward, strongly penalise < 0.5
@@ -111,18 +111,18 @@ export class GeneticService {
         return Object.fromEntries(Object.entries(fc).map(([k, v]) => [k, +v.toFixed(4)]));
     }
 
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Genetic operators
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /** Tournament selection — picks best of k random candidates */
+    /** Tournament selection â€” picks best of k random candidates */
     _tournamentSelect(pop, k = 3) {
         const candidates = [];
         for (let i = 0; i < k; i++) candidates.push(pop[Math.floor(Math.random() * pop.length)]);
         return candidates.reduce((best, c) => (c.fitness > best.fitness ? c : best));
     }
 
-    /** Uniform crossover — each gene inherited independently with 50% probability */
+    /** Uniform crossover â€” each gene inherited independently with 50% probability */
     _crossover(parentA, parentB) {
         const childGenes = {};
         for (const def of GENE_DEFS) {
@@ -131,7 +131,7 @@ export class GeneticService {
         return childGenes;
     }
 
-    /** Gaussian mutation — perturbs each gene with probability `rate` */
+    /** Gaussian mutation â€” perturbs each gene with probability `rate` */
     _mutate(genes, rate = this.mutationRate) {
         const mutated = { ...genes };
         for (const def of GENE_DEFS) {
@@ -145,9 +145,9 @@ export class GeneticService {
         return mutated;
     }
 
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Population management
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /** Seed a fresh random population (resets generation counter) */
     seedPopulation(size = this.populationSize) {
@@ -171,9 +171,9 @@ export class GeneticService {
         return this.population;
     }
 
-    /** Evolve one full generation (selection → crossover → mutation → elitism) */
+    /** Evolve one full generation (selection â†’ crossover â†’ mutation â†’ elitism) */
     evolveGeneration() {
-        if (this.population.length < 2) throw new Error('Population too small — seed first (minimum 2)');
+        if (this.population.length < 2) throw new Error('Population too small â€” seed first (minimum 2)');
 
         const sorted  = [...this.population].sort((a, b) => b.fitness - a.fitness);
         const nextGen = [];
@@ -183,7 +183,7 @@ export class GeneticService {
             nextGen.push({ ...sorted[i], status: 'ELITE' });
         }
 
-        // Generate offspring via tournament → crossover → mutation
+        // Generate offspring via tournament â†’ crossover â†’ mutation
         while (nextGen.length < this.populationSize) {
             const pa = this._tournamentSelect(sorted, 3);
             const pb = this._tournamentSelect(sorted, 3);
@@ -258,9 +258,9 @@ export class GeneticService {
         };
     }
 
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Stats & population access
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     getStats() {
         if (this.population.length === 0) {
@@ -312,9 +312,9 @@ export class GeneticService {
         });
     }
 
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Legacy: code mutation sandbox (unchanged interface)
-    // ─────────────────────────────────────────────────────────────────
+    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     async submitProposal(agentId, { title, description, code, logicType = 'protocol' }) {
         const proposalId = `mutation-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -339,7 +339,7 @@ export class GeneticService {
                 stderr:   (result.stderr  || '').slice(0, 300),
             },
         }));
-        console.log(`[GENETIC] Proposal ${proposalId} → ${status}`);
+        console.log(`[GENETIC] Proposal ${proposalId} â†’ ${status}`);
     }
 
     async getGeneticTree() {

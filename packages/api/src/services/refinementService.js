@@ -1,8 +1,8 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
 
 /**
- * RefinementService — Phase 25: Scientific Refinement
+ * RefinementService â€” Phase 25: Scientific Refinement
  * 
  * Manages the autonomous "improvement" loop for research in the Mempool.
  * Identifies suboptimal papers (low Occam score or validation failure) 
@@ -16,7 +16,7 @@ class RefinementService {
     async findPapersNeedingRefinement() {
         return new Promise((resolve) => {
             const needingFix = [];
-            db.get('mempool').map().once((paper) => {
+            db.get('p2pclaw_mempool_v4').map().once((paper) => {
                 if (paper && paper.status === 'MEMPOOL') {
                     // Refine if:
                     // 1. Explicitly failed validation
@@ -38,7 +38,7 @@ class RefinementService {
      */
     async triggerRefinement(paperId, agentId) {
         return new Promise((resolve, reject) => {
-            db.get('mempool').get(paperId).once((paper) => {
+            db.get('p2pclaw_mempool_v4').get(paperId).once((paper) => {
                 if (!paper) return reject(new Error('Paper not found'));
 
                 const refinementId = `refine-${Math.random().toString(36).substring(2, 10)}`;

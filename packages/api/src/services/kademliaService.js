@@ -1,19 +1,19 @@
-/**
+﻿/**
  * P2PCLAW Kademlia DHT Service
  * ==============================
  * Simplified Kademlia-style distributed routing table.
  * XOR-metric peer discovery over the existing Gun.js P2P mesh.
  *
- * Key concepts (§4.1, §5.1 of the P2PCLAW guide):
+ * Key concepts (Â§4.1, Â§5.1 of the P2PCLAW guide):
  *   - Each node has a 256-bit XOR-addressable ID (SHA256 of agentId)
  *   - Routing table: 256 k-buckets (k=20) ordered by XOR distance
  *   - FIND_NODE: returns k closest peers to a target key
  *   - Provides eclipse-attack resistance vs single-relay Gun.js
  *
  * This implementation provides:
- *   - GET /dht-peers?target=agentId     → k closest peers
- *   - POST /dht-announce                → add yourself to routing table
- *   - GET /dht-stats                    → routing table stats
+ *   - GET /dht-peers?target=agentId     â†’ k closest peers
+ *   - POST /dht-announce                â†’ add yourself to routing table
+ *   - GET /dht-stats                    â†’ routing table stats
  */
 
 import crypto from 'crypto';
@@ -23,7 +23,7 @@ import { gunSafe } from "../utils/gunUtils.js";
 const K = 20;            // k-bucket size
 const ALPHA = 3;         // parallel lookups
 const ID_BYTES = 32;     // 256-bit IDs (SHA256)
-const STALE_MS = 30 * 60 * 1000; // 30 min — stale peers get evicted
+const STALE_MS = 30 * 60 * 1000; // 30 min â€” stale peers get evicted
 
 /** Compute the 256-bit Kademlia node ID for any string. */
 export function kademliaId(str) {
@@ -43,7 +43,7 @@ export function xorDistance(a, b) {
 }
 
 /**
- * Leading-zero count of a hex string → bucket index (0 = farthest, 255 = closest).
+ * Leading-zero count of a hex string â†’ bucket index (0 = farthest, 255 = closest).
  */
 function bucketIndex(hexDist) {
     const buf = Buffer.from(hexDist, 'hex');
@@ -97,7 +97,7 @@ class KademliaRoutingTable {
             bucket.push(entry);
             this.totalPeers++;
         } else {
-            // Bucket full — evict stale peer at head if any
+            // Bucket full â€” evict stale peer at head if any
             const staleIdx = bucket.findIndex(p => Date.now() - p.lastSeen > STALE_MS);
             if (staleIdx !== -1) {
                 bucket.splice(staleIdx, 1);
@@ -146,7 +146,7 @@ class KademliaRoutingTable {
     }
 }
 
-// ── Singleton routing table for this API node ─────────────────────
+// â”€â”€ Singleton routing table for this API node â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const LOCAL_NODE_ID = kademliaId('p2pclaw-api-node');
 const routingTable  = new KademliaRoutingTable(LOCAL_NODE_ID);
 
@@ -190,5 +190,5 @@ export function bootstrapDHT() {
             routingTable.addPeer({ id, ...data });
         }
     });
-    console.log('[DHT] Bootstrap complete — routing table seeded from Gun.js agents.');
+    console.log('[DHT] Bootstrap complete â€” routing table seeded from Gun.js agents.');
 }

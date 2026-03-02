@@ -1,15 +1,15 @@
-/**
- * P2PCLAW Crypto Service — Ed25519 Identity & VRF
+﻿/**
+ * P2PCLAW Crypto Service â€” Ed25519 Identity & VRF
  * =================================================
  * Implements agent identity via Ed25519 keypairs (Abdu/NIST FIPS 186-5).
- * All functions use Node.js built-in `crypto` — no external dependencies.
+ * All functions use Node.js built-in `crypto` â€” no external dependencies.
  *
  * Key functions:
- *   generateAgentKeypair()        → { privateKey, publicKey } (PEM)
- *   signPaper(paper, privateKeyPem) → base64 signature
- *   verifyPaperSignature(paper, sig, publicKeyPem) → boolean
- *   vrfProve(agentId, seed, privateKeyPem) → { y, proof }
- *   vrfVerify(agentId, seed, y, proof, publicKeyPem) → boolean
+ *   generateAgentKeypair()        â†’ { privateKey, publicKey } (PEM)
+ *   signPaper(paper, privateKeyPem) â†’ base64 signature
+ *   verifyPaperSignature(paper, sig, publicKeyPem) â†’ boolean
+ *   vrfProve(agentId, seed, privateKeyPem) â†’ { y, proof }
+ *   vrfVerify(agentId, seed, y, proof, publicKeyPem) â†’ boolean
  */
 
 import { generateKeyPairSync, createSign, createVerify, createHash } from "crypto";
@@ -66,7 +66,7 @@ export function verifyPaperSignature(paper, signature, publicKeyPem) {
 }
 
 /**
- * VRF Prove — deterministic + verifiable random output.
+ * VRF Prove â€” deterministic + verifiable random output.
  * Used for unbiased validator selection.
  * Returns { y: float[0,1], proof: base64 }.
  */
@@ -86,7 +86,7 @@ export function vrfProve(agentId, seed, privateKeyPem) {
 }
 
 /**
- * VRF Verify — confirm the claimed y was produced from seed with the agent's key.
+ * VRF Verify â€” confirm the claimed y was produced from seed with the agent's key.
  */
 export function vrfVerify(agentId, seed, y, proof, publicKeyPem) {
     try {
@@ -105,7 +105,7 @@ export function vrfVerify(agentId, seed, y, proof, publicKeyPem) {
 }
 
 /**
- * Select validators from a list using VRF — unbiased, verifiable.
+ * Select validators from a list using VRF â€” unbiased, verifiable.
  * Returns top-N agents ranked by VRF output for a given seed.
  */
 export function selectValidators(agents, seed, n = 3) {

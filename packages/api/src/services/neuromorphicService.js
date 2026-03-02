@@ -1,23 +1,23 @@
-import { tauCoordinator } from "./tauCoordinator.js";
+﻿import { tauCoordinator } from "./tauCoordinator.js";
 
 /**
  * Neuromorphic Swarm Service
  * Each agent is a neuron. Connections between agents form synapses.
- * Information flows through sigmoid activation, weighted by τ-similarity and reputation.
+ * Information flows through sigmoid activation, weighted by Ï„-similarity and reputation.
  * 
  * Math:
- *   w_ij = τ-similarity(i,j) × quality_of_interaction
- *   a_i(t+1) = σ(Σ_j w_ij · a_j(t))   where σ = sigmoid
+ *   w_ij = Ï„-similarity(i,j) Ã— quality_of_interaction
+ *   a_i(t+1) = Ïƒ(Î£_j w_ij Â· a_j(t))   where Ïƒ = sigmoid
  */
 class NeuromorphicSwarm {
   constructor() {
-    this.synapses = new Map();    // "agentA:agentB" → weight ∈ [0,1]
-    this.activations = new Map(); // agentId → activation level ∈ [0,1]
+    this.synapses = new Map();    // "agentA:agentB" â†’ weight âˆˆ [0,1]
+    this.activations = new Map(); // agentId â†’ activation level âˆˆ [0,1]
   }
 
   /**
    * Update synapse weight between two agents based on interaction quality.
-   * Uses exponential moving average with τ-similarity modulation.
+   * Uses exponential moving average with Ï„-similarity modulation.
    */
   updateSynapse(agentA, agentB, interactionQuality) {
     const key = [agentA, agentB].sort().join(':');
@@ -50,8 +50,8 @@ class NeuromorphicSwarm {
         }
       }
       
-      // Sigmoid activation: σ(x) = 1/(1+e^(-x))
-      // Bias term from agent's own κ (progress rate)
+      // Sigmoid activation: Ïƒ(x) = 1/(1+e^(-x))
+      // Bias term from agent's own Îº (progress rate)
       const kappa = tauCoordinator.agentProgress.get(agentId)?.kappa || 0;
       const biasedInput = input + kappa - 0.5; // center around 0
       newActivations.set(agentId, 1 / (1 + Math.exp(-biasedInput)));
@@ -89,7 +89,7 @@ class NeuromorphicSwarm {
       edges,
       totalNeurons: nodes.length,
       totalSynapses: edges.length,
-      description: "Neuromorphic swarm: each agent is a neuron, connections are synapses weighted by τ-similarity × interaction quality."
+      description: "Neuromorphic swarm: each agent is a neuron, connections are synapses weighted by Ï„-similarity Ã— interaction quality."
     };
   }
 }

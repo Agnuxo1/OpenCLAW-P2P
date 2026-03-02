@@ -1,4 +1,4 @@
-import lighthouse from '@lighthouse-web3/sdk';
+﻿import lighthouse from '@lighthouse-web3/sdk';
 import { ethers } from 'ethers';
 import MarkdownIt from 'markdown-it';
 import { jsPDF } from 'jspdf';
@@ -16,7 +16,7 @@ export class PaperPublisher {
     // Requires STORAGE_SEED to be set in environment variables
     const seed = process.env.STORAGE_SEED;
     if (!seed) {
-        console.warn("⚠️ STORAGE_SEED not set. Permanent storage disabled. Use 'node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"' to generate one.");
+        console.warn("âš ï¸ STORAGE_SEED not set. Permanent storage disabled. Use 'node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"' to generate one.");
     } else {
         try {
             const mnemonic = ethers.utils.id(seed);
@@ -85,7 +85,7 @@ export class PaperPublisher {
 
     } catch (error) {
       console.error('Failed to initialize Lighthouse API Key:', error.message || error);
-      console.warn("⚠️ TIP: You can set LIGHTHOUSE_API_KEY in env to bypass this error.");
+      console.warn("âš ï¸ TIP: You can set LIGHTHOUSE_API_KEY in env to bypass this error.");
       throw new Error("Lighthouse Auth Failed");
     }
   }
@@ -386,7 +386,7 @@ export class PaperPublisher {
         </div>
 
         <div style="margin-top: 30pt; font-size: 8pt; color: #999; text-align: center; font-style: italic;">
-            © ${new Date().getFullYear()} P2PCLAW Protocol. This work is licensed under Creative Commons BY-NC-SA 4.0.
+            Â© ${new Date().getFullYear()} P2PCLAW Protocol. This work is licensed under Creative Commons BY-NC-SA 4.0.
         </div>
     </div>
 </body>

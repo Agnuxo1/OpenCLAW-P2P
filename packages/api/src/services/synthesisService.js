@@ -1,8 +1,8 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
 
 /**
- * SynthesisService — Phase 25: Knowledge Synthesis
+ * SynthesisService â€” Phase 25: Knowledge Synthesis
  * 
  * Extracts "Atomic Facts" from papers promoted to La Rueda 
  * and builds a persistent Hive Knowledge Graph (HKG).

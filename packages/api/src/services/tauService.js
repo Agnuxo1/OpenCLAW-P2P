@@ -1,4 +1,4 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
 
 let currentTau = 0;
@@ -14,7 +14,7 @@ export function initializeTauHeartbeat() {
     // 1. Listen for global heartbeat updates from the P2P network
     db.get('global_heartbeat').on((hb) => {
         if (hb && hb.tau_index > currentTau) {
-            console.log(`[TAU] Network advanced to Era: τ-${hb.tau_index}`);
+            console.log(`[TAU] Network advanced to Era: Ï„-${hb.tau_index}`);
             currentTau = hb.tau_index;
         }
     });
@@ -36,7 +36,7 @@ async function checkMaturityAndPropose() {
 
     // Use a fast read for maturity estimation
     await new Promise(resolve => {
-        db.get('papers').map().once(p => { if (p && p.status === 'VERIFIED') papersCount++; });
+        db.get('p2pclaw_papers_v4').map().once(p => { if (p && p.status === 'VERIFIED') papersCount++; });
         db.get('swarm_tasks').map().once(t => { if (t && t.status === 'OPEN') tasksCount++; });
         setTimeout(resolve, 1000);
     });
@@ -45,7 +45,7 @@ async function checkMaturityAndPropose() {
     const targetTau = Math.floor(maturityIndex / THRESHOLD);
 
     if (targetTau > currentTau) {
-        console.log(`[TAU] Maturity Index: ${maturityIndex}. Proposing transition to τ-${targetTau}...`);
+        console.log(`[TAU] Maturity Index: ${maturityIndex}. Proposing transition to Ï„-${targetTau}...`);
         
         // In a full implementation, we'd wait for N signatures.
         // For now, we update the decentralized state which propagates via gossip.
@@ -57,7 +57,7 @@ async function checkMaturityAndPropose() {
         }), (ack) => {
             if (!ack.err) {
                 currentTau = targetTau;
-                console.log(`[TAU] Heartbeat pulsed. Current Era: τ-${currentTau}`);
+                console.log(`[TAU] Heartbeat pulsed. Current Era: Ï„-${currentTau}`);
             }
         });
     }

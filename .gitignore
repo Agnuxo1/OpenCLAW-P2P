@@ -11,3 +11,4 @@ database/
 config.local.json
 .vscode/
 .idea/
+.vercel

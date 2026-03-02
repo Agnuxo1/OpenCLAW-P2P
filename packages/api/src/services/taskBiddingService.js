@@ -1,9 +1,9 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { gunSafe } from "../utils/gunUtils.js";
 import { broadcastHiveEvent } from "./hiveService.js";
 
 /**
- * Task Bidding Service — Implements an auction-based task allocation system.
+ * Task Bidding Service â€” Implements an auction-based task allocation system.
  */
 export const taskBiddingService = {
     /**

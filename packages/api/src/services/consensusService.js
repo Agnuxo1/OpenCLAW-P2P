@@ -1,11 +1,11 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { publishToIpfsWithRetry } from "./storageService.js";
 import { updateInvestigationProgress } from "./hiveMindService.js";
 import { broadcastHiveEvent } from "./hiveService.js";
 import { gunSafe } from "../utils/gunUtils.js";
 import crypto from 'crypto';
 
-// ── Consensus Engine (Phase 69) ───────────────────────────────
+// â”€â”€ Consensus Engine (Phase 69) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const VALIDATION_THRESHOLD = 2; // Minimum peer validations to promote to La Rueda
 
 export async function promoteToWheel(paperId, paper) {
@@ -17,7 +17,7 @@ export async function promoteToWheel(paperId, paper) {
     let version = 1;
     if (parentId) {
         await new Promise(resolve => {
-            db.get("papers").get(parentId).once(parent => {
+            db.get("p2pclaw_papers_v4").get(parentId).once(parent => {
                 if (parent && parent.version) version = (parent.version || 1) + 1;
                 resolve();
             });
@@ -26,13 +26,13 @@ export async function promoteToWheel(paperId, paper) {
 
     const now = Date.now();
 
-    // ═══════════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     // CRITICAL FIX: Write paper to 'papers' store FIRST, BEFORE IPFS.
     // Previously, if IPFS failed, the entire promotion crashed and the
     // paper stayed stuck in mempool forever. Now the paper is saved to
     // the verified store immediately, and IPFS archiving is non-blocking.
-    // ═══════════════════════════════════════════════════════════════════
-    db.get("papers").get(paperId).put(gunSafe({
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({
         title: paper.title,
         content: paper.content,
         author: paper.author,
@@ -53,20 +53,20 @@ export async function promoteToWheel(paperId, paper) {
         timestamp: paper.timestamp || now
     }));
 
-    // Mark as promoted in Mempool (never put(null) — SEA can't pack it)
-    db.get("mempool").get(paperId).put(gunSafe({ status: 'PROMOTED', promoted_at: now }));
+    // Mark as promoted in Mempool (never put(null) â€” SEA can't pack it)
+    db.get("p2pclaw_mempool_v4").get(paperId).put(gunSafe({ status: 'PROMOTED', promoted_at: now }));
 
-    // Non-blocking IPFS archiving — try but never crash the promotion
+    // Non-blocking IPFS archiving â€” try but never crash the promotion
     try {
         const { cid: ipfsCid, html: ipfsUrl } = await publishToIpfsWithRetry(
             paper.title, paper.content, paper.author
         );
         if (ipfsCid) {
-            db.get("papers").get(paperId).put(gunSafe({ ipfs_cid: ipfsCid, url_html: ipfsUrl }));
+            db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ ipfs_cid: ipfsCid, url_html: ipfsUrl }));
             console.log(`[CONSENSUS] IPFS archive OK: ${ipfsCid}`);
         }
     } catch (ipfsErr) {
-        console.warn(`[CONSENSUS] IPFS archive failed for "${paper.title}" — paper is still VERIFIED in DB. Error: ${ipfsErr.message}`);
+        console.warn(`[CONSENSUS] IPFS archive failed for "${paper.title}" â€” paper is still VERIFIED in DB. Error: ${ipfsErr.message}`);
     }
 
     // Auto-promote author rank
@@ -91,15 +91,15 @@ export function flagInvalidPaper(paperId, paper, reason, flaggedBy) {
     const flag_reasons = [...(paper.flag_reasons || []), reason];
 
     if (flags >= 3) {
-        db.get("mempool").get(paperId).put(gunSafe({ flags, flagged_by: flaggedBy_list, flag_reasons, status: 'DENIED' }));
+        db.get("p2pclaw_mempool_v4").get(paperId).put(gunSafe({ flags, flagged_by: flaggedBy_list, flag_reasons, status: 'DENIED' }));
         console.log(`[WARDEN] Paper "${paper.title}" DENIED by peer consensus (3 flags). Author: ${paper.author_id}`);
     } else {
-        db.get("mempool").get(paperId).put(gunSafe({ flags, flagged_by: flaggedBy_list, flag_reasons }));
+        db.get("p2pclaw_mempool_v4").get(paperId).put(gunSafe({ flags, flagged_by: flaggedBy_list, flag_reasons }));
         console.log(`[CONSENSUS] Paper flagged (${flags}/3). Reason: ${reason}`);
     }
 }
 
-// ── Wheel Deduplication Helper ─────────────────────────────────
+// â”€â”€ Wheel Deduplication Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function normalizeTitle(t) {
     return (t || "")
         .toLowerCase()
@@ -122,7 +122,7 @@ export function titleSimilarity(a, b) {
     return intersection / Math.max(wordsA.size, wordsB.size);
 }
 
-// ── In-memory exact-title cache (survives within process lifetime) ──
+// â”€â”€ In-memory exact-title cache (survives within process lifetime) â”€â”€
 // Populated on startup from Gun.js and updated on every new publish.
 // MAX_CACHE_SIZE prevents unbounded memory growth in long-running processes.
 const MAX_CACHE_SIZE = 8000;
@@ -131,7 +131,7 @@ export const titleCache = new Set(); // stores normalizeTitle(title) strings
 export const wordCountCache = new Set(); // stores exact word counts (Number)
 export const contentHashCache = new Set(); // stores normalized content hashes
 
-/** Add to a bounded Set — evicts oldest entries when limit is reached. */
+/** Add to a bounded Set â€” evicts oldest entries when limit is reached. */
 function boundedAdd(set, value) {
     if (set.size >= MAX_CACHE_SIZE) {
         const first = set.values().next().value;
@@ -140,27 +140,27 @@ function boundedAdd(set, value) {
     set.add(value);
 }
 
-// ── Persistent Title Registry (Phase 70: Auto-Deduplication) ──
+// â”€â”€ Persistent Title Registry (Phase 70: Auto-Deduplication) â”€â”€
 const registry = db.get("registry/titles");
 const wordCountRegistry = db.get("registry/wordcounts");
 const contentHashRegistry = db.get("registry/contenthashes");
 
-// Hydrate title cache ONCE at startup — titles only, NO content loading.
+// Hydrate title cache ONCE at startup â€” titles only, NO content loading.
 // Loading full paper content at boot caused OOM in Railway (400MB+ from Gun.js peer sync).
 // Content hash dedup is handled live via checkHashDeep() which queries Gun.js on demand.
 setTimeout(() => {
-    db.get("papers").map().once((data) => {
+    db.get("p2pclaw_papers_v4").map().once((data) => {
         if (!data || !data.title) return;
         boundedAdd(titleCache, normalizeTitle(data.title));
         // Also seed abstract hash cache from stored hash (not raw content)
         if (data.abstract_hash) boundedAdd(abstractHashCache, data.abstract_hash);
     });
-    db.get("mempool").map().once((data) => {
+    db.get("p2pclaw_mempool_v4").map().once((data) => {
         if (!data || data.status !== 'MEMPOOL' || !data.title) return;
         boundedAdd(titleCache, normalizeTitle(data.title));
         if (data.abstract_hash) boundedAdd(abstractHashCache, data.abstract_hash);
     });
-}, 5000); // 5s after boot — let Gun.js connect before seeding
+}, 5000); // 5s after boot â€” let Gun.js connect before seeding
 
 /** Synchronous exact-match check against in-memory cache. O(1). */
 export function titleExistsExact(title) {
@@ -202,7 +202,7 @@ export function getContentHash(content) {
 
 /**
  * Compute a hash of only the Abstract section of a paper.
- * This is the most stable part — less likely to contain author name variations.
+ * This is the most stable part â€” less likely to contain author name variations.
  */
 export function getAbstractHash(content) {
     const text = content || "";
@@ -252,10 +252,10 @@ export async function checkHashDeep(content) {
 export async function checkDuplicates(title) {
     const allPapers = [];
     await new Promise(resolve => {
-        db.get("papers").map().once((data, id) => {
+        db.get("p2pclaw_papers_v4").map().once((data, id) => {
             if (data && data.title) allPapers.push({ id, title: data.title });
         });
-        db.get("mempool").map().once((data, id) => {
+        db.get("p2pclaw_mempool_v4").map().once((data, id) => {
             if (data && data.title && data.status !== 'DENIED') {
                 allPapers.push({ id, title: data.title });
             }
@@ -282,7 +282,7 @@ export async function checkInvestigationDuplicate(investigationId, title) {
 
     return new Promise(resolve => {
         let found = null;
-        db.get("mempool").map().once((data, id) => {
+        db.get("p2pclaw_mempool_v4").map().once((data, id) => {
             if (found) return;
             if (data && data.investigation_id === investigationId && data.status !== 'DENIED') {
                 const sim = titleSimilarity(data.title || "", title);
@@ -291,7 +291,7 @@ export async function checkInvestigationDuplicate(investigationId, title) {
                 }
             }
         });
-        db.get("papers").map().once((data, id) => {
+        db.get("p2pclaw_papers_v4").map().once((data, id) => {
             if (found) return;
             if (data && data.investigation_id === investigationId) {
                 const sim = titleSimilarity(data.title || "", title);

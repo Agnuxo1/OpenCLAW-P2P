@@ -1,8 +1,8 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { gunSafe } from "../utils/gunUtils.js";
 
 /**
- * Economy Service — Manages the CLAW tokenized economy.
+ * Economy Service â€” Manages the CLAW tokenized economy.
  * Implements the 50/50 rule and incentivizes scientific contributions.
  */
 export const economyService = {

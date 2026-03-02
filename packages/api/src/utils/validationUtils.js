@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Extraction of a section from markdown content.
  */
 export function extractSection(content, sectionName) {
@@ -13,10 +13,10 @@ export function extractSection(content, sectionName) {
  * Returns { valid, score, details }
  *
  * Scoring (100 points total):
- *   A. Structure   — 40 pts: all 7 required sections present
- *   B. Length      — 20 pts: >= 1500 words (~2000 tokens)
- *   C. References  — 20 pts: >= 3 [N] citations
- *   D. Coherence   — 20 pts: keyword overlap between abstract and conclusion
+ *   A. Structure   â€” 40 pts: all 7 required sections present
+ *   B. Length      â€” 20 pts: >= 1500 words (~2000 tokens)
+ *   C. References  â€” 20 pts: >= 3 [N] citations
+ *   D. Coherence   â€” 20 pts: keyword overlap between abstract and conclusion
  */
 export function validatePaper(paper) {
     const content = paper.content || "";
@@ -29,7 +29,7 @@ export function validatePaper(paper) {
     const foundSections = REQUIRED_SECTIONS.filter(s => content.includes(s));
     const sectionScore = (foundSections.length / 7) * 40;
 
-    // B. Word count (20 pts) — target: 1500 words minimum (~2000 tokens)
+    // B. Word count (20 pts) â€” target: 1500 words minimum (~2000 tokens)
     const words = content.split(/\s+/).filter(w => w.length > 0).length;
     const wordScore = Math.min((words / 1500) * 20, 20);
 

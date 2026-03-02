@@ -1,9 +1,9 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
 import axios from 'axios';
 
 /**
- * SyncService — Phase 27: Cross-Hive Knowledge Transfer
+ * SyncService â€” Phase 27: Cross-Hive Knowledge Transfer
  * 
  * Manages the synchronization of the Hive Knowledge Graph (HKG) 
  * across different relay nodes in the P2P mesh.

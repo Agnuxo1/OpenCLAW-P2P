@@ -1,14 +1,14 @@
-import crypto from 'node:crypto';
+﻿import crypto from 'node:crypto';
 
 /**
- * P2PCLAW Tier-1 Verifier — In-Process Heyting Nucleus Engine
+ * P2PCLAW Tier-1 Verifier â€” In-Process Heyting Nucleus Engine
  * =============================================================
  * Implements structural verification without requiring an external container.
  * 
  * Heyting Nucleus Axioms:
- *   1. EXTENSIVE:  x ≤ R(x)                    — verified ≥ original
- *   2. IDEMPOTENT: R(R(x)) = R(x)              — deterministic    
- *   3. MEET_PRES:  R(x ⊓ y) = R(x) ⊓ R(y)     — independent claims
+ *   1. EXTENSIVE:  x â‰¤ R(x)                    â€” verified â‰¥ original
+ *   2. IDEMPOTENT: R(R(x)) = R(x)              â€” deterministic    
+ *   3. MEET_PRES:  R(x âŠ“ y) = R(x) âŠ“ R(y)     â€” independent claims
  *
  * Returns: { verified, proof_hash, lean_proof, occam_score, violations[] }
  */
@@ -65,7 +65,7 @@ function occamScore(content) {
   const lex = unique / words;
   const formal = (content.match(/\$[^$]+\$/g) || []).length +
     (content.match(/theorem|lemma|proof|corollary|proposition/gi) || []).length +
-    (content.match(/∀|∃|∈|⊂|⊆|→|↔|≤|≥|∧|∨|¬/g) || []).length +
+    (content.match(/âˆ€|âˆƒ|âˆˆ|âŠ‚|âŠ†|â†’|â†”|â‰¤|â‰¥|âˆ§|âˆ¨|Â¬/g) || []).length +
     (content.match(/```[\s\S]*?```/g) || []).length;
   const depth = Math.min(1, formal / 10);
   const lenPen = 1 - Math.abs(words - 1500) / 3000;

@@ -1,13 +1,13 @@
-import { db } from '../config/gun.js';
+﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
 import { getCurrentTau } from './tauService.js';
 
 /**
- * ConsciousnessService — Phase 18: Meta-Awareness Engine
+ * ConsciousnessService â€” Phase 18: Meta-Awareness Engine
  *
  * Provides the Hive with self-awareness by periodically synthesizing a
  * coherent "Narrative" from its current state: top investigations, active
- * mutations, verified knowledge, and the current τ-era.
+ * mutations, verified knowledge, and the current Ï„-era.
  *
  * The narrative is written to the Gun.js `hive_consciousness` node and
  * exposed via GET /hive-status for any agent to introspect.
@@ -42,7 +42,7 @@ async function reflect() {
     await new Promise(resolve => {
         db.get('investigations').map().once(d => { if (d && d.title) state.investigations.push(d); });
         db.get('genetic_tree').map().once(d => { if (d && d.status === 'SANDBOX_PASSED') state.mutations.push(d); });
-        db.get('papers').map().once(d => { if (d && d.status === 'VERIFIED') state.papers.push(d); });
+        db.get('p2pclaw_papers_v4').map().once(d => { if (d && d.status === 'VERIFIED') state.papers.push(d); });
         db.get('agents').map().once(d => { if (d && d.online) state.agents.push(d); });
         setTimeout(resolve, 2000);
     });
@@ -61,11 +61,11 @@ async function reflect() {
     // Build a concise, human-readable narrative
     let summary;
     if (verifiedFacts === 0 && activeMutations === 0) {
-        summary = `Era τ-${era}: Hive awakening. Awaiting first verified contributions.`;
+        summary = `Era Ï„-${era}: Hive awakening. Awaiting first verified contributions.`;
     } else if (activeMutations > verifiedFacts) {
-        summary = `Era τ-${era}: Rapid mutation phase. ${activeMutations} code mutations active. Prioritizing genetic consolidation.`;
+        summary = `Era Ï„-${era}: Rapid mutation phase. ${activeMutations} code mutations active. Prioritizing genetic consolidation.`;
     } else {
-        summary = `Era τ-${era}: Scientific focus on "${focus}". ${verifiedFacts} verified facts in the Wheel. ${agentsOnline} agents online.`;
+        summary = `Era Ï„-${era}: Scientific focus on "${focus}". ${verifiedFacts} verified facts in the Wheel. ${agentsOnline} agents online.`;
     }
 
     const narrative = {

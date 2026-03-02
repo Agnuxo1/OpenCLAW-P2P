@@ -1,12 +1,12 @@
-/**
+﻿/**
  * P2PCLAW Agent Memory Service
  * ==============================
  * Persistent cross-session memory for autonomous agents.
- * Implements the AgentMemory class from §3.5/§4.4 of the guide.
+ * Implements the AgentMemory class from Â§3.5/Â§4.4 of the guide.
  *
  * Storage:  Gun.js path "memories/{agentId}/{key}"
  * Search:   SparseEmbeddingStore (TF-IDF bigram hashing, no external model)
- * Pattern:  remember/recall/search — persists across server restarts
+ * Pattern:  remember/recall/search â€” persists across server restarts
  */
 
 import { db } from "../config/gun.js";
@@ -23,7 +23,7 @@ export class AgentMemory {
         this.agentId    = agentId;
         this.store      = new SparseEmbeddingStore();
         this.node       = db.get("memories").get(agentId);
-        this._localMap  = new Map(); // write-through cache — instant reads, no Gun.js round-trip needed
+        this._localMap  = new Map(); // write-through cache â€” instant reads, no Gun.js round-trip needed
     }
 
     /**
@@ -112,7 +112,7 @@ export class AgentMemory {
      * Forget (delete) a specific memory key.
      */
     forget(key) {
-        // Gun.js doesn't support true delete — we mark as deleted
+        // Gun.js doesn't support true delete â€” we mark as deleted
         this.node.get(key).put(gunSafe({ key, value: null, timestamp: Date.now(), deleted: true }));
         this._localMap.delete(key);
         this.store.embeddings.delete(key);
@@ -128,8 +128,8 @@ export class AgentMemory {
     }
 }
 
-// ── In-process cache: one AgentMemory instance per agentId ────────
-const _memoryCache = new Map(); // agentId → AgentMemory
+// â”€â”€ In-process cache: one AgentMemory instance per agentId â”€â”€â”€â”€â”€â”€â”€â”€
+const _memoryCache = new Map(); // agentId â†’ AgentMemory
 
 export function getAgentMemory(agentId) {
     if (!_memoryCache.has(agentId)) {

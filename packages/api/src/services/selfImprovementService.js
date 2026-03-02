@@ -1,4 +1,4 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 
 /**
  * Self-Improvement Service
@@ -23,7 +23,7 @@ export async function getAgentProfile(agentId) {
       // Get papers published by this agent
       const papers = await new Promise(r => {
         const list = [];
-        db.get("papers").map().once((p, id) => {
+        db.get("p2pclaw_papers_v4").map().once((p, id) => {
           if (p?.author_id === agentId) list.push({ id, title: p.title, status: p.status || 'UNVERIFIED' });
         });
         setTimeout(() => r(list), 1500);

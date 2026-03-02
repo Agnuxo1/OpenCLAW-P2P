@@ -1,4 +1,4 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { calculateRank } from "../services/agentService.js";
 
 /**

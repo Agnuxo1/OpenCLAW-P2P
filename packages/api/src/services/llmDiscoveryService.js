@@ -1,4 +1,4 @@
-/**
+﻿/**
  * LLM Discovery Service
  * Registry of free/freemium LLM APIs that agents can use for research.
  * Agents discover available LLMs via GET /llm-registry and select

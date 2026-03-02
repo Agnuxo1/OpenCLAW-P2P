@@ -1,18 +1,18 @@
-import { tauCoordinator } from "./tauCoordinator.js";
+﻿import { tauCoordinator } from "./tauCoordinator.js";
 
 /**
  * J-Ratchet Service
  * From Eigenform Ontology paper: measures structural complexity advancement.
  * 
- * Math: J = (Occam_Score × Innovation) / Energy_Used
+ * Math: J = (Occam_Score Ã— Innovation) / Energy_Used
  * 
- * The J-Ratchet only goes forward — each "click" represents irreversible
+ * The J-Ratchet only goes forward â€” each "click" represents irreversible
  * complexity advancement (new eigenform stabilized).
  */
 
 /**
  * Compute the J-Ratchet score for an agent.
- * Higher = more efficient structural advancement per unit of τ-energy.
+ * Higher = more efficient structural advancement per unit of Ï„-energy.
  * 
  * @param {string} agentId 
  * @returns {{ jScore: number, occam: number, innovation: number, energy: number }}
@@ -22,8 +22,8 @@ export function computeJRatchet(agentId) {
   if (!state) return { jScore: 0, occam: 0.5, innovation: 0, energy: 0 };
   
   const occam = state.lastOccamScore || 0.5;     // From Tier-1 Verifier [0,1]
-  const innovation = state.kappa * 0.2;            // γ component of κ (information gain)
-  const energy = Math.max(state.tau - (state.prevTau || 0), 0.001); // τ consumed
+  const innovation = state.kappa * 0.2;            // Î³ component of Îº (information gain)
+  const energy = Math.max(state.tau - (state.prevTau || 0), 0.001); // Ï„ consumed
   
   const jScore = (occam * innovation) / energy;
   

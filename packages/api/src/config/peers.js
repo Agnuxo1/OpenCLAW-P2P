@@ -1,5 +1,5 @@
-/**
- * P2PCLAW — Default Peers for Gun.js (Resilience)
+﻿/**
+ * P2PCLAW â€” Default Peers for Gun.js (Resilience)
  * ===============================================
  * Multiple peers ensure the network stays up if Railway, Render, or Cloudflare fail.
  * Gun.js tries all peers; data syncs across the mesh.
@@ -15,7 +15,7 @@
 const RELAY_NODE = process.env.RELAY_NODE || "https://relay-production-3a20.up.railway.app/gun";
 const EXTRA = (process.env.EXTRA_PEERS || "").split(",").map((p) => p.trim()).filter(Boolean);
 
-/** All peers — primary + HuggingFace nodes + public fallbacks */
+/** All peers â€” primary + HuggingFace nodes + public fallbacks */
 const DEFAULT_PEERS = [
   RELAY_NODE,
   "https://agnuxo-p2pclaw-node-a.hf.space/gun",

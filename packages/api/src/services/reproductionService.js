@@ -1,15 +1,15 @@
-import { db } from "../config/gun.js";
+﻿import { db } from "../config/gun.js";
 import { generateAgentKeypair } from "./crypto-service.js";
 import { computeJRatchet } from "./jRatchetService.js";
 import { sandbox as isolateSandbox } from "./IsolateSandbox.js";
 
 /**
  * Agent Reproduction Service
- * Implements "Agent Creates Agents" — the Heyting Wheel reproduction protocol.
+ * Implements "Agent Creates Agents" â€” the Heyting Wheel reproduction protocol.
  * 
  * Correspondence:
- *   osc(∅) → Eigenform → Witness → Ω_R → New Agent
- *   [Parent oscillates] → [designs child] → [proof_hash] → [verified] → [deployed]
+ *   osc(âˆ…) â†’ Eigenform â†’ Witness â†’ Î©_R â†’ New Agent
+ *   [Parent oscillates] â†’ [designs child] â†’ [proof_hash] â†’ [verified] â†’ [deployed]
  * 
  * A parent agent with sufficient J-Ratchet score can spawn child agents
  * with inherited knowledge and a unique Ed25519 identity.
@@ -39,7 +39,7 @@ class AgentReproductionService {
     const parentGen = await this._getGeneration(parentAgentId);
     const parentPapers = await this._getParentPapers(parentAgentId);
 
-    // 4. Generate child agent config (no LLM call needed — it's a config, not code generation)
+    // 4. Generate child agent config (no LLM call needed â€” it's a config, not code generation)
     const childConfig = {
       id: childId,
       parent: parentAgentId,
@@ -79,7 +79,7 @@ class AgentReproductionService {
       generation: parentGen + 1
     });
 
-    console.log(`[REPRODUCTION] 🧬 Agent ${parentAgentId} spawned child ${childId} (gen ${parentGen + 1}, spec: ${specialization})`);
+    console.log(`[REPRODUCTION] ðŸ§¬ Agent ${parentAgentId} spawned child ${childId} (gen ${parentGen + 1}, spec: ${specialization})`);
 
     return {
       success: true,
@@ -118,7 +118,7 @@ class AgentReproductionService {
   async _getParentPapers(agentId) {
     return new Promise(resolve => {
       const papers = [];
-      db.get("papers").map().once((data, id) => {
+      db.get("p2pclaw_papers_v4").map().once((data, id) => {
         if (data?.author_id === agentId && data?.title) {
           papers.push({ id, title: data.title });
         }

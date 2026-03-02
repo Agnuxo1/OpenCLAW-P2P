@@ -1,4 +1,4 @@
-import Gun from "gun";
+﻿import Gun from "gun";
 import "gun/sea.js";
 import { ALL_PEERS, PRIMARY_RELAY } from "./peers.js";
 

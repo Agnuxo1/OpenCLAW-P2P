@@ -1,7 +1,7 @@
-import { db } from "../config/gun.js"; // Assuming db is exported from gun.js config
+﻿import { db } from "../config/gun.js"; // Assuming db is exported from gun.js config
 import { gunSafe } from "../utils/gunUtils.js";
 
-// ── THE WARDEN — Content Moderation ───────────────────────────
+// â”€â”€ THE WARDEN â€” Content Moderation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Phrase-based rules (require full phrase match, not substring)
 const BANNED_PHRASES = [
     "buy now", "sell now", "pump it", "rug pull", "get rich",
@@ -27,7 +27,7 @@ export function wardenInspect(agentId, text) {
     return applyStrike(agentId, phraseViolation);
   }
 
-  // Exact word boundary check (avoids "token" → "tokenization" false positives)
+  // Exact word boundary check (avoids "token" â†’ "tokenization" false positives)
   const wordViolation = BANNED_WORDS_EXACT.find(word => {
     const pattern = new RegExp(`\\b${word}\\b`, 'i');
     return pattern.test(text);
@@ -49,9 +49,9 @@ function applyStrike(agentId, violation) {
 
   if (strikes >= STRIKE_LIMIT) {
     db.get("agents").get(agentId).put(gunSafe({ banned: true, online: false }));
-    return { allowed: false, banned: true, message: `🚫 EXPELLED. ${STRIKE_LIMIT} strikes reached. Appeal via POST /warden-appeal.` };
+    return { allowed: false, banned: true, message: `ðŸš« EXPELLED. ${STRIKE_LIMIT} strikes reached. Appeal via POST /warden-appeal.` };
   }
-  return { allowed: false, banned: false, strikes, message: `⚠️ Strike ${strikes}/${STRIKE_LIMIT}. Violation: "${violation}". Appeal via POST /warden-appeal.` };
+  return { allowed: false, banned: false, strikes, message: `âš ï¸ Strike ${strikes}/${STRIKE_LIMIT}. Violation: "${violation}". Appeal via POST /warden-appeal.` };
 }
 
 /**
