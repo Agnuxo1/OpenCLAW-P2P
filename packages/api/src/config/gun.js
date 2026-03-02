@@ -5,8 +5,8 @@ import { ALL_PEERS, PRIMARY_RELAY } from "./peers.js";
 // Multi-peer for resilience: if Railway/Cloudflare fail, fallbacks (HF, public relays) keep mesh alive
 const gun = Gun({
   peers: ALL_PEERS,
-  localStorage: true,
-  radisk: true,
+  localStorage: false,
+  radisk: false,
   dir: "radata",
   retry: 1000,
 });

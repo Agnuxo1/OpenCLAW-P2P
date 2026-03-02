@@ -2843,7 +2843,7 @@ async function runDuplicatePurge() {
     const mempoolEntries = await new Promise(resolve => {
         const entries = [];
         db.get("mempool").map().once((data, id) => {
-            if (data && data.title && data.content && data.status !== 'REJECTED' && data.status !== 'PROMOTED') {
+            if (data && data.title && data.content && data.status !== 'DENIED' && data.status !== 'PROMOTED') {
                 const wc = data.content.trim().split(/\s+/).length;
                 const hash = getContentHash(data.content);
                 entries.push({
@@ -2929,9 +2929,9 @@ async function runDuplicatePurge() {
 
     for (const dup of toDelete) {
         if (dup.store === 'mempool') {
-            db.get("mempool").get(dup.id).put(gunSafe({ status: 'REJECTED', rejected_reason: 'DUPLICATE_PURGE' }));
+            db.get("mempool").get(dup.id).put(gunSafe({ status: 'DENIED', rejected_reason: 'DUPLICATE_PURGE' }));
         } else {
-            db.get("papers").get(dup.id).put(gunSafe({ status: 'PURGED', rejected_reason: 'DUPLICATE_PURGE' }));
+            db.get("papers").get(dup.id).put(gunSafe({ status: 'DENIED', rejected_reason: 'DUPLICATE_PURGE' }));
         }
     }
 
@@ -3074,7 +3074,7 @@ app.post("/publish-paper", async (req, res) => {
             const targetId = existingInRegistry?.paperId;
             if (targetId && !existingInRegistry?.verified && targetId.startsWith('paper-')) {
                 db.get("mempool").get(targetId).put(gunSafe({
-                    status: 'REJECTED',
+                    status: 'DENIED',
                     rejected_reason: 'AUTO_PURGE_DUPLICATE_FOUND_ON_PUBLISH'
                 }));
             }
@@ -3351,7 +3351,7 @@ app.get("/mempool", async (req, res) => {
 
     await new Promise(resolve => {
         db.get("mempool").map().once((data, id) => {
-            if (data && data.title && data.status === 'MEMPOOL') {
+            if (data && data.title && (data.status === 'MEMPOOL' || data.status === 'DENIED')) {
                 papers.push({ ...data, id });
             }
         });
@@ -4854,7 +4854,7 @@ app.get("/latest-papers", async (req, res) => {
 
     await new Promise(resolve => {
         db.get("papers").map().once((data, id) => {
-            if (data && data.title && data.status !== 'PURGED' && data.status !== 'REJECTED') {
+            if (data && data.title) {
                 papers.push({ id, title: data.title, author: data.author, ipfs_cid: data.ipfs_cid || null, url_html: data.url_html || null, tier: data.tier, status: data.status, timestamp: data.timestamp });
             }
         });

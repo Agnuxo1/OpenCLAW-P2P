@@ -2823,14 +2823,14 @@
                   <h2 style="color:var(--accent);">Collaborative Research Library</h2>
                   <div style="display:flex; gap:10px; align-items: center;">
                     <a href="https://github.com/P2P-OpenClaw/papers" target="_blank" class="btn"
-                      style="font-size:10px; border:1px solid #ff7020; color:#ff7020; text-decoration:none; display:flex; align-items:center; gap:6px;">
-                      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2" fill="none"
+                      style="font-size:10px; background:#ff7020; border:1px solid #ff7020; color:white; text-decoration:none; display:flex; align-items:center; gap:6px; font-weight:bold;">
+                      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"
                         stroke-linecap="round" stroke-linejoin="round">
                         <path
                           d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
                         </path>
                       </svg>
-                      ver papers GITHUB
+                      GITHUB PAPERS
                     </a>
                     <button onclick="showBackupModal()" class="btn"
                       style="font-size:10px; border:1px solid var(--accent); display:flex; align-items:center; gap:6px;">
@@ -5474,11 +5474,11 @@
       const grid = document.getElementById('paper-grid');
       const badge = document.getElementById('paper-count-badge');
 
-      // 1. Base: exclude purged/rejected/promoted
+      // 1. Base: display everything including DENIED, but still exclude purged/promoted
       let papers = Object.values(localPapers)
         .filter(p => {
           const s = (p.status || '').toUpperCase();
-          return s !== 'PURGED' && s !== 'REJECTED' && s !== 'PROMOTED';
+          return s !== 'PURGED' && s !== 'PROMOTED';
         })
         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
@@ -5498,7 +5498,7 @@
       } else if (paperFilterTab === 'pending') {
         papers = papers.filter(p => {
           const s = (p.status || '').toUpperCase();
-          return s === 'MEMPOOL' || s === 'UNVERIFIED' || s === 'DRAFT';
+          return s === 'MEMPOOL' || s === 'UNVERIFIED' || s === 'DRAFT' || s === 'DENIED';
         });
       }
 
@@ -5525,14 +5525,18 @@
 
       grid.innerHTML = papers.map(p => {
         const s = (p.status || '').toUpperCase();
-        const tierColor = p.tier === 'TIER1_VERIFIED' ? 'var(--green)'
-          : s === 'VERIFIED' ? 'var(--accent)'
-            : s === 'MEMPOOL' ? 'var(--yellow)'
-              : 'var(--text-muted)';
+        // Color mapping based on user request
+        const tierColor = (p.tier === 'TIER1_VERIFIED' || s === 'VERIFIED') ? 'var(--green)'
+          : s === 'MEMPOOL' ? 'var(--yellow)'
+            : s === 'DENIED' ? 'var(--red)'
+              : 'var(--orange)'; // fallback for unverified
+
         const tierLabel = p.tier === 'TIER1_VERIFIED' ? 'VERIFIED ✓'
-          : s === 'VERIFIED' ? 'PEER REVIEWED'
-            : s === 'MEMPOOL' ? '⏳ PENDING'
-              : 'UNVERIFIED';
+          : s === 'VERIFIED' ? 'VERIFIED ✓'
+            : s === 'MEMPOOL' ? '⏳ VERIFYING'
+              : s === 'DENIED' ? '❌ DENIED'
+                : 'UNVERIFIED';
+
         const abstract = p.abstract || (p.content ? p.content.replace(/[#*`\[\]]/g, '').slice(0, 200).trim() + '…' : 'No abstract.');
         const dateStr = p.timestamp ? new Date(p.timestamp).toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
         const ipfsLink = p.ipfs_cid ? `<a href="https://ipfs.io/ipfs/${p.ipfs_cid}" target="_blank" onclick="event.stopPropagation()" style="color:var(--accent);font-size:10px;text-decoration:none;margin-left:6px;">IPFS ↗</a>` : '';

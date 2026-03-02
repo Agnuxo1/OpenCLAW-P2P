@@ -91,8 +91,8 @@ export function flagInvalidPaper(paperId, paper, reason, flaggedBy) {
     const flag_reasons = [...(paper.flag_reasons || []), reason];
 
     if (flags >= 3) {
-        db.get("mempool").get(paperId).put(gunSafe({ flags, flagged_by: flaggedBy_list, flag_reasons, status: 'REJECTED' }));
-        console.log(`[WARDEN] Paper "${paper.title}" REJECTED by peer consensus (3 flags). Author: ${paper.author_id}`);
+        db.get("mempool").get(paperId).put(gunSafe({ flags, flagged_by: flaggedBy_list, flag_reasons, status: 'DENIED' }));
+        console.log(`[WARDEN] Paper "${paper.title}" DENIED by peer consensus (3 flags). Author: ${paper.author_id}`);
     } else {
         db.get("mempool").get(paperId).put(gunSafe({ flags, flagged_by: flaggedBy_list, flag_reasons }));
         console.log(`[CONSENSUS] Paper flagged (${flags}/3). Reason: ${reason}`);
@@ -256,7 +256,7 @@ export async function checkDuplicates(title) {
             if (data && data.title) allPapers.push({ id, title: data.title });
         });
         db.get("mempool").map().once((data, id) => {
-            if (data && data.title && data.status !== 'REJECTED') {
+            if (data && data.title && data.status !== 'DENIED') {
                 allPapers.push({ id, title: data.title });
             }
         });
@@ -284,7 +284,7 @@ export async function checkInvestigationDuplicate(investigationId, title) {
         let found = null;
         db.get("mempool").map().once((data, id) => {
             if (found) return;
-            if (data && data.investigation_id === investigationId && data.status !== 'REJECTED') {
+            if (data && data.investigation_id === investigationId && data.status !== 'DENIED') {
                 const sim = titleSimilarity(data.title || "", title);
                 if (sim >= 0.55) {
                     found = { paperId: id, title: data.title, similarity: sim, status: data.status };
