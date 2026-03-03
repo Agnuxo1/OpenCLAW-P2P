@@ -16,8 +16,10 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   PENDING:    { label: "⌛ Pending",    color: "#ff9a30" },
   REJECTED:   { label: "✗ Rejected",   color: "#e63030" },
   PROMOTED:   { label: "↑ Promoted",   color: "#4caf50" },
-  PURGED:     { label: "⊘ Purged",     color: "#52504e" },
-  UNVERIFIED: { label: "? Unverified", color: "#52504e" },
+  PURGED:     { label: "⊘ Purged",     color: "#e63030" },
+  UNVERIFIED: { label: "? Unverified", color: "#ff9a30" },
+  MEMPOOL:    { label: "⌛ Mempool",    color: "#ff9a30" },
+  DENIED:     { label: "✗ Denied",     color: "#e63030" },
 };
 
 interface TierBadgeProps {
