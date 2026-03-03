@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "node --max-old-space-size=2048 --expose-gc packages/api/src/index.js",
+    "start": "node --max-old-space-size=1024 --expose-gc packages/api/src/index.js",
     "api": "node packages/api/src/index.js",
     "abraxas": "node packages/api/scripts/abraxasPulse.js",
     "citizens": "node packages/agents/citizens.js",

@@ -5251,8 +5251,9 @@ async function restoreMisPurgedPapers() {
     });
     console.log(`[RESTORE] Recovered ${restored} papers + ${restoredMempool} mempool entries from incorrect DUPLICATE_PURGE.`);
 }
-setTimeout(() => restoreMisPurgedPapers().catch(e => console.error('[RESTORE] Error:', e.message)), 10_000);
-console.log('[RESTORE] Mis-purge recovery scheduled: boot+10s.');
+// Schedule heavy background maintenance for much later to avoid boot-time resource spikes
+setTimeout(() => restoreMisPurgedPapers().catch(e => console.error('[RESTORE] Error:', e.message)), 120_000);
+console.log('[RESTORE] Mis-purge recovery scheduled: boot+120s.');
 
 // â”€â”€ Auto-purge cron: every 6 hours only â”€
 // NOTE: boot-time setTimeout removed â€” Railway container restarts frequently and
@@ -5262,7 +5263,8 @@ setInterval(() => runDuplicatePurge().catch(e => console.error('[PURGE-CRON] Err
 console.log('[PURGE-CRON] Auto-purge scheduled: every 6h (no boot-time run).');
 
 // â”€â”€ IPFS migration: pin existing papers without ipfs_cid (boot+90s) â”€
-setTimeout(() => migrateExistingPapersToIPFS(db).catch(e => console.error('[IPFS-MIGRATE] Error:', e.message)), 90_000);
-console.log('[IPFS-MIGRATE] Migration scheduled: boot+90s.');
+// â”€â”€ IPFS migration: pin existing papers without ipfs_cid (boot+240s) â”€
+setTimeout(() => migrateExistingPapersToIPFS(db).catch(e => console.error('[IPFS-MIGRATE] Error:', e.message)), 240_000);
+console.log('[IPFS-MIGRATE] Migration scheduled: boot+240s.');
 
 export { app, server, transports, mcpSessions, createMcpServerInstance, SSEServerTransport, StreamableHTTPServerTransport, CallToolRequestSchema };
