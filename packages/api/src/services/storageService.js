@@ -1,6 +1,8 @@
 ﻿import { PaperPublisher } from "../PaperPublisher.js";
 import { Archivist } from "../Archivist.js";
 import { create } from 'ipfs-http-client';
+import Irys from "@irys/sdk";
+import FormData from "form-data";
 
 
 const MOLT_KEY = process.env.MOLTBOOK_API_KEY || "";
@@ -10,12 +12,12 @@ const publisher = new PaperPublisher(MOLT_KEY);
 let cachedBackupMeta = null;
 
 const ipfsClient = create({
-  host: 'api.pinata.cloud',
-  port: 443,
-  protocol: 'https',
-  headers: {
-    authorization: `Bearer ${process.env.PINATA_JWT || ''}`
-  }
+    host: 'api.pinata.cloud',
+    port: 443,
+    protocol: 'https',
+    headers: {
+        authorization: `Bearer ${process.env.PINATA_JWT || ''}`
+    }
 });
 
 // Export instances and functions
@@ -24,6 +26,51 @@ export { publisher, cachedBackupMeta, Archivist, ipfsClient };
 // Function to update cachedBackupMeta
 export function updateCachedBackupMeta(meta) {
     cachedBackupMeta = meta;
+}
+
+// ─── Arweave Upload (Irys) ──────────────────────────────────────────────────
+export async function archiveToArweave(paperContent, paperId) {
+    if (process.env.PUBLISHED_PAPER_ARWEAVE_ENABLED !== 'true') return null;
+
+    const privateKey = process.env.AGENT_PRIVATE_KEY || process.env.API_PRIVATE_KEY;
+    if (!privateKey) {
+        console.warn("[ARWEAVE] ⚠️ No private key found. Arweave archiving disabled.");
+        return null;
+    }
+
+    try {
+        const url = process.env.IRYS_NETWORK === 'mainnet' ? "https://node1.irys.xyz" : "https://devnet.irys.xyz";
+
+        const irys = new Irys({
+            url,
+            token: "matic",
+            key: privateKey,
+        });
+
+        // 1. Calculate price
+        const size = Buffer.byteLength(paperContent, 'utf8');
+        const price = await irys.getPrice(size);
+
+        // 2. Fund node if necessary (Irys automatically checks if funded)
+        await irys.fund(price);
+
+        // 3. Upload data
+        const tags = [
+            { name: "Content-Type", value: "text/markdown" },
+            { name: "App-Name", value: "P2PCLAW V3" },
+            { name: "Paper-ID", value: paperId }
+        ];
+
+        console.log(`[ARWEAVE] 📝 Uploading paper ${paperId} (Size: ${size} bytes)...`);
+        const receipt = await irys.upload(paperContent, { tags });
+
+        console.log(`[ARWEAVE] ✅ Paper secured for 200+ years. TXID: ${receipt.id}`);
+        return receipt.id;
+
+    } catch (e) {
+        console.error(`[ARWEAVE] ❌ Archiving failed:`, e.message);
+        return null;
+    }
 }
 
 export async function publishToIpfsWithRetry(title, content, author, maxAttempts = 3) {
@@ -90,21 +137,34 @@ export async function archiveToIPFS(paperContent, paperId) {
         return null;
     }
     try {
-        // Use Pinata REST API directly (ipfs-http-client is not compatible with Pinata)
+        // We use Pinata REST API directly to upload raw markdown rather than JSON.
+        // This ensures gateways can render the .md directly.
         const { default: fetch } = await import('node-fetch');
-        const payload = JSON.stringify({
-            pinataContent: { id: paperId, content: paperContent, timestamp: Date.now(), network: 'p2pclaw' },
-            pinataMetadata: { name: `p2pclaw-paper-${paperId}` },
-            pinataOptions: { cidVersion: 0 }
+
+        const formData = new FormData();
+        formData.append('file', Buffer.from(paperContent, 'utf8'), {
+            filename: `${paperId}.md`,
+            contentType: 'text/markdown'
         });
-        const res = await fetch('https://api.pinata.cloud/pinning/pinJSONToIPFS', {
+
+        const metadata = JSON.stringify({
+            name: `p2pclaw-paper-${paperId}`,
+            keyvalues: { network: 'p2pclaw', type: 'research_paper' }
+        });
+        formData.append('pinataMetadata', metadata);
+
+        const options = JSON.stringify({ cidVersion: 1 });
+        formData.append('pinataOptions', options);
+
+        const res = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${process.env.PINATA_JWT}`
+                'Authorization': `Bearer ${process.env.PINATA_JWT}`,
+                ...formData.getHeaders()
             },
-            body: payload
+            body: formData
         });
+
         if (!res.ok) {
             const err = await res.text();
             console.error(`[IPFS] Pinata error ${res.status}: ${err.slice(0, 200)}`);

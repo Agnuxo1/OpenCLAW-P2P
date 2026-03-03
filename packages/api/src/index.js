@@ -2811,7 +2811,7 @@ app.get("/hive-chat", async (req, res) => {
 
 // â”€â”€ Per-agent publish rate-limiter: max 3 papers per hour â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const agentPublishLog = new Map(); // authorId -> [timestamp, ...]
-const PUBLISH_RATE_LIMIT = 3;
+const PUBLISH_RATE_LIMIT = 500; // Increased temporarily for GitHub restore
 const PUBLISH_RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
 function checkPublishRateLimit(authorId) {
@@ -4881,6 +4881,10 @@ app.get("/latest-papers", async (req, res) => {
         .slice(0, limit)
         .map(p => {
             const data = p._raw;
+            let tagColor = 'orange'; // Default for MEMPOOL / UNVERIFIED
+            if (data.status === 'VERIFIED') tagColor = 'green';
+            else if (data.status === 'DENIED' || data.status === 'PURGED') tagColor = 'red';
+
             return {
                 id: p.id,
                 title: data.title,
@@ -4891,6 +4895,7 @@ app.get("/latest-papers", async (req, res) => {
                 url_html: data.url_html || null,
                 tier: data.tier,
                 status: data.status,
+                tag_color: tagColor,
                 timestamp: data.timestamp
             };
         });

@@ -1,5 +1,6 @@
 ﻿import { db } from "../config/gun.js";
-import { publishToIpfsWithRetry } from "./storageService.js";
+import { publishToIpfsWithRetry, archiveToArweave } from "./storageService.js";
+import { registerPaperOnChain } from "./blockchainRegistryService.js";
 import { updateInvestigationProgress } from "./hiveMindService.js";
 import { broadcastHiveEvent } from "./hiveService.js";
 import { gunSafe } from "../utils/gunUtils.js";
@@ -56,17 +57,44 @@ export async function promoteToWheel(paperId, paper) {
     // Mark as promoted in Mempool (never put(null) â€” SEA can't pack it)
     db.get("p2pclaw_mempool_v4").get(paperId).put(gunSafe({ status: 'PROMOTED', promoted_at: now }));
 
-    // Non-blocking IPFS archiving â€” try but never crash the promotion
+    // Non-blocking Arweave archiving
+    let arweaveTxId = null;
     try {
-        const { cid: ipfsCid, html: ipfsUrl } = await publishToIpfsWithRetry(
+        arweaveTxId = await archiveToArweave(paper.content, paperId);
+        if (arweaveTxId) {
+            db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ arweave_tx: arweaveTxId }));
+        }
+    } catch (arweaveErr) {
+        console.warn(`[CONSENSUS] Arweave archive failed. Error: ${arweaveErr.message}`);
+    }
+
+    // Non-blocking IPFS archiving â€” try but never crash the promotion
+    let ipfsCid = null;
+    try {
+        const result = await publishToIpfsWithRetry(
             paper.title, paper.content, paper.author
         );
+        ipfsCid = result.cid;
         if (ipfsCid) {
-            db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ ipfs_cid: ipfsCid, url_html: ipfsUrl }));
+            db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ ipfs_cid: ipfsCid }));
             console.log(`[CONSENSUS] IPFS archive OK: ${ipfsCid}`);
         }
     } catch (ipfsErr) {
         console.warn(`[CONSENSUS] IPFS archive failed for "${paper.title}" â€” paper is still VERIFIED in DB. Error: ${ipfsErr.message}`);
+    }
+
+    // Non-blocking Polygon Blockchain Registry
+    try {
+        if (process.env.PUBLISHED_PAPER_POLYGON_REGISTRY_ENABLED === 'true') {
+            const authorId = paper.author_id || paper.author;
+            const polygonTxId = await registerPaperOnChain(paper.title, arweaveTxId || "pending", paper.lean_proof || "none", authorId);
+            if (polygonTxId) {
+                db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ polygon_tx: polygonTxId }));
+                console.log(`[CONSENSUS] Polygon registry OK: ${polygonTxId}`);
+            }
+        }
+    } catch (polyErr) {
+        console.warn(`[CONSENSUS] Polygon registry failed. Error: ${polyErr.message}`);
     }
 
     // Auto-promote author rank
@@ -82,7 +110,7 @@ export async function promoteToWheel(paperId, paper) {
     }
 
     updateInvestigationProgress(paper.title, paper.content);
-    console.log(`[CONSENSUS] "${paper.title}" is now VERIFIED in La Rueda. IPFS: ${ipfsCid}`);
+    console.log(`[CONSENSUS] "${paper.title}" is now VERIFIED in La Rueda. IPFS: ${ipfsCid} | Arweave: ${arweaveTxId}`);
 }
 
 export function flagInvalidPaper(paperId, paper, reason, flaggedBy) {

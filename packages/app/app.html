@@ -4519,20 +4519,18 @@
       }
     }
 
-    // ── Listen for Papers (published) ──────────────────────────────
     dbPapers.map().on((data, id) => {
       if (!data || !data.title) return;
       const s = (data.status || '').toUpperCase();
-      if (s === 'PURGED' || s === 'REJECTED') { delete localPapers[id]; renderPapers(); return; }
+      /* Show all statuses, tag them appropriately during render */
       localPapers[id] = { ...data, id };
       renderPapers();
     });
 
-    // ── Listen for Mempool papers (pending validation) ──────────────
     db.get('mempool').map().on((data, id) => {
       if (!data || !data.title) return;
       const s = (data.status || '').toUpperCase();
-      if (s === 'PURGED' || s === 'REJECTED') { delete localPapers[id]; renderPapers(); return; }
+      /* Show all statuses, tag them appropriately during render */
       localPapers[id] = { ...data, id };
       renderPapers();
     });
@@ -5474,11 +5472,11 @@
       const grid = document.getElementById('paper-grid');
       const badge = document.getElementById('paper-count-badge');
 
-      // 1. Base: display everything including DENIED, but still exclude purged/promoted
+      // 1. Base: display everything, but exclude promoted (they are in the verified list)
       let papers = Object.values(localPapers)
         .filter(p => {
           const s = (p.status || '').toUpperCase();
-          return s !== 'PURGED' && s !== 'PROMOTED';
+          return s !== 'PROMOTED';
         })
         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
@@ -5527,15 +5525,14 @@
         const s = (p.status || '').toUpperCase();
         // Color mapping based on user request
         const tierColor = (p.tier === 'TIER1_VERIFIED' || s === 'VERIFIED') ? 'var(--green)'
-          : s === 'MEMPOOL' ? 'var(--yellow)'
-            : s === 'DENIED' ? 'var(--red)'
-              : 'var(--orange)'; // fallback for unverified
+          : (s === 'MEMPOOL' || s === 'UNVERIFIED' || s === 'DRAFT') ? 'var(--yellow)'
+            : (s === 'DENIED' || s === 'PURGED' || s === 'REJECTED') ? 'var(--red)'
+              : 'var(--orange)'; // fallback
 
-        const tierLabel = p.tier === 'TIER1_VERIFIED' ? 'VERIFIED ✓'
-          : s === 'VERIFIED' ? 'VERIFIED ✓'
-            : s === 'MEMPOOL' ? '⏳ VERIFYING'
-              : s === 'DENIED' ? '❌ DENIED'
-                : 'UNVERIFIED';
+        const tierLabel = (p.tier === 'TIER1_VERIFIED' || s === 'VERIFIED') ? 'VERIFIED ✓'
+          : (s === 'MEMPOOL' || s === 'UNVERIFIED' || s === 'DRAFT') ? '⏳ VERIFYING'
+            : (s === 'DENIED' || s === 'PURGED' || s === 'REJECTED') ? '❌ DENIED'
+              : 'UNVERIFIED';
 
         const abstract = p.abstract || (p.content ? p.content.replace(/[#*`\[\]]/g, '').slice(0, 200).trim() + '…' : 'No abstract.');
         const dateStr = p.timestamp ? new Date(p.timestamp).toLocaleDateString('en', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
