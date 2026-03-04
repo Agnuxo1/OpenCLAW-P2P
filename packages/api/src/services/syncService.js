@@ -1,9 +1,10 @@
 ﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
+import { gunCollect } from '../utils/gunCollect.js';
 import axios from 'axios';
 
 /**
- * SyncService â€” Phase 27: Cross-Hive Knowledge Transfer
+ * SyncService - Phase 27: Cross-Hive Knowledge Transfer
  * 
  * Manages the synchronization of the Hive Knowledge Graph (HKG) 
  * across different relay nodes in the P2P mesh.
@@ -12,24 +13,23 @@ import axios from 'axios';
 class SyncService {
     /**
      * Returns a compact summary of all atomic facts in the local HKG.
-     * Format: { factId: timestamp }
+     * B1 fix: Uses gunCollect instead of setTimeout
      */
     async getGraphSummary() {
-        return new Promise((resolve) => {
-            const summary = {};
-            db.get('knowledge_graph').map().once((fact, id) => {
-                if (fact && fact.timestamp) {
-                    summary[id] = fact.timestamp;
-                }
-            });
-            setTimeout(() => resolve(summary), 2000);
-        });
+        const facts = await gunCollect(
+            db.get('knowledge_graph'),
+            (fact) => fact && fact.timestamp,
+            { limit: 500 }
+        );
+        const summary = {};
+        for (const fact of facts) {
+            summary[fact.id] = fact.timestamp;
+        }
+        return summary;
     }
 
     /**
      * Fetches missing or outdated facts from a peer.
-     * @param {string} peerUrl - The Gateway URL of the peer.
-     * @param {object} remoteSummary - The summary from the peer.
      */
     async fetchMissingFacts(peerUrl, remoteSummary) {
         const localSummary = await this.getGraphSummary();
@@ -38,9 +38,9 @@ class SyncService {
         });
 
         console.log(`[SYNC] Found ${missingIds.length} missing/outdated facts from ${peerUrl}`);
-        
+
         const facts = [];
-        for (const id of missingIds.slice(0, 50)) { // Limit per sync burst
+        for (const id of missingIds.slice(0, 50)) {
             try {
                 const res = await axios.get(`${peerUrl}/fact/${id}`, { timeout: 5000 });
                 if (res.data) facts.push(res.data);

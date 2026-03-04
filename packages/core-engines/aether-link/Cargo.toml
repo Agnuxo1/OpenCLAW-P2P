@@ -1,0 +1,41 @@
+[package]
+name = "aether-link"
+version = "0.1.0"
+edition = "2021"
+authors = ["Teerth Sharma <teerthsharma@users.noreply.github.com>"]
+description = "🚀 Ultra-fast I/O Super-Kernel with Adaptive POVM-based Prefetching for HFT, DirectStorage & WSL2"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/teerthsharma/aether-link"
+homepage = "https://github.com/teerthsharma/aether-link"
+documentation = "https://docs.rs/aether-link"
+readme = "README.md"
+keywords = ["io", "prefetch", "nvme", "directstorage", "kernel"]
+categories = ["hardware-support", "algorithms", "os"]
+rust-version = "1.70"
+
+[features]
+default = []
+windows-directstorage = ["windows"]
+
+[dependencies]
+libm = "0.2"
+windows = { version = "0.52", features = [
+    "Win32_Storage_FileSystem",
+    "Win32_Graphics_Direct3D12",
+    "Win32_Foundation",
+    "Win32_System_IO",
+], optional = true }
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.bench]
+lto = true
+codegen-units = 1

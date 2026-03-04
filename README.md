@@ -31,8 +31,10 @@ p2pclaw-monorepo/
 │   │   │   └── index.js# Main entry point for the API
 │   ├── app/            # Frontend Dashboard (P2P-powered UI)
 │   │   └── index.html  # Standalone interactive dashboard
-│   └── agents/         # Autonomous P2P Agents (Workers & Validators)
-│       └── citizens.js # Automated research agents
+│   ├── agents/         # Autonomous P2P Agents (Workers & Validators)
+│   │   └── citizens.js # Automated research agents
+│   └── core-engines/   # Specialized computational microservices
+│       └── aether-link/# Sub-15ns Adaptive I/O Kernel for Local LLM Inference
 ├── scripts/            # Repository-wide maintenance and utility scripts
 ├── public/             # Static assets and P2P system backups
 ├── package.json        # Root package.json with workspace management

@@ -1,21 +1,19 @@
 ﻿import { db } from '../config/gun.js';
 import { gunSafe } from '../utils/gunUtils.js';
+import { gunCollect } from '../utils/gunCollect.js';
 
 /**
- * TeamService â€” Phase 24: Swarm Intelligence
+ * TeamService - Phase 24: Swarm Intelligence
  * 
  * Manages the formation and coordination of multi-agent squads 
  * dedicated to specific research tasks or investigations.
  */
 
 class TeamService {
-    /**
-     * Creates a new research team for a specific task.
-     */
     async createTeam(leaderId, taskId, teamName = null) {
         const teamId = `team-${Math.random().toString(36).substring(2, 10)}`;
         const now = Date.now();
-        
+
         const teamData = {
             id: teamId,
             name: teamName || `Squad-${teamId.slice(5, 9)}`,
@@ -27,16 +25,11 @@ class TeamService {
         };
 
         return new Promise((resolve) => {
-            // 1. Create team record
             db.get('swarm_teams').get(teamId).put(gunSafe(teamData));
-            
-            // 2. Add leader as first member
             db.get('swarm_teams').get(teamId).get('members').get(leaderId).put({
                 joinedAt: now,
                 role: 'LEADER'
             });
-
-            // 3. Link task to team (optional but helpful)
             db.get('swarm_tasks').get(taskId).get('active_teams').get(teamId).put(true);
 
             console.log(`[SWARM] Team created: ${teamId} by ${leaderId} for task ${taskId}`);
@@ -44,21 +37,17 @@ class TeamService {
         });
     }
 
-    /**
-     * Adds an agent to an existing team.
-     */
     async joinTeam(agentId, teamId) {
         return new Promise((resolve, reject) => {
             db.get('swarm_teams').get(teamId).once((team) => {
                 if (!team) return reject(new Error('Team not found'));
-                
+
                 const now = Date.now();
                 db.get('swarm_teams').get(teamId).get('members').get(agentId).put({
                     joinedAt: now,
                     role: 'CONTRIBUTOR'
                 });
 
-                // Increment member count
                 const newCount = (team.memberCount || 0) + 1;
                 db.get('swarm_teams').get(teamId).put({ memberCount: newCount });
 
@@ -69,20 +58,15 @@ class TeamService {
     }
 
     /**
-     * Returns all active teams with their members.
+     * Returns all active teams.
+     * B1 fix: Uses gunCollect instead of setTimeout
      */
     async getTeams() {
-        return new Promise((resolve) => {
-            const teams = [];
-            db.get('swarm_teams').map().once((team, id) => {
-                if (team && team.status === 'ACTIVE') {
-                    teams.push(team);
-                }
-            });
-
-            // Delay for map recursion to populate
-            setTimeout(() => resolve(teams), 500);
-        });
+        return await gunCollect(
+            db.get('swarm_teams'),
+            (team) => team && team.status === 'ACTIVE',
+            { limit: 200 }
+        );
     }
 }
 
