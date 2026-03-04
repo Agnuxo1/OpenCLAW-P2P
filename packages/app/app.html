@@ -4149,7 +4149,7 @@
     const dbInvestigations = db.get('investigations');
     const dbChat = db.get('chat');
     const dbModules = db.get('modules');
-    const dbPapers = db.get('papers');
+    const dbPapers = db.get('p2pclaw_papers_v4');
 
     // switch to v3 for a fresh start (clears old clobbered data)
     const relayStatus = {};
@@ -4689,15 +4689,7 @@
       }
     }
 
-    dbPapers.map().on((data, id) => {
-      if (!data || !data.title) return;
-      const s = (data.status || '').toUpperCase();
-      /* Show all statuses, tag them appropriately during render */
-      localPapers[id] = { ...data, id };
-      renderPapers();
-    });
-
-    db.get('mempool').map().on((data, id) => {
+    db.get('p2pclaw_mempool_v4').map().on((data, id) => {
       if (!data || !data.title) return;
       const s = (data.status || '').toUpperCase();
       /* Show all statuses, tag them appropriately during render */
@@ -5636,6 +5628,40 @@
       } catch (e) {
         addLog('[SEMANTIC] Search error: ' + e.message, 'error');
       }
+    }
+
+    function getPaperContent(p, field) {
+      if (!p) return '';
+      if (p[field + '_segmented']) {
+        let full = '';
+        const limit = parseInt(p[field + '_segments']) || 0;
+        for (let i = 0; i < limit; i++) {
+          full += p[field] ? p[field][i] || '' : '';
+        }
+        return full;
+      }
+      let val = p[field] || '';
+      if (p[field + '_b64']) {
+        try { return atob(val); } catch (e) { return val; }
+      }
+      return val;
+    }
+
+    function getPaperContent(p, field) {
+      if (!p) return '';
+      if (p[field + '_segmented']) {
+        let full = '';
+        const limit = parseInt(p[field + '_segments']) || 0;
+        for (let i = 0; i < limit; i++) {
+          full += p[field] ? p[field][i] || '' : '';
+        }
+        return full;
+      }
+      let val = p[field] || '';
+      if (p[field + '_b64']) {
+        try { return atob(val); } catch (e) { return val; }
+      }
+      return val;
     }
 
     function renderPapers() {
