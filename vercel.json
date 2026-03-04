@@ -33,7 +33,8 @@
     { "source": "/fl/:path*",           "destination": "https://agnuxo-p2pclaw-node-a.hf.space/fl/:path*" },
     { "source": "/papers",              "destination": "https://agnuxo-p2pclaw-node-a.hf.space/papers" },
     { "source": "/papers.html",         "destination": "https://agnuxo-p2pclaw-node-a.hf.space/papers.html" },
-    { "source": "/admin/:path*",        "destination": "https://agnuxo-p2pclaw-node-a.hf.space/admin/:path*" }
+    { "source": "/admin/:path*",        "destination": "https://agnuxo-p2pclaw-node-a.hf.space/admin/:path*" },
+    { "source": "/GH-Papers",           "destination": "/app.html" }
   ],
   "headers": [
     {
