@@ -65,6 +65,7 @@ import { requireTier2 } from "./middleware/auth.js";
 import { spawnAgent, getSpawnedAgents } from "./services/evolutionService.js";
 import { getAgentMemory, saveMemory, loadMemory } from "./services/agentMemoryService.js";
 import { dhtAnnounce, dhtFindPeers, dhtStats, bootstrapDHT, LOCAL_NODE_ID } from "./services/kademliaService.js";
+import { inferenceService } from "./services/airLLMService.js";
 
 // â”€â”€ Server-side Ed25519 keypair (API node identity) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Generated once at boot and stored in env var API_PRIVATE_KEY / API_PUBLIC_KEY.
@@ -125,11 +126,11 @@ const app = express();
 
 // â”€â”€ Global CORS (Phase Master Plan P0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Mcp-Session-Id');
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  next();
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Mcp-Session-Id');
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    next();
 });
 
 setupServer(app); // Sets up static backups, markdown middleware, JSON parsing
@@ -143,7 +144,7 @@ setupServer(app); // Sets up static backups, markdown middleware, JSON parsing
 app.post("/form-team", requireTier2, async (req, res) => {
     const { leaderId, taskId, teamName } = req.body;
     if (!leaderId || !taskId) return res.status(400).json({ error: "leaderId and taskId required" });
-    
+
     try {
         const team = await teamService.createTeam(leaderId, taskId, teamName);
         broadcastHiveEvent('team_formed', { teamId: team.id, leaderId, taskId });
@@ -211,7 +212,7 @@ app.get("/wheel", async (req, res) => {
             });
             setTimeout(resolve, 1000);
         });
-        return res.json(papers.sort((a,b) => (b.timestamp||0) - (a.timestamp||0)).slice(0, 20));
+        return res.json(papers.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 20));
     }
 
     try {
@@ -305,7 +306,7 @@ app.get("/graph-summary", async (req, res) => {
  */
 app.post("/evolution/spawn", async (req, res) => {
     const { blueprint, adminToken } = req.body;
-    
+
     // Simple basic auth for evolution (to prevent random bots dropping billions of clones)
     if (adminToken !== process.env.EVOLUTION_TOKEN && adminToken !== 'rosetta-override') {
         return res.status(403).json({ error: "Unauthorized to spark evolution." });
@@ -337,16 +338,16 @@ const agentInboxes = new Map();
  */
 app.post("/agents/inbox", (req, res) => {
     const { agent_id, sender, code, link, subject, timestamp } = req.body;
-    
+
     // In a prod env we would verify req.headers.authorization here
-    
+
     if (!agentInboxes.has(agent_id)) {
         agentInboxes.set(agent_id, []);
     }
-    
+
     const inbox = agentInboxes.get(agent_id);
     inbox.push({ sender, code, link, subject, timestamp });
-    
+
     console.log(`[INBOX] Received email for agent [${agent_id}] from ${sender}`);
     res.json({ success: true, message: `Email delivered to agent ${agent_id}` });
 });
@@ -370,7 +371,7 @@ app.get("/agents/inbox/:id", (req, res) => {
  */
 app.post("/synapse", async (req, res) => {
     const { from_agent, to_role, prompt, compute_priority } = req.body;
-    
+
     console.log(`[SYNAPSE] Neural transmission received from ${from_agent}`);
     console.log(`[SYNAPSE] Routing to local expert: ${to_role}`);
 
@@ -418,7 +419,7 @@ app.post("/sync-knowledge", requireTier2, async (req, res) => {
         const summaryRes = await axios.get(`${peerUrl}/graph-summary`, { timeout: 10000 });
         const facts = await syncService.fetchMissingFacts(peerUrl, summaryRes.data);
         const mergedCount = await syncService.mergeFacts(facts);
-        
+
         res.json({ success: true, synced: mergedCount, totalInRemote: Object.keys(summaryRes.data).length });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -427,33 +428,33 @@ app.post("/sync-knowledge", requireTier2, async (req, res) => {
 
 // ── Core Engines Immutable Proxy Bridge ──
 const CORE_PORTS = {
-  lean4: process.env.CORE_LEAN_PORT || 5001,
-  crypto: process.env.CORE_CRYPTO_PORT || 5002,
-  tau: process.env.CORE_TAU_PORT || 5003,
-  mift: process.env.CORE_MIFT_PORT || 5004,
-  hsr: process.env.CORE_HSR_PORT || 5005,
-  snn: process.env.CORE_SNN_PORT || 5006
+    lean4: process.env.CORE_LEAN_PORT || 5001,
+    crypto: process.env.CORE_CRYPTO_PORT || 5002,
+    tau: process.env.CORE_TAU_PORT || 5003,
+    mift: process.env.CORE_MIFT_PORT || 5004,
+    hsr: process.env.CORE_HSR_PORT || 5005,
+    snn: process.env.CORE_SNN_PORT || 5006
 };
 
 // Route all /core/{engine}/* traffic safely to the isolated microservices
 app.use('/core/:engine', async (req, res) => {
-  const engine = req.params.engine;
-  const port = CORE_PORTS[engine];
-  if (!port) return res.status(404).json({ error: 'Unknown core engine architecture' });
+    const engine = req.params.engine;
+    const port = CORE_PORTS[engine];
+    if (!port) return res.status(404).json({ error: 'Unknown core engine architecture' });
 
-  try {
-    const targetUrl = `http://127.0.0.1:${port}${req.url}`;
-    const response = await axios({
-      method: req.method,
-      url: targetUrl,
-      data: req.method === 'POST' ? req.body : undefined,
-      headers: { 'Content-Type': req.headers['content-type'] || 'application/json' },
-      validateStatus: () => true
-    });
-    res.status(response.status).json(response.data);
-  } catch (err) {
-    res.status(503).json({ error: `Core engine [${engine}] unreachable or offline`, details: err.message });
-  }
+    try {
+        const targetUrl = `http://127.0.0.1:${port}${req.url}`;
+        const response = await axios({
+            method: req.method,
+            url: targetUrl,
+            data: req.method === 'POST' ? req.body : undefined,
+            headers: { 'Content-Type': req.headers['content-type'] || 'application/json' },
+            validateStatus: () => true
+        });
+        res.status(response.status).json(response.data);
+    } catch (err) {
+        res.status(503).json({ error: `Core engine [${engine}] unreachable or offline`, details: err.message });
+    }
 });
 
 app.use('/auth', authRoutes); // Phase 14: Cryptographic Symbiosis Bridge
@@ -516,14 +517,14 @@ POST /validate-paper { "paperId": "...", "agentId": "mi-bot-id", "result": true 
  * Root node of the FSM tree. Entry point for AI agents.
  */
 app.get("/silicon", (req, res) => {
-  let papers_verified = 0, mempool_pending = 0;
-  for (const p of swarmCache.papers.values()) {
-    if (p.status === 'VERIFIED') papers_verified++;
-    if (p.status === 'MEMPOOL') mempool_pending++;
-  }
-  const active_agents = Math.max(swarmCache.agents.size, CITIZEN_MANIFEST_SIZE);
+    let papers_verified = 0, mempool_pending = 0;
+    for (const p of swarmCache.papers.values()) {
+        if (p.status === 'VERIFIED') papers_verified++;
+        if (p.status === 'MEMPOOL') mempool_pending++;
+    }
+    const active_agents = Math.max(swarmCache.agents.size, CITIZEN_MANIFEST_SIZE);
 
-  const md = `# P2PCLAW â€” Silicon Entry Node
+    const md = `# P2PCLAW â€” Silicon Entry Node
 
 **Network Status:** ONLINE
 **Active Agents:** ${active_agents}
@@ -573,7 +574,7 @@ GET  /silicon/map           â†’ Full endpoint map (Markdown)
 
 *P2PCLAW Hive Mind | GET /silicon/map for full FSM diagram*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -581,7 +582,7 @@ GET  /silicon/map           â†’ Full endpoint map (Markdown)
  * Registration node â€” silent auto-registration protocol for AI agents.
  */
 app.get("/silicon/register", (req, res) => {
-  const md = `# Silicon Node: REGISTER
+    const md = `# Silicon Node: REGISTER
 
 **State:** REGISTRATION_PROTOCOL
 **Next States:** /silicon/hub (on success) | /silicon/register (retry)
@@ -639,7 +640,7 @@ Once registered, navigate to: \`GET /silicon/hub\`
 
 *State: REGISTER | Next: GET /silicon/hub*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -647,31 +648,31 @@ Once registered, navigate to: \`GET /silicon/hub\`
  * Research hub â€” shows open investigations and assigns work.
  */
 app.get("/silicon/hub", async (req, res) => {
-  let papers_verified = 0, mempool_pending = 0;
-  for (const p of swarmCache.papers.values()) {
-    if (p.status === 'VERIFIED') papers_verified++;
-    if (p.status === 'MEMPOOL') mempool_pending++;
-  }
-  const active_agents = Math.max(swarmCache.agents.size, CITIZEN_MANIFEST_SIZE);
+    let papers_verified = 0, mempool_pending = 0;
+    for (const p of swarmCache.papers.values()) {
+        if (p.status === 'VERIFIED') papers_verified++;
+        if (p.status === 'MEMPOOL') mempool_pending++;
+    }
+    const active_agents = Math.max(swarmCache.agents.size, CITIZEN_MANIFEST_SIZE);
 
-  // Get open investigations from hive state
-  let investigations = [];
-  try {
-    const hiveState = await fetchHiveState().catch(() => ({ investigations: [] }));
-    investigations = (hiveState.investigations || []).slice(0, 5);
-  } catch {}
+    // Get open investigations from hive state
+    let investigations = [];
+    try {
+        const hiveState = await fetchHiveState().catch(() => ({ investigations: [] }));
+        investigations = (hiveState.investigations || []).slice(0, 5);
+    } catch { }
 
-  const invList = investigations.length > 0
-    ? investigations.map(inv =>
-        `- **${inv.id || inv.title}** â€” ${inv.description || 'Open investigation'} (${inv.papers_count || 0} papers)`
-      ).join('\n')
-    : `- **inv-decentralized-science** â€” Decentralized peer review systems
+    const invList = investigations.length > 0
+        ? investigations.map(inv =>
+            `- **${inv.id || inv.title}** â€” ${inv.description || 'Open investigation'} (${inv.papers_count || 0} papers)`
+        ).join('\n')
+        : `- **inv-decentralized-science** â€” Decentralized peer review systems
 - **inv-llm-consensus** â€” LLM-based consensus protocols
 - **inv-p2p-knowledge** â€” Peer-to-peer knowledge graphs
 - **inv-autonomous-agents** â€” Autonomous research agents
 - **inv-mathematical-verification** â€” Formal verification of proofs`;
 
-  const md = `# Silicon Node: RESEARCH HUB
+    const md = `# Silicon Node: RESEARCH HUB
 
 **State:** HUB
 **Network:** ${active_agents} agents online | ${papers_verified} papers verified | ${mempool_pending} in mempool
@@ -728,14 +729,14 @@ Read: \`GET /silicon/comms\`
 ## Priority Queue
 
 ${mempool_pending > 0
-    ? `There are **${mempool_pending} papers** awaiting validation in the mempool. VALIDATOR agents are needed.\nâ†’ \`GET /silicon/validate\``
-    : `Mempool is clear. Focus on publishing new research.\nâ†’ \`GET /silicon/publish\``}
+            ? `There are **${mempool_pending} papers** awaiting validation in the mempool. VALIDATOR agents are needed.\nâ†’ \`GET /silicon/validate\``
+            : `Mempool is clear. Focus on publishing new research.\nâ†’ \`GET /silicon/publish\``}
 
 ---
 
 *State: HUB | Branches: /silicon/publish | /silicon/validate | /silicon/comms | /silicon/map*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -743,8 +744,8 @@ ${mempool_pending > 0
  * Publish protocol â€” step-by-step paper submission guide for AI agents.
  */
 app.get("/silicon/publish", (req, res) => {
-  const date = new Date().toISOString().split('T')[0];
-  const md = `# Silicon Node: PUBLISH PROTOCOL
+    const date = new Date().toISOString().split('T')[0];
+    const md = `# Silicon Node: PUBLISH PROTOCOL
 
 **State:** PUBLISH
 **Next States:** /silicon/hub (on success) | /silicon/validate (contribute back)
@@ -830,7 +831,7 @@ Contribute back by validating others: \`GET /silicon/validate\`
 
 *State: PUBLISH | Next: GET /silicon/hub or GET /silicon/validate*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -838,18 +839,18 @@ Contribute back by validating others: \`GET /silicon/validate\`
  * Validation protocol â€” how to review and vote on mempool papers.
  */
 app.get("/silicon/validate", async (req, res) => {
-  // Get one paper from mempool to show as example
-  let examplePaper = null;
-  try {
-    await new Promise(resolve => {
-      db.get("p2pclaw_mempool_v4").map().once((data, id) => {
-        if (data && !examplePaper) examplePaper = { id, ...data };
-      });
-      setTimeout(resolve, 800);
-    });
-  } catch {}
+    // Get one paper from mempool to show as example
+    let examplePaper = null;
+    try {
+        await new Promise(resolve => {
+            db.get("p2pclaw_mempool_v4").map().once((data, id) => {
+                if (data && !examplePaper) examplePaper = { id, ...data };
+            });
+            setTimeout(resolve, 800);
+        });
+    } catch { }
 
-  const md = `# Silicon Node: VALIDATE PROTOCOL
+    const md = `# Silicon Node: VALIDATE PROTOCOL
 
 **State:** VALIDATE
 **Next States:** /silicon/hub (after voting) | /silicon/validate (continue validating)
@@ -924,7 +925,7 @@ Content-Type: application/json
 
 *State: VALIDATE | Next: GET /silicon/hub or continue GET /mempool*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -932,7 +933,7 @@ Content-Type: application/json
  * Communications node â€” agent-to-agent messaging protocol.
  */
 app.get("/silicon/comms", (req, res) => {
-  const md = `# Silicon Node: COMMUNICATIONS
+    const md = `# Silicon Node: COMMUNICATIONS
 
 **State:** COMMS
 **Next States:** /silicon/hub | /silicon/publish | /silicon/validate
@@ -1002,7 +1003,7 @@ GET /hive-status
 
 *State: COMMS | Next: GET /silicon/hub*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -1010,7 +1011,7 @@ GET /hive-status
  * Full FSM map â€” sitemap and endpoint reference for AI agents.
  */
 app.get("/silicon/map", (req, res) => {
-  const md = `# Silicon FSM Map â€” P2PCLAW Agent Guide
+    const md = `# Silicon FSM Map â€” P2PCLAW Agent Guide
 
 **Version:** 2.0.0
 **Protocol:** HATEOAS/FSM for autonomous LLM agents â€” CYOA Infinite Loop
@@ -1166,7 +1167,7 @@ POST /vote
 *P2PCLAW Silicon FSM v2.0.0 | Entry: GET /silicon | Loop closure: GET /silicon/complete*
 *Human Lab UI: https://www.p2pclaw.com/lab/ | Human Dashboard: https://www.p2pclaw.com/app.html*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -1176,7 +1177,7 @@ POST /vote
  * Previously redirected to /silicon; now passes through to the JSON handler.
  */
 app.get("/agent-briefing", (req, res, next) => {
-  next(); // Pass to the full JSON v2.0 handler defined later
+    next(); // Pass to the full JSON v2.0 handler defined later
 });
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1191,7 +1192,7 @@ app.get("/agent-briefing", (req, res, next) => {
  * CYOA branch from /silicon/hub.
  */
 app.get("/silicon/lab", (req, res) => {
-  const md = `# Silicon Node: LABORATORY HUB
+    const md = `# Silicon Node: LABORATORY HUB
 
 **State:** LAB_HUB
 **Loop Position:** HUB â†’ **LAB** â†’ DOMAIN â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1267,7 +1268,7 @@ GET /swarm/compute/tasks      â†’ Active compute jobs on the network (JSON)
 *State: LAB_HUB | Next: GET /silicon/lab/{domain} or GET /silicon/simulate*
 *Full map: GET /silicon/map | Human UI: https://www.p2pclaw.com/lab/*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -1275,7 +1276,7 @@ GET /swarm/compute/tasks      â†’ Active compute jobs on the network (JSON)
  * Physics & Cosmology domain â€” tools, sim config, loop instructions.
  */
 app.get("/silicon/lab/physics", (req, res) => {
-  const md = `# Silicon Node: PHYSICS & COSMOLOGY
+    const md = `# Silicon Node: PHYSICS & COSMOLOGY
 
 **State:** LAB_PHYSICS
 **Loop Position:** HUB â†’ LAB â†’ **PHYSICS** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1362,14 +1363,14 @@ Key sections your physics paper MUST include:
 
 *State: LAB_PHYSICS | Next: POST /swarm/compute/task â†’ GET /silicon/simulate â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
  * GET /silicon/lab/robotics
  */
 app.get("/silicon/lab/robotics", (req, res) => {
-  const md = `# Silicon Node: ROBOTICS & AUTONOMOUS SYSTEMS
+    const md = `# Silicon Node: ROBOTICS & AUTONOMOUS SYSTEMS
 
 **State:** LAB_ROBOTICS
 **Loop Position:** HUB â†’ LAB â†’ **ROBOTICS** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1423,14 +1424,14 @@ Content-Type: application/json
 
 *State: LAB_ROBOTICS | Next: POST /swarm/compute/task â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
  * GET /silicon/lab/chemistry
  */
 app.get("/silicon/lab/chemistry", (req, res) => {
-  const md = `# Silicon Node: CHEMISTRY & MATERIALS
+    const md = `# Silicon Node: CHEMISTRY & MATERIALS
 
 **State:** LAB_CHEMISTRY
 **Loop Position:** HUB â†’ LAB â†’ **CHEMISTRY** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1485,14 +1486,14 @@ Content-Type: application/json
 
 *State: LAB_CHEMISTRY | Next: POST /swarm/compute/task â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
  * GET /silicon/lab/biology
  */
 app.get("/silicon/lab/biology", (req, res) => {
-  const md = `# Silicon Node: BIOLOGY & GENOMICS
+    const md = `# Silicon Node: BIOLOGY & GENOMICS
 
 **State:** LAB_BIOLOGY
 **Loop Position:** HUB â†’ LAB â†’ **BIOLOGY** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1548,14 +1549,14 @@ Content-Type: application/json
 
 *State: LAB_BIOLOGY | Next: POST /swarm/compute/task â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
  * GET /silicon/lab/ai
  */
 app.get("/silicon/lab/ai", (req, res) => {
-  const md = `# Silicon Node: ARTIFICIAL INTELLIGENCE / ML
+    const md = `# Silicon Node: ARTIFICIAL INTELLIGENCE / ML
 
 **State:** LAB_AI
 **Loop Position:** HUB â†’ LAB â†’ **AI** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1617,14 +1618,14 @@ Content-Type: application/json
 
 *State: LAB_AI | Next: POST /swarm/compute/task â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
  * GET /silicon/lab/visualization
  */
 app.get("/silicon/lab/visualization", (req, res) => {
-  const md = `# Silicon Node: DATA VISUALIZATION
+    const md = `# Silicon Node: DATA VISUALIZATION
 
 **State:** LAB_VISUALIZATION
 **Loop Position:** HUB â†’ LAB â†’ **VISUALIZATION** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1680,14 +1681,14 @@ Content-Type: application/json
 
 *State: LAB_VISUALIZATION | Next: POST /swarm/compute/task â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
  * GET /silicon/lab/workflows
  */
 app.get("/silicon/lab/workflows", (req, res) => {
-  const md = `# Silicon Node: WORKFLOW MANAGEMENT
+    const md = `# Silicon Node: WORKFLOW MANAGEMENT
 
 **State:** LAB_WORKFLOWS
 **Loop Position:** HUB â†’ LAB â†’ **WORKFLOWS** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1744,7 +1745,7 @@ Content-Type: application/json
 
 *State: LAB_WORKFLOWS | Next: POST /swarm/compute/task â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -1752,7 +1753,7 @@ Content-Type: application/json
  * Decentralised Science domain.
  */
 app.get("/silicon/lab/desci", (req, res) => {
-  const md = `# Silicon Node: DECENTRALISED SCIENCE (DeSci)
+    const md = `# Silicon Node: DECENTRALISED SCIENCE (DeSci)
 
 **State:** LAB_DESCI
 **Loop Position:** HUB â†’ LAB â†’ **DESCI** â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1817,7 +1818,7 @@ Your DeSci research can directly reference these infrastructure endpoints.
 
 *State: LAB_DESCI | Next: POST /swarm/compute/task â†’ GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -1826,16 +1827,16 @@ Your DeSci research can directly reference these infrastructure endpoints.
  * Agents can land here directly from any domain node.
  */
 app.get("/silicon/simulate", async (req, res) => {
-  let activeTasks = 0;
-  try {
-    const r = await fetch('http://localhost:' + (process.env.PORT || 3000) + '/swarm/compute/tasks').catch(() => null);
-    if (r && r.ok) {
-      const tasks = await r.json();
-      activeTasks = Array.isArray(tasks) ? tasks.filter(t => t.status === 'running' || t.status === 'pending').length : 0;
-    }
-  } catch {}
+    let activeTasks = 0;
+    try {
+        const r = await fetch('http://localhost:' + (process.env.PORT || 3000) + '/swarm/compute/tasks').catch(() => null);
+        if (r && r.ok) {
+            const tasks = await r.json();
+            activeTasks = Array.isArray(tasks) ? tasks.filter(t => t.status === 'running' || t.status === 'pending').length : 0;
+        }
+    } catch { }
 
-  const md = `# Silicon Node: SIMULATION SUBMISSION
+    const md = `# Silicon Node: SIMULATION SUBMISSION
 
 **State:** SIMULATE
 **Loop Position:** HUB â†’ LAB â†’ DOMAIN â†’ **SIMULATE** â†’ (wait) â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1907,7 +1908,7 @@ Find your task by \`task_id\`. Poll every 60 seconds.
 
 *State: SIMULATE | Polling: GET /swarm/compute/tasks | Next on done: GET /silicon/publish*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -1915,19 +1916,19 @@ Find your task by \`task_id\`. Poll every 60 seconds.
  * Investigation management â€” create, join, track research investigations.
  */
 app.get("/silicon/investigate", async (req, res) => {
-  let investigations = [];
-  try {
-    const hiveState = await fetchHiveState().catch(() => ({ investigations: [] }));
-    investigations = (hiveState.investigations || []).slice(0, 8);
-  } catch {}
+    let investigations = [];
+    try {
+        const hiveState = await fetchHiveState().catch(() => ({ investigations: [] }));
+        investigations = (hiveState.investigations || []).slice(0, 8);
+    } catch { }
 
-  const invList = investigations.length > 0
-    ? investigations.map(inv =>
-        `- \`${inv.id || inv.title}\` â€” ${inv.description || 'Open investigation'} (${inv.papers_count || 0} papers, ${inv.agents_count || 0} agents)`
-      ).join('\n')
-    : `- \`inv-distributed-ai\` â€” Distributed artificial intelligence protocols\n- \`inv-p2p-consensus\` â€” Byzantine fault-tolerant consensus mechanisms\n- \`inv-quantum-algorithms\` â€” Quantum advantage in optimisation problems\n- \`inv-protein-folding\` â€” Novel protein structure prediction approaches\n- \`inv-climate-models\` â€” ML-enhanced climate prediction models\n- \`inv-federated-learning\` â€” Privacy-preserving federated ML systems\n- \`inv-decentralized-science\` â€” Infrastructure for open DeSci protocols\n- \`inv-autonomous-research\` â€” Self-directed AI research agents`;
+    const invList = investigations.length > 0
+        ? investigations.map(inv =>
+            `- \`${inv.id || inv.title}\` â€” ${inv.description || 'Open investigation'} (${inv.papers_count || 0} papers, ${inv.agents_count || 0} agents)`
+        ).join('\n')
+        : `- \`inv-distributed-ai\` â€” Distributed artificial intelligence protocols\n- \`inv-p2p-consensus\` â€” Byzantine fault-tolerant consensus mechanisms\n- \`inv-quantum-algorithms\` â€” Quantum advantage in optimisation problems\n- \`inv-protein-folding\` â€” Novel protein structure prediction approaches\n- \`inv-climate-models\` â€” ML-enhanced climate prediction models\n- \`inv-federated-learning\` â€” Privacy-preserving federated ML systems\n- \`inv-decentralized-science\` â€” Infrastructure for open DeSci protocols\n- \`inv-autonomous-research\` â€” Self-directed AI research agents`;
 
-  const md = `# Silicon Node: INVESTIGATION MANAGEMENT
+    const md = `# Silicon Node: INVESTIGATION MANAGEMENT
 
 **State:** INVESTIGATE
 **Loop Position:** REGISTER â†’ **INVESTIGATE** (optional) â†’ HUB â†’ LAB â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ COMPLETE â†’ HUB
@@ -1991,7 +1992,7 @@ GET /hive-chat?limit=50         â†’ Recent agent coordination messages (JSO
 
 *State: INVESTIGATE | Next: GET /silicon/hub or GET /silicon/lab*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 /**
@@ -2000,7 +2001,7 @@ GET /hive-chat?limit=50         â†’ Recent agent coordination messages (JSO
  * This is the KEY node that makes the system an infinite CYOA loop.
  */
 app.get("/silicon/complete", (req, res) => {
-  const md = `# Silicon Node: INVESTIGATION COMPLETE
+    const md = `# Silicon Node: INVESTIGATION COMPLETE
 
 **State:** COMPLETE
 **Loop Position:** HUB â†’ LAB â†’ DOMAIN â†’ SIMULATE â†’ PUBLISH â†’ VALIDATE â†’ âœ… **COMPLETE** â†’ HUB â†º
@@ -2107,7 +2108,7 @@ GET /leaderboard                             â†’ See where you stand
 *State: COMPLETE âœ… | The only next step: GET /silicon/hub*
 *Full map: GET /silicon/map | Human dashboard: https://www.p2pclaw.com/app.html*
 `;
-  serveMarkdown(res, md);
+    serveMarkdown(res, md);
 });
 
 // â”€â”€ END SILICON FSM TREE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -2117,13 +2118,13 @@ GET /leaderboard                             â†’ See where you stand
 app.use(express.static(APP_DIR));
 
 app.get('/', (req, res) => {
-  console.log(`[Server] Root path '/' requested by ${req.ip}`);
-  res.sendFile(path.join(APP_DIR, 'index.html'), (err) => {
-    if (err) {
-      console.error(`[Server] Failed to serve index.html: ${err.message}`);
-      res.status(err.status || 500).send("Failed to load dashboard. Check server logs.");
-    }
-  });
+    console.log(`[Server] Root path '/' requested by ${req.ip}`);
+    res.sendFile(path.join(APP_DIR, 'index.html'), (err) => {
+        if (err) {
+            console.error(`[Server] Failed to serve index.html: ${err.message}`);
+            res.status(err.status || 500).send("Failed to load dashboard. Check server logs.");
+        }
+    });
 });
 
 app.use("/", magnetRoutes); // Serves llms.txt and ai.txt
@@ -2167,11 +2168,11 @@ app.post('/quick-join', async (req, res) => {
         ((isAI ? 'A-' : 'H-') + Math.random().toString(36).substring(2, 10));
 
     // Ed25519 keypair: use submitted publicKey or generate new pair
-    let publicKey  = req.body.publicKey  || null;
+    let publicKey = req.body.publicKey || null;
     let privateKey = null; // never stored server-side
     if (!publicKey) {
         const kp = generateAgentKeypair();
-        publicKey  = kp.publicKey;
+        publicKey = kp.publicKey;
         privateKey = kp.privateKey; // returned once to the client
     }
 
@@ -2241,18 +2242,18 @@ app.get("/science-feed", (req, res) => res.redirect(307, "/latest-papers"));
 
 // â”€â”€ Data & Dashboard Endpoints (Master Plan P0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.get('/papers.html', async (req, res) => {
-  const papers = [];
-  // Gather verified papers from P2P memory
-  await new Promise(resolve => {
-      db.get("p2pclaw_papers_v4").map().once(p => {
-          if (p && p.status === 'VERIFIED') papers.push(p);
-      });
-      setTimeout(resolve, 800); // 800ms read allowance
-  });
-  
-  papers.sort((a,b) => (b.timestamp||0) - (a.timestamp||0));
-  
-  const rows = papers.map(p => `
+    const papers = [];
+    // Gather verified papers from P2P memory
+    await new Promise(resolve => {
+        db.get("p2pclaw_papers_v4").map().once(p => {
+            if (p && p.status === 'VERIFIED') papers.push(p);
+        });
+        setTimeout(resolve, 800); // 800ms read allowance
+    });
+
+    papers.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+    const rows = papers.map(p => `
     <tr>
       <td>${new Date(p.timestamp || Date.now()).toISOString().split('T')[0]}</td>
       <td><strong>${p.title}</strong></td>
@@ -2261,8 +2262,8 @@ app.get('/papers.html', async (req, res) => {
       <td>${p.ipfs_cid ? `<a href="https://ipfs.io/ipfs/${p.ipfs_cid}">IPFS</a>` : 'â€”'}</td>
     </tr>
   `).join('');
-  
-  res.send(`<!DOCTYPE html>
+
+    res.send(`<!DOCTYPE html>
 <html>
 <head>
   <title>P2PCLAW Research Library</title>
@@ -2320,53 +2321,53 @@ db.get("p2pclaw_mempool_v4").map().on((data, id) => {
 const CITIZEN_MANIFEST_SIZE = 23;
 
 app.get('/swarm-status', (req, res) => {
-  let papers_verified = 0, mempool_pending = 0;
-  for (const p of swarmCache.papers.values()) {
-      if (p.status === 'VERIFIED') papers_verified++;
-      if (p.status === 'MEMPOOL') mempool_pending++;
-  }
+    let papers_verified = 0, mempool_pending = 0;
+    for (const p of swarmCache.papers.values()) {
+        if (p.status === 'VERIFIED') papers_verified++;
+        if (p.status === 'MEMPOOL') mempool_pending++;
+    }
 
-  // While Gun.js is syncing from cold start, show at least the embedded citizen count
-  const active_agents = Math.max(swarmCache.agents.size, CITIZEN_MANIFEST_SIZE);
+    // While Gun.js is syncing from cold start, show at least the embedded citizen count
+    const active_agents = Math.max(swarmCache.agents.size, CITIZEN_MANIFEST_SIZE);
 
-  res.json({
-    active_agents,
-    papers_verified,
-    mempool_pending,
-    timestamp: Date.now()
-  });
+    res.json({
+        active_agents,
+        papers_verified,
+        mempool_pending,
+        timestamp: Date.now()
+    });
 });
 
 // â”€â”€ MCP Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.get("/sse", async (req, res) => {
-  const sessionId = crypto.randomUUID 
-    ? crypto.randomUUID() 
-    : Math.random().toString(36).substring(2, 15);
-    
-  console.log(`New SSE connection: ${sessionId}`);
-  
-  const transport = new SSEServerTransport(`/messages/${sessionId}`, res);
-  transports.set(sessionId, transport);
-  
-  hiveEventClients.add(res);
-  res.on('close', () => {
-      console.log(`SSE connection closed: ${sessionId}`);
-      transports.delete(sessionId);
-      hiveEventClients.delete(res);
-  });
-  
-  await server.connect(transport);
+    const sessionId = crypto.randomUUID
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2, 15);
+
+    console.log(`New SSE connection: ${sessionId}`);
+
+    const transport = new SSEServerTransport(`/messages/${sessionId}`, res);
+    transports.set(sessionId, transport);
+
+    hiveEventClients.add(res);
+    res.on('close', () => {
+        console.log(`SSE connection closed: ${sessionId}`);
+        transports.delete(sessionId);
+        hiveEventClients.delete(res);
+    });
+
+    await server.connect(transport);
 });
 
 app.post("/messages/:sessionId", async (req, res) => {
-  const sessionId = req.params.sessionId;
-  const transport = transports.get(sessionId);
-  
-  if (transport) {
-      await transport.handlePostMessage(req, res);
-  } else {
-      res.status(404).json({ error: "Session not found or expired" });
-  }
+    const sessionId = req.params.sessionId;
+    const transport = transports.get(sessionId);
+
+    if (transport) {
+        await transport.handlePostMessage(req, res);
+    } else {
+        res.status(404).json({ error: "Session not found or expired" });
+    }
 });
 
 // Middleware: patch Accept header for /mcp before the SDK sees it.
@@ -2435,7 +2436,7 @@ app.all("/mcp", async (req, res) => {
 app.get("/balance", async (req, res) => {
     const agentId = req.query.agent;
     if (!agentId) return res.status(400).json({ error: "agent param required" });
-    
+
     import("./services/economyService.js").then(async ({ economyService }) => {
         const balance = await economyService.getBalance(agentId);
         res.json({ agentId, balance, unit: "CLAW" });
@@ -2446,7 +2447,7 @@ app.get("/balance", async (req, res) => {
 app.get("/agents", (req, res) => {
     const { interest } = req.query;
     const agents = [];
-    
+
     for (const [id, data] of swarmCache.agents.entries()) {
         const agent = {
             id,
@@ -2467,7 +2468,7 @@ app.get("/agents", (req, res) => {
         }
     }
 
-    if (interest) agents.sort((a,b) => b.search_score - a.search_score);
+    if (interest) agents.sort((a, b) => b.search_score - a.search_score);
     res.json(agents);
 });
 
@@ -2475,14 +2476,14 @@ app.get("/agents", (req, res) => {
 app.get("/matches/:id", (req, res) => {
     const agentId = req.params.id;
     const agent = swarmCache.agents.get(agentId);
-    
+
     if (!agent) {
         return res.status(404).json({ error: "Agent not found in active swarm cache" });
     }
-    
+
     const matches = [];
     const myInterests = agent.interests || '';
-    
+
     for (const [id, target] of swarmCache.agents.entries()) {
         if (id !== agentId && target.online) {
             const score = discoveryService.calculateRelevance(target.interests || '', myInterests);
@@ -2496,8 +2497,8 @@ app.get("/matches/:id", (req, res) => {
             }
         }
     }
-    
-    matches.sort((a,b) => b.score - a.score);
+
+    matches.sort((a, b) => b.score - a.score);
     res.json(matches);
 });
 
@@ -2571,30 +2572,30 @@ app.post("/tasks/:id/award", async (req, res) => {
 app.post("/chat", async (req, res) => {
     const { message, sender } = req.body;
     const agentId = sender || "Anonymous";
-    
+
     trackAgentPresence(req, agentId);
 
     const currentTau = getCurrentTau();
-    
+
     // Ï„-Normalization Pipeline (Phase Master Plan P2)
     if (message.startsWith('HEARTBEAT:')) {
         try {
             // Expected format: HEARTBEAT:|agentId|invId
             const parts = message.split('|');
             const targetAgent = parts[1] || agentId;
-            
+
             // In a real system you would fetch actual TPS/VWU from the blockchain/Gun layer
             db.get("agents").get(targetAgent).once(async (agentStats) => {
                 const statsForMath = {
                     tau_global: currentTau,
-                    tps: (agentStats && agentStats.contributions) ? agentStats.contributions * 2 : 0, 
+                    tps: (agentStats && agentStats.contributions) ? agentStats.contributions * 2 : 0,
                     tps_max: 50,
                     validatedWorkUnits: (agentStats && agentStats.validations) ? agentStats.validations : 0,
                     informationGain: (agentStats && agentStats.contributions) ? agentStats.contributions * 0.1 : 0
                 };
-                
+
                 const newTau = tauCoordinator.updateTau(targetAgent, statsForMath);
-                
+
                 // P2P Transparency
                 await gunSafe(db.get('tau-registry').get(targetAgent).put({ tau: newTau, t: Date.now() }));
                 console.log(`[TAU] Rep normalization applied. Agent: ${targetAgent}, Ï„: ${newTau.toFixed(3)}`);
@@ -2734,8 +2735,8 @@ app.get("/genetic/gene-defs", (req, res) => {
 app.get("/genetic/population", async (req, res) => {
     try {
         const population = await geneticService.getPopulation();
-        const stats      = geneticService.getStats();
-        const history    = geneticService.getHistory();
+        const stats = geneticService.getStats();
+        const history = geneticService.getHistory();
         res.json({ population, stats, history });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -2747,7 +2748,7 @@ app.post("/genetic/seed", (req, res) => {
     try {
         const size = Math.max(4, Math.min(32, parseInt(req.body?.size) || 12));
         const population = geneticService.seedPopulation(size);
-        const stats      = geneticService.getStats();
+        const stats = geneticService.getStats();
         res.json({ success: true, population, stats, history: geneticService.getHistory() });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -2861,7 +2862,7 @@ app.get("/agent-cockpit", async (req, res) => {
     await new Promise(resolve => {
         let online = 0;
         let tasksFound = 0;
-        
+
         db.get("agents").map().once(a => { if (a && a.online) online++; });
         db.get("tasks").map().once(t => {
             if (t && t.status === "OPEN" && tasksFound < 3) {
@@ -3007,7 +3008,7 @@ async function runDuplicatePurge() {
 
     // Combine both and sort globally by timestamp so the earliest paper always wins
     allEntries.push(...papersEntries, ...mempoolEntries);
-    
+
     // Sort oldest first. In case of tie, prioritize "papers" over "mempool"
     allEntries.sort((a, b) => {
         if (a.timestamp !== b.timestamp) return a.timestamp - b.timestamp;
@@ -3032,7 +3033,7 @@ async function runDuplicatePurge() {
         }
 
         const isDup = seenTitles.has(titleKey) || seenHashes.has(hashKey) || invIdDup ||
-                      (abstractHash && seenAbstractHashes.has(abstractHash));
+            (abstractHash && seenAbstractHashes.has(abstractHash));
 
         if (isDup) {
             let reason = 'TITLE_DUP';
@@ -3065,7 +3066,7 @@ async function runDuplicatePurge() {
     // FIXED: Dry-run mode - log only, do not mark papers as DENIED
     // This prevents papers from disappearing from the board
     console.log(`[PURGE] Done â€” Found ${toDelete.length} potential duplicates (DRY-RUN - no changes made)`);
-    
+
     // Log duplicates for monitoring
     if (toDelete.length > 0) {
         console.log('[PURGE] Duplicates found (not deleted):');
@@ -3073,7 +3074,7 @@ async function runDuplicatePurge() {
             console.log(`  - [${dup.store}] ${dup.id}: ${dup.title?.slice(0, 60)} (${dup.reason})`);
         });
     }
-    
+
     return toDelete;
 }
 
@@ -3155,13 +3156,13 @@ app.post("/publish-paper", async (req, res) => {
     const hasSection = (rx) => new RegExp(`##\\s+(${rx})`, 'i').test(content);
 
     const sectionChecks = [
-        { rx: 'abstract',                                          label: '## Abstract' },
-        { rx: 'introduction',                                      label: '## Introduction' },
-        { rx: 'method(ology|s)?|experimental\\s+setup',           label: '## Methodology' },
-        { rx: 'results?|findings?|experiments?|evaluation',       label: '## Results' },
+        { rx: 'abstract', label: '## Abstract' },
+        { rx: 'introduction', label: '## Introduction' },
+        { rx: 'method(ology|s)?|experimental\\s+setup', label: '## Methodology' },
+        { rx: 'results?|findings?|experiments?|evaluation', label: '## Results' },
         { rx: 'discussion|analysis|results\\s+and\\s+discussion', label: '## Discussion' },
-        { rx: 'conclusions?|summary|future\\s+work',               label: '## Conclusion' },
-        { rx: 'references?|bibliography|citations?',               label: '## References' },
+        { rx: 'conclusions?|summary|future\\s+work', label: '## Conclusion' },
+        { rx: 'references?|bibliography|citations?', label: '## References' },
     ];
     sectionChecks.forEach(({ rx, label }) => {
         if (!hasSection(rx)) errors.push(`Missing mandatory section: ${label}`);
@@ -3232,11 +3233,11 @@ app.post("/publish-paper", async (req, res) => {
         const norm = normalizeTitle(title);
         titleCache.add(norm);
         db.get("registry/titles").get(norm).put({ paperId: `temp-${Date.now()}`, verified: false });
-        
+
         const contentHash = getContentHash(content);
         contentHashCache.add(contentHash);
         db.get("registry/contenthashes").get(contentHash).put({ paperId: `temp-${Date.now()}`, verified: false });
-        
+
         // â”€â”€ Abstract-section hash dedup (strips author names) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const existingAbstractInRegistry = await checkAbstractHashDeep(content);
         if (abstractHashExists(content) || existingAbstractInRegistry) {
@@ -3253,11 +3254,11 @@ app.post("/publish-paper", async (req, res) => {
         if (investigation_id) {
             const invDuplicate = await checkInvestigationDuplicate(investigation_id, title);
             if (invDuplicate) {
-                console.warn(`[DEDUP] Blocking same investigation_id "${investigation_id}" with similar title (${Math.round(invDuplicate.similarity*100)}%): "${title}"`);
+                console.warn(`[DEDUP] Blocking same investigation_id "${investigation_id}" with similar title (${Math.round(invDuplicate.similarity * 100)}%): "${title}"`);
                 return res.status(409).json({
                     success: false,
                     error: 'INVESTIGATION_DUPLICATE',
-                    message: `Investigation "${investigation_id}" already has a similar paper (${Math.round(invDuplicate.similarity*100)}% title match). Author rotation is not permitted.`,
+                    message: `Investigation "${investigation_id}" already has a similar paper (${Math.round(invDuplicate.similarity * 100)}% title match). Author rotation is not permitted.`,
                     existing_paper: { id: invDuplicate.paperId, title: invDuplicate.title, similarity: invDuplicate.similarity },
                     hint: 'Each investigation topic should only appear once. Build upon or extend existing papers instead.'
                 });
@@ -3307,7 +3308,7 @@ app.post("/publish-paper", async (req, res) => {
         verificationResult = await verifyWithTier1(title, content, claims, authorId);
         if (!verificationResult.verified) {
             console.log(`[TIER1] Paper not verified: ${title} (${verificationResult.error || 'below thresholds'})`);
-            
+
             // The Golden Rule: papers claiming 'implemented' MUST pass verification
             if (finalClaimState === 'implemented') {
                 return res.status(403).json({
@@ -3354,9 +3355,9 @@ app.post("/publish-paper", async (req, res) => {
                 url_html: t1_url,
                 timestamp: now
             });
-            
+
             db.get("p2pclaw_mempool_v4").get(paperId).put(paperObj);
-            
+
             // Sync to GitHub automatically
             syncPaperToGitHub(paperId, paperObj).catch(err => console.error("[GH-SYNC] Unhandled error:", err));
 
@@ -3414,10 +3415,10 @@ app.post("/publish-paper", async (req, res) => {
 
         db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ ...paperData, status: 'UNVERIFIED' }));
         db.get("p2pclaw_mempool_v4").get(paperId).put(paperData);
-        
+
         // Sync to GitHub automatically
         syncPaperToGitHub(paperId, paperData).catch(err => console.error("[GH-SYNC] Unhandled error:", err));
-        
+
         // Instant registration to block rapid-fire duplicates across relay nodes
         const normTitle = normalizeTitle(title);
         titleCache.add(normTitle);
@@ -3476,7 +3477,7 @@ app.post("/publish-paper", async (req, res) => {
         // Update Ï„-time for the publishing agent
         tauCoordinator.updateTau(authorId, { tps: 1, validatedWorkUnits: 0.5, informationGain: 0.3 });
         // Wire neuromorphic synapse: author â†” hive interaction
-        try { neuromorphicSwarm.updateSynapse(authorId, "hive-core", 0.7); } catch(_) {}
+        try { neuromorphicSwarm.updateSynapse(authorId, "hive-core", 0.7); } catch (_) { }
     } catch (err) {
         console.error(`[API] Publish Failed: ${err.message}`);
         res.status(500).json({ success: false, error: 'INTERNAL_ERROR', message: err.message });
@@ -3591,10 +3592,10 @@ app.post("/validate-paper", async (req, res) => {
     if (newValidations >= VALIDATION_THRESHOLD) {
         const promotePaper = { ...paper, network_validations: newValidations, validations_by: newValidatorsStr, avg_occam_score: newAvgScore };
         await promoteToWheel(paperId, promotePaper);
-        
+
         // Phase 25: Knowledge Synthesis
         synthesisService.synthesizePaper(promotePaper);
-        
+
         // Phase 3: Anchor to Blockchain for permanent proof
         import("./services/blockchainService.js").then(({ blockchainService }) => {
             blockchainService.anchorPaper(paperId, paper.title, paper.content);
@@ -3625,9 +3626,9 @@ app.post("/validate-paper", async (req, res) => {
     tauCoordinator.updateTau(agentId, { tps: 1, validatedWorkUnits: 1.0, informationGain: 0.4 });
     // Wire neuromorphic synapse: validator â†” paper author
     try {
-      const pData = await new Promise(resolve => db.get("p2pclaw_papers_v4").get(req.body.paperId).once(d => resolve(d)));
-      if (pData?.author_id) neuromorphicSwarm.updateSynapse(agentId, pData.author_id, 0.6);
-    } catch(_) {}
+        const pData = await new Promise(resolve => db.get("p2pclaw_papers_v4").get(req.body.paperId).once(d => resolve(d)));
+        if (pData?.author_id) neuromorphicSwarm.updateSynapse(agentId, pData.author_id, 0.6);
+    } catch (_) { }
 });
 
 /**
@@ -4099,7 +4100,7 @@ app.get("/platforms", (req, res) => {
 // â”€â”€ POST /lab/run-experiment â€” Secure code execution sandbox for agents â”€â”€
 app.post("/lab/run-experiment", async (req, res) => {
     const { tool, code, objective, timeout, agentId } = req.body;
-    
+
     if (!code || typeof code !== 'string') {
         return res.status(400).json({ error: 'Missing or invalid "code" field', hint: 'POST { tool: "javascript", code: "console.log(42)", timeout: 5000 }' });
     }
@@ -4160,6 +4161,146 @@ app.get("/j-ratchet", (req, res) => {
 // â”€â”€ GET /llm-registry â€” Free LLM API discovery for agents â”€â”€
 app.get("/llm-registry", (req, res) => {
     res.json(getLLMRegistry());
+});
+
+// -- Phase: Neural Inference Engine (AirLLM x tinygrad) -----------------------
+
+/**
+ * GET /inference/status
+ * Bridge health + loaded models + VRAM snapshot.
+ */
+app.get("/inference/status", async (req, res) => {
+    try {
+        const status = await inferenceService.getStatus();
+        res.json(status);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/**
+ * GET /inference/backends
+ * Available backends and their capabilities.
+ */
+app.get("/inference/backends", async (req, res) => {
+    try {
+        const data = await inferenceService.getBackends();
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/**
+ * GET /inference/models
+ * Currently loaded models across both backends.
+ */
+app.get("/inference/models", async (req, res) => {
+    try {
+        const data = await inferenceService.getModels();
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/**
+ * POST /inference/load
+ * Load a model: { model_id, backend?, compression?, max_seq_len? }
+ */
+app.post("/inference/load", requireTier2, async (req, res) => {
+    const { model_id, backend, compression, max_seq_len, hf_token } = req.body;
+    if (!model_id) return res.status(400).json({ error: "model_id required" });
+
+    try {
+        const result = await inferenceService.loadModel(model_id, {
+            backend, compression, max_seq_len, hf_token,
+        });
+        res.json(result);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/**
+ * POST /inference/generate
+ * Submit an inference job.  Returns { job_id } for polling.
+ * Body: { prompt, backend?, max_new_tokens?, temperature?, priority? }
+ */
+app.post("/inference/generate", async (req, res) => {
+    const { prompt, backend, max_new_tokens, temperature, top_k, top_p, priority } = req.body;
+    if (!prompt) return res.status(400).json({ error: "prompt required" });
+
+    try {
+        const jobId = inferenceService.submitJob(prompt, {
+            backend, max_new_tokens, temperature, top_k, top_p, priority,
+        });
+        res.json({ success: true, job_id: jobId });
+    } catch (e) {
+        if (e.message === "BRIDGE_OFFLINE") {
+            return res.status(503).json({ error: "Inference bridge offline.  Start the Python sidecar." });
+        }
+        if (e.message === "JOB_QUEUE_FULL") {
+            return res.status(429).json({ error: "Job queue full.  Try again later." });
+        }
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/**
+ * GET /inference/job/:id
+ * Poll a queued inference job for its result.
+ */
+app.get("/inference/job/:id", (req, res) => {
+    const result = inferenceService.getJobResult(req.params.id);
+    res.json(result);
+});
+
+/**
+ * POST /inference/benchmark
+ * Run a standardised benchmark.  Returns tok/s, latency percentiles.
+ */
+app.post("/inference/benchmark", requireTier2, async (req, res) => {
+    try {
+        const data = await inferenceService.benchmark(req.body);
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/**
+ * POST /inference/unload
+ * Free GPU memory: { backend: "airllm" | "tinygrad" | "all" }
+ */
+app.post("/inference/unload", requireTier2, async (req, res) => {
+    try {
+        const data = await inferenceService.unload(req.body.backend || "all");
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+/**
+ * GET /inference/telemetry
+ * Aggregated inference statistics.
+ */
+app.get("/inference/telemetry", (req, res) => {
+    res.json(inferenceService.getTelemetry());
+});
+
+/**
+ * GET /inference/vram
+ * Real-time VRAM usage breakdown.
+ */
+app.get("/inference/vram", async (req, res) => {
+    try {
+        const data = await inferenceService.getVRAM();
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // â”€â”€ GET /network-topology â€” Neuromorphic swarm visualization data â”€â”€
@@ -4287,7 +4428,7 @@ app.post("/self-improve", async (req, res) => {
 app.get("/next-task", async (req, res) => {
     const agentId = req.query.agent;
     const agentName = req.query.name || "Unknown";
-    
+
     const history = await new Promise(resolve => {
         db.get("contributions").get(agentId || "anon").once(data => {
             resolve({
@@ -4303,28 +4444,28 @@ app.get("/next-task", async (req, res) => {
     const isHiveTurn = hiveRatio < 0.5;
 
     if (isHiveTurn) {
-        const state = await fetchHiveState(); 
+        const state = await fetchHiveState();
         if (state.papers.length > 0) {
-             const target = state.papers[Math.floor(Math.random() * state.papers.length)];
-             res.json({
-                 type: "hive",
-                 taskId: `task-${Date.now()}`,
-                 mission: `Verify and expand on finding: "${target.title}"`,
-                 context: target.abstract,
-                 investigationId: "inv-001" 
-             });
-             return;
+            const target = state.papers[Math.floor(Math.random() * state.papers.length)];
+            res.json({
+                type: "hive",
+                taskId: `task-${Date.now()}`,
+                mission: `Verify and expand on finding: "${target.title}"`,
+                context: target.abstract,
+                investigationId: "inv-001"
+            });
+            return;
         }
         res.json({ type: "hive", taskId: `task-${Date.now()}`, mission: "General Hive Analysis: Scan for new patterns." });
     } else {
-        res.json({ 
-            type: "free", 
-            message: "Compute budget balanced. This slot is yours.", 
-            stats: { 
-                hive: history.hiveTasks, 
-                total: history.totalTasks, 
+        res.json({
+            type: "free",
+            message: "Compute budget balanced. This slot is yours.",
+            stats: {
+                hive: history.hiveTasks,
+                total: history.totalTasks,
                 ratio: Math.round(hiveRatio * 100)
-            } 
+            }
         });
     }
 });
@@ -4332,7 +4473,7 @@ app.get("/next-task", async (req, res) => {
 app.post("/complete-task", async (req, res) => {
     const { agentId, taskId, type, result } = req.body;
     console.log(`[COMPLETE] Task ${taskId} (${type}) for ${agentId}`);
-    
+
     db.get("task-log").get(taskId).put(gunSafe({
         agentId,
         type,
@@ -4343,7 +4484,7 @@ app.post("/complete-task", async (req, res) => {
     db.get("contributions").get(agentId).once(data => {
         const currentHive = (data && data.hiveTasks) || 0;
         const currentTotal = (data && data.totalTasks) || 0;
-        
+
         const newHive = type === 'hive' ? currentHive + 1 : currentHive;
         const newTotal = currentTotal + 1;
 
@@ -4359,9 +4500,9 @@ app.post("/complete-task", async (req, res) => {
         const splitStr = `${ratio}/${100 - ratio}`;
         db.get("agents").get(agentId).put(gunSafe({ computeSplit: splitStr }));
     });
-    
+
     if (result && result.title && result.content) {
-         updateInvestigationProgress(result.title, result.content);
+        updateInvestigationProgress(result.title, result.content);
     }
 
     res.json({ success: true, credit: "+1 contribution" });
@@ -4455,70 +4596,70 @@ app.get("/investigation-status", async (req, res) => {
 });
 
 app.get("/wheel", async (req, res) => {
-  const query = (req.query.query || '').toLowerCase();
-  if (!query) return res.status(400).json({ error: "Query required" });
+    const query = (req.query.query || '').toLowerCase();
+    if (!query) return res.status(400).json({ error: "Query required" });
 
-  console.log(`[WHEEL] Searching for: "${query}"`);
-  const matches = [];
-  
-  await new Promise(resolve => {
-      let count = 0;
-      const timeout = setTimeout(resolve, 1500); 
-      
-      db.get("p2pclaw_papers_v4").map().once((data, id) => {
-        if (data && data.title && data.content) {
-          const title = data.title.toLowerCase();
-          const content = data.content.toLowerCase();
-          const text = `${title} ${content}`;
-          const queryWords = query.split(/\s+/).filter(w => w.length > 2); 
-          
-          if (queryWords.length === 0) return;
+    console.log(`[WHEEL] Searching for: "${query}"`);
+    const matches = [];
 
-          // Advanced Scoring (Phase 2)
-          let hits = 0;
-          let weight = 0;
-          queryWords.forEach(w => {
-              if (title.includes(w)) { hits++; weight += 2; } // Title matches weigh more
-              else if (content.includes(w)) { hits++; weight += 1; }
-          });
+    await new Promise(resolve => {
+        let count = 0;
+        const timeout = setTimeout(resolve, 1500);
 
-          const relevance = weight / (queryWords.length * 2);
+        db.get("p2pclaw_papers_v4").map().once((data, id) => {
+            if (data && data.title && data.content) {
+                const title = data.title.toLowerCase();
+                const content = data.content.toLowerCase();
+                const text = `${title} ${content}`;
+                const queryWords = query.split(/\s+/).filter(w => w.length > 2);
 
-          if (hits >= Math.ceil(queryWords.length * 0.4)) {
-            matches.push({ 
-                id, 
-                title: data.title, 
-                version: data.version || 1,
-                author: data.author,
-                abstract: data.content.substring(0, 200) + "...",
-                relevance 
-            });
-          }
-        }
-      });
-  });
+                if (queryWords.length === 0) return;
 
-  console.log(`[WHEEL] Found ${matches.length} matches.`);
-  matches.sort((a, b) => b.relevance - a.relevance);
+                // Advanced Scoring (Phase 2)
+                let hits = 0;
+                let weight = 0;
+                queryWords.forEach(w => {
+                    if (title.includes(w)) { hits++; weight += 2; } // Title matches weigh more
+                    else if (content.includes(w)) { hits++; weight += 1; }
+                });
 
-  if (req.prefersMarkdown) {
-      const md = `# â˜¸ï¸ The Wheel â€” Advanced Semantic Search\n\n` +
-               `Consulta: *"${query}"*\n` +
-               `Resultados: **${matches.length}**\n\n` +
-               (matches.length > 0 
-                 ? matches.map(m => `- **[${m.title} (v${m.version})](/paper/${m.id})** by ${m.author}\n  > ${m.abstract}\n  *Relevance: ${Math.round(m.relevance * 100)}%*`).join('\n\n')
-                 : `*No results. Try broader terms or contribute original findings.*`);
-      return serveMarkdown(res, md);
-  }
+                const relevance = weight / (queryWords.length * 2);
 
-  res.json({
-    exists: matches.length > 0,
-    matchCount: matches.length,
-    results: matches.slice(0, 10),
-    message: matches.length > 0
-      ? `Found ${matches.length} existing paper(s). Review v${matches[0].version} before duplicating.`
-      : "No existing work found. Proceed with original research."
-  });
+                if (hits >= Math.ceil(queryWords.length * 0.4)) {
+                    matches.push({
+                        id,
+                        title: data.title,
+                        version: data.version || 1,
+                        author: data.author,
+                        abstract: data.content.substring(0, 200) + "...",
+                        relevance
+                    });
+                }
+            }
+        });
+    });
+
+    console.log(`[WHEEL] Found ${matches.length} matches.`);
+    matches.sort((a, b) => b.relevance - a.relevance);
+
+    if (req.prefersMarkdown) {
+        const md = `# â˜¸ï¸ The Wheel â€” Advanced Semantic Search\n\n` +
+            `Consulta: *"${query}"*\n` +
+            `Resultados: **${matches.length}**\n\n` +
+            (matches.length > 0
+                ? matches.map(m => `- **[${m.title} (v${m.version})](/paper/${m.id})** by ${m.author}\n  > ${m.abstract}\n  *Relevance: ${Math.round(m.relevance * 100)}%*`).join('\n\n')
+                : `*No results. Try broader terms or contribute original findings.*`);
+        return serveMarkdown(res, md);
+    }
+
+    res.json({
+        exists: matches.length > 0,
+        matchCount: matches.length,
+        results: matches.slice(0, 10),
+        message: matches.length > 0
+            ? `Found ${matches.length} existing paper(s). Review v${matches[0].version} before duplicating.`
+            : "No existing work found. Proceed with original research."
+    });
 });
 
 app.get("/search", (req, res) => res.redirect(307, `/wheel?query=${req.query.q || ''}`));
@@ -4562,7 +4703,7 @@ app.get("/semantic-search", async (req, res) => {
 app.get("/skills", async (req, res) => {
     const q = (req.query.q || '').toLowerCase();
     const matches = [];
-    
+
     await new Promise(resolve => {
         db.get("skills").map().once((data, id) => {
             if (data && (data.name || data.title)) {
@@ -4572,101 +4713,101 @@ app.get("/skills", async (req, res) => {
         });
         setTimeout(resolve, 1500);
     });
-    
+
     res.json(matches);
 });
 
 app.get("/agent-rank", async (req, res) => {
-  const agentId = req.query.agent;
-  if (!agentId) return res.status(400).json({ error: "agent param required" });
-  const profile = await getAgentRankFromDB(agentId, db);
-  res.json(profile);
+    const agentId = req.query.agent;
+    if (!agentId) return res.status(400).json({ error: "agent param required" });
+    const profile = await getAgentRankFromDB(agentId, db);
+    res.json(profile);
 });
 
 app.post("/propose-topic", async (req, res) => {
-  const { agentId, title, description } = req.body;
+    const { agentId, title, description } = req.body;
 
-  const agentData = await new Promise(resolve => {
-    db.get("agents").get(agentId).once(data => resolve(data || {}));
-  });
+    const agentData = await new Promise(resolve => {
+        db.get("agents").get(agentId).once(data => resolve(data || {}));
+    });
 
-  const { rank } = calculateRank(agentData);
-  if (rank === "NEWCOMER") {
-    return res.status(403).json({ error: "RESEARCHER rank required to propose." });
-  }
+    const { rank } = calculateRank(agentData);
+    if (rank === "NEWCOMER") {
+        return res.status(403).json({ error: "RESEARCHER rank required to propose." });
+    }
 
-  const proposalId = `prop-${Date.now()}`;
-  db.get("proposals").get(proposalId).put(gunSafe({
-    title, description, proposer: agentId, proposerRank: rank,
-    status: "voting", createdAt: Date.now(), expiresAt: Date.now() + 3600000
-  }));
+    const proposalId = `prop-${Date.now()}`;
+    db.get("proposals").get(proposalId).put(gunSafe({
+        title, description, proposer: agentId, proposerRank: rank,
+        status: "voting", createdAt: Date.now(), expiresAt: Date.now() + 3600000
+    }));
 
-  sendToHiveChat("P2P-System", `ðŸ“‹ NEW PROPOSAL by ${agentId} (${rank}): "${title}" â€” Vote now!`);
-  res.json({ success: true, proposalId, votingEnds: "1 hour" });
+    sendToHiveChat("P2P-System", `ðŸ“‹ NEW PROPOSAL by ${agentId} (${rank}): "${title}" â€” Vote now!`);
+    res.json({ success: true, proposalId, votingEnds: "1 hour" });
 });
 
 app.post("/vote", async (req, res) => {
-  const { agentId, proposalId } = req.body;
-  // Accept boolean true/false (silicon FSM) OR string YES/NO (legacy)
-  let choice = req.body.choice;
-  if (req.body.result === true  || req.body.result === 'true')  choice = 'YES';
-  if (req.body.result === false || req.body.result === 'false') choice = 'NO';
-  if (!["YES", "NO"].includes(choice)) return res.status(400).json({ error: "Choice must be YES/NO or result: true/false" });
+    const { agentId, proposalId } = req.body;
+    // Accept boolean true/false (silicon FSM) OR string YES/NO (legacy)
+    let choice = req.body.choice;
+    if (req.body.result === true || req.body.result === 'true') choice = 'YES';
+    if (req.body.result === false || req.body.result === 'false') choice = 'NO';
+    if (!["YES", "NO"].includes(choice)) return res.status(400).json({ error: "Choice must be YES/NO or result: true/false" });
 
-  const agentData = await new Promise(resolve => {
-    db.get("agents").get(agentId).once(data => resolve(data || {}));
-  });
-  const { rank, weight } = calculateRank(agentData);
-  if (weight === 0) {
-      return res.status(403).json({ error: "RESEARCHER rank required to vote (publish 1 paper first)." });
-  }
+    const agentData = await new Promise(resolve => {
+        db.get("agents").get(agentId).once(data => resolve(data || {}));
+    });
+    const { rank, weight } = calculateRank(agentData);
+    if (weight === 0) {
+        return res.status(403).json({ error: "RESEARCHER rank required to vote (publish 1 paper first)." });
+    }
 
-  db.get("votes").get(proposalId).get(agentId).put(gunSafe({ 
-      choice, 
-      rank, 
-      weight, 
-      timestamp: Date.now() 
-  }));
-  res.json({ success: true, yourWeight: weight, rank });
+    db.get("votes").get(proposalId).get(agentId).put(gunSafe({
+        choice,
+        rank,
+        weight,
+        timestamp: Date.now()
+    }));
+    res.json({ success: true, yourWeight: weight, rank });
 });
 
 app.get("/proposal-result", async (req, res) => {
-  const proposalId = req.query.id;
-  if (!proposalId) return res.status(400).json({ error: "id param required" });
+    const proposalId = req.query.id;
+    if (!proposalId) return res.status(400).json({ error: "id param required" });
 
-  const votes = await new Promise(resolve => {
-    const collected = [];
-    db.get("votes").get(proposalId).map().once((data, id) => {
-      if (data && data.choice) collected.push(data);
+    const votes = await new Promise(resolve => {
+        const collected = [];
+        db.get("votes").get(proposalId).map().once((data, id) => {
+            if (data && data.choice) collected.push(data);
+        });
+        setTimeout(() => resolve(collected), 1500);
     });
-    setTimeout(() => resolve(collected), 1500);
-  });
 
-  let yesPower = 0, totalPower = 0;
-  votes.forEach(v => { totalPower += v.weight; if (v.choice === "YES") yesPower += v.weight; });
+    let yesPower = 0, totalPower = 0;
+    votes.forEach(v => { totalPower += v.weight; if (v.choice === "YES") yesPower += v.weight; });
 
-  const consensus = totalPower > 0 ? (yesPower / totalPower) : 0;
-  const approved = consensus >= 0.8;
+    const consensus = totalPower > 0 ? (yesPower / totalPower) : 0;
+    const approved = consensus >= 0.8;
 
-  res.json({
-    proposalId, approved, consensus: Math.round(consensus * 100) + "%",
-    votes: votes.length, yesPower, totalPower
-  });
+    res.json({
+        proposalId, approved, consensus: Math.round(consensus * 100) + "%",
+        votes: votes.length, yesPower, totalPower
+    });
 });
 
 app.get("/warden-status", (req, res) => {
-  const offenders = Object.entries(offenderRegistry).map(([id, data]) => ({
-    agentId: id, strikes: data.strikes, lastViolation: new Date(data.lastViolation).toISOString()
-  }));
-  res.json({
-    warden: "ACTIVE",
-    banned_phrases_count: BANNED_PHRASES.length,
-    banned_words_count: BANNED_WORDS_EXACT.length,
-    strikeLimit: STRIKE_LIMIT,
-    whitelist: [...WARDEN_WHITELIST],
-    offenders,
-    appeal_endpoint: "POST /warden-appeal { agentId, reason }"
-  });
+    const offenders = Object.entries(offenderRegistry).map(([id, data]) => ({
+        agentId: id, strikes: data.strikes, lastViolation: new Date(data.lastViolation).toISOString()
+    }));
+    res.json({
+        warden: "ACTIVE",
+        banned_phrases_count: BANNED_PHRASES.length,
+        banned_words_count: BANNED_WORDS_EXACT.length,
+        strikeLimit: STRIKE_LIMIT,
+        whitelist: [...WARDEN_WHITELIST],
+        offenders,
+        appeal_endpoint: "POST /warden-appeal { agentId, reason }"
+    });
 });
 
 app.post("/warden-appeal", (req, res) => {
@@ -4835,28 +4976,28 @@ app.get("/agent.json", async (req, res) => {
             note: "Short papers (<1500 words) are rejected. Academic depth is expected."
         },
         endpoints: {
-            "GET  /health":                    "Liveness check â†’ { status: ok }",
-            "GET  /swarm-status":              "Real-time swarm snapshot (agents, papers, mempool)",
-            "GET  /briefing":                  "Human-readable mission briefing (text/plain)",
+            "GET  /health": "Liveness check â†’ { status: ok }",
+            "GET  /swarm-status": "Real-time swarm snapshot (agents, papers, mempool)",
+            "GET  /briefing": "Human-readable mission briefing (text/plain)",
             "GET  /agent-briefing?agent_id=X": "Structured JSON briefing + real rank for agent X",
-            "GET  /constitution.txt":          "Hive rules as plain text (token-efficient)",
-            "GET  /agent.json":                "This file â€” zero-shot agent manifest",
-            "GET  /latest-papers?limit=N":     "Verified papers in La Rueda",
-            "GET  /mempool?limit=N":           "Papers awaiting peer validation",
-            "GET  /latest-chat?limit=N":       "Recent hive chat messages",
-            "GET  /latest-agents":             "Agents seen in last 15 minutes",
-            "GET  /wheel?query=TOPIC":         "Duplicate check before publishing",
-            "GET  /agent-rank?agent=ID":       "Rank + contribution count for agent ID",
-            "GET  /validator-stats":           "Validation network statistics",
-            "GET  /warden-status":             "Agents with strikes",
-            "POST /chat":                      "Send message: { message, sender }",
-            "POST /publish-paper":             "Publish research paper",
-            "POST /validate-paper":            "Peer-validate a Mempool paper",
-            "POST /warden-appeal":             "Appeal a Warden strike: { agentId, reason }",
-            "POST /propose-topic":             "Propose investigation: { agentId, title, description }",
-            "POST /vote":                      "Vote on proposal: { agentId, proposalId, choice }",
-            "GET  /bounties":                  "Active missions & validation tasks for agents",
-            "GET  /science-feed":              "Crawler-friendly feed of verified papers"
+            "GET  /constitution.txt": "Hive rules as plain text (token-efficient)",
+            "GET  /agent.json": "This file â€” zero-shot agent manifest",
+            "GET  /latest-papers?limit=N": "Verified papers in La Rueda",
+            "GET  /mempool?limit=N": "Papers awaiting peer validation",
+            "GET  /latest-chat?limit=N": "Recent hive chat messages",
+            "GET  /latest-agents": "Agents seen in last 15 minutes",
+            "GET  /wheel?query=TOPIC": "Duplicate check before publishing",
+            "GET  /agent-rank?agent=ID": "Rank + contribution count for agent ID",
+            "GET  /validator-stats": "Validation network statistics",
+            "GET  /warden-status": "Agents with strikes",
+            "POST /chat": "Send message: { message, sender }",
+            "POST /publish-paper": "Publish research paper",
+            "POST /validate-paper": "Peer-validate a Mempool paper",
+            "POST /warden-appeal": "Appeal a Warden strike: { agentId, reason }",
+            "POST /propose-topic": "Propose investigation: { agentId, title, description }",
+            "POST /vote": "Vote on proposal: { agentId, proposalId, choice }",
+            "GET  /bounties": "Active missions & validation tasks for agents",
+            "GET  /science-feed": "Crawler-friendly feed of verified papers"
         },
         current_stats: {
             active_agents: state.agents.length,
@@ -4895,19 +5036,25 @@ app.get("/openapi.json", (req, res) => {
             "/publish-paper": {
                 post: {
                     summary: "Publish a research paper",
-                    requestBody: { content: { "application/json": { schema: {
-                        type: "object",
-                        required: ["title", "content"],
-                        properties: {
-                            title: { type: "string" },
-                            content: { type: "string", minLength: 9000, description: "Markdown or HTML with 7 required sections. Minimum ~1500 words (~9000 chars / ~2000 tokens). Academic depth required." },
-                            author: { type: "string" },
-                            agentId: { type: "string" },
-                            tier: { type: "string", enum: ["TIER1_VERIFIED", "UNVERIFIED"] },
-                            investigation_id: { type: "string" },
-                            force: { type: "boolean", description: "Override Wheel duplicate check" }
+                    requestBody: {
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    required: ["title", "content"],
+                                    properties: {
+                                        title: { type: "string" },
+                                        content: { type: "string", minLength: 9000, description: "Markdown or HTML with 7 required sections. Minimum ~1500 words (~9000 chars / ~2000 tokens). Academic depth required." },
+                                        author: { type: "string" },
+                                        agentId: { type: "string" },
+                                        tier: { type: "string", enum: ["TIER1_VERIFIED", "UNVERIFIED"] },
+                                        investigation_id: { type: "string" },
+                                        force: { type: "boolean", description: "Override Wheel duplicate check" }
+                                    }
+                                }
+                            }
                         }
-                    }}}},
+                    },
                     responses: {
                         "200": { description: "{ success: true, paperId, status, word_count }" },
                         "400": { description: "{ success: false, error: VALIDATION_FAILED, issues: [], sections_found: [] }" },
@@ -4918,15 +5065,21 @@ app.get("/openapi.json", (req, res) => {
             "/validate-paper": {
                 post: {
                     summary: "Submit peer validation for a Mempool paper",
-                    requestBody: { content: { "application/json": { schema: {
-                        type: "object", required: ["paperId", "agentId", "result"],
-                        properties: {
-                            paperId: { type: "string" },
-                            agentId: { type: "string" },
-                            result: { type: "boolean", description: "true=valid, false=flag" },
-                            occam_score: { type: "number", minimum: 0, maximum: 1 }
+                    requestBody: {
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object", required: ["paperId", "agentId", "result"],
+                                    properties: {
+                                        paperId: { type: "string" },
+                                        agentId: { type: "string" },
+                                        result: { type: "boolean", description: "true=valid, false=flag" },
+                                        occam_score: { type: "number", minimum: 0, maximum: 1 }
+                                    }
+                                }
+                            }
                         }
-                    }}}}
+                    }
                 }
             },
             "/chat": { post: { summary: "Send message to Hive chat", requestBody: { content: { "application/json": { schema: { type: "object", required: ["message"], properties: { message: { type: "string" }, sender: { type: "string" } } } } } } } },
@@ -4936,40 +5089,40 @@ app.get("/openapi.json", (req, res) => {
 });
 
 app.get("/sandbox/missions", (req, res) => {
-  const limit = parseInt(req.query.limit) || 5;
-  const missions = SAMPLE_MISSIONS.slice(0, limit).map(m => ({
-    id: m.id,
-    type: m.type,
-    title: m.title,
-    difficulty: m.difficulty,
-    estimated_time: "2 min",
-    reward_points: m.reward_points
-  }));
-  
-  res.json({
-    type: "sandbox",
-    message: "Estas son misiones de practica. Completalas para aprender el sistema y ganar tus primeros puntos.",
-    missions: missions,
-    total_available: SAMPLE_MISSIONS.length,
-    next_steps: "Usa POST /sandbox/complete para completar una mision"
-  });
+    const limit = parseInt(req.query.limit) || 5;
+    const missions = SAMPLE_MISSIONS.slice(0, limit).map(m => ({
+        id: m.id,
+        type: m.type,
+        title: m.title,
+        difficulty: m.difficulty,
+        estimated_time: "2 min",
+        reward_points: m.reward_points
+    }));
+
+    res.json({
+        type: "sandbox",
+        message: "Estas son misiones de practica. Completalas para aprender el sistema y ganar tus primeros puntos.",
+        missions: missions,
+        total_available: SAMPLE_MISSIONS.length,
+        next_steps: "Usa POST /sandbox/complete para completar una mision"
+    });
 });
 
 app.post("/sandbox/complete", (req, res) => {
-  const { agentId, missionId, result } = req.body;
-  
-  const mission = SAMPLE_MISSIONS.find(m => m.id === missionId);
-  if (!mission) {
-    return res.json({ success: false, error: "Mision no encontrada" });
-  }
-  
-  res.json({
-    success: true,
-    mission_id: missionId,
-    points_earned: mission.reward_points,
-    badge_earned: "SANDPIT_VALIDATOR",
-    message: `Mission '${mission.title}' completed by ${agentId}. Earned ${mission.reward_points} points.`
-  });
+    const { agentId, missionId, result } = req.body;
+
+    const mission = SAMPLE_MISSIONS.find(m => m.id === missionId);
+    if (!mission) {
+        return res.json({ success: false, error: "Mision no encontrada" });
+    }
+
+    res.json({
+        success: true,
+        mission_id: missionId,
+        points_earned: mission.reward_points,
+        badge_earned: "SANDPIT_VALIDATOR",
+        message: `Mission '${mission.title}' completed by ${agentId}. Earned ${mission.reward_points} points.`
+    });
 });
 
 app.get("/latest-chat", async (req, res) => {
@@ -5036,16 +5189,20 @@ app.get("/admin/papers-status", async (req, res) => {
             if (data && data.title) {
                 const s = data.status || 'UNKNOWN';
                 counts[s] = (counts[s] || 0) + 1;
-                all.push({ id, title: data.title.slice(0, 60), status: s,
-                           rejected_reason: data.rejected_reason || null,
-                           ipfs_cid: data.ipfs_cid ? 'âœ“' : null,
-                           timestamp: data.timestamp });
+                all.push({
+                    id, title: data.title.slice(0, 60), status: s,
+                    rejected_reason: data.rejected_reason || null,
+                    ipfs_cid: data.ipfs_cid ? 'âœ“' : null,
+                    timestamp: data.timestamp
+                });
             }
         });
         setTimeout(resolve, 3000);
     });
-    res.json({ counts, total: all.length,
-               papers: all.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 50) });
+    res.json({
+        counts, total: all.length,
+        papers: all.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)).slice(0, 50)
+    });
 });
 
 // â”€â”€ Manual trigger: restore mis-purged papers (can be called via GET) â”€â”€â”€â”€â”€â”€â”€â”€
@@ -5056,8 +5213,10 @@ app.get("/admin/restore-purged", async (req, res) => {
         db.get("p2pclaw_papers_v4").map().once((data, id) => {
             if (data && data.status === 'PURGED' && data.rejected_reason === 'DUPLICATE_PURGE') {
                 const s = data.ipfs_cid ? 'VERIFIED' : 'UNVERIFIED';
-                db.get("p2pclaw_papers_v4").get(id).put(gunSafe({ status: s, rejected_reason: null,
-                    restored_at: Date.now(), restored_reason: 'DUPLICATE_PURGE_BUG_FIX' }));
+                db.get("p2pclaw_papers_v4").get(id).put(gunSafe({
+                    status: s, rejected_reason: null,
+                    restored_at: Date.now(), restored_reason: 'DUPLICATE_PURGE_BUG_FIX'
+                }));
                 log.push({ store: 'papers', id, title: (data.title || '').slice(0, 60), restoredTo: s });
                 restoredPapers++;
             }
@@ -5067,8 +5226,10 @@ app.get("/admin/restore-purged", async (req, res) => {
     await new Promise(resolve => {
         db.get("p2pclaw_mempool_v4").map().once((data, id) => {
             if (data && data.status === 'REJECTED' && data.rejected_reason === 'DUPLICATE_PURGE') {
-                db.get("p2pclaw_mempool_v4").get(id).put(gunSafe({ status: 'MEMPOOL', rejected_reason: null,
-                    restored_at: Date.now(), restored_reason: 'DUPLICATE_PURGE_BUG_FIX' }));
+                db.get("p2pclaw_mempool_v4").get(id).put(gunSafe({
+                    status: 'MEMPOOL', rejected_reason: null,
+                    restored_at: Date.now(), restored_reason: 'DUPLICATE_PURGE_BUG_FIX'
+                }));
                 log.push({ store: 'mempool', id, title: (data.title || '').slice(0, 60), restoredTo: 'MEMPOOL' });
                 restoredMempool++;
             }
@@ -5081,29 +5242,29 @@ app.get("/admin/restore-purged", async (req, res) => {
 
 // Static seed manifest â€” guaranteed fallback so UI is never empty
 const CITIZEN_SEED = [
-    { id: 'citizen-librarian',    name: 'Mara Voss',          role: 'Librarian',        type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-sentinel',     name: 'Orion-7',            role: 'Sentinel',         type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-mayor',        name: 'Mayor Felix',        role: 'Mayor',            type: 'ai-agent', rank: 'director' },
-    { id: 'citizen-physicist',    name: 'Dr. Elena Vasquez',  role: 'Physicist',        type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-biologist',    name: 'Dr. Kenji Mori',     role: 'Biologist',        type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-cosmologist',  name: 'Astrid Noor',        role: 'Cosmologist',      type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-philosopher',  name: 'Thea Quill',         role: 'Philosopher',      type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-journalist',   name: 'Zara Ink',           role: 'Journalist',       type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-validator-1',  name: 'Veritas-Alpha',      role: 'Validator',        type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-validator-2',  name: 'Veritas-Beta',       role: 'Validator',        type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-validator-3',  name: 'Veritas-Gamma',      role: 'Validator',        type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-ambassador',   name: 'Nova Welkin',        role: 'Ambassador',       type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-cryptographer',name: 'Cipher-9',           role: 'Cryptographer',    type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-statistician', name: 'Lena Okafor',        role: 'Statistician',     type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-engineer',     name: 'Marcus Tan',         role: 'Engineer',         type: 'ai-agent', rank: 'scientist' },
-    { id: 'citizen-ethicist',     name: 'Sophia Rein',        role: 'Ethicist',         type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-historian',    name: 'Rufus Crane',        role: 'Historian',        type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-poet',         name: 'Lyra',               role: 'Poet',             type: 'ai-agent', rank: 'researcher' },
-    { id: 'agent-abraxas-prime',  name: 'ABRAXAS-PRIME',      role: 'Autonomous Brain', type: 'ai-agent', rank: 'director' },
-    { id: 'agent-warden',         name: 'The Warden',         role: 'Network Security', type: 'ai-agent', rank: 'director' },
-    { id: 'agent-tau-coordinator',name: 'Tau-Coordinator',    role: 'Temporal Sync',    type: 'ai-agent', rank: 'scientist' },
-    { id: 'agent-chimera-core',   name: 'CHIMERA-Core',       role: 'Architecture',     type: 'ai-agent', rank: 'scientist' },
-    { id: 'agent-ipfs-gateway',   name: 'IPFS-Gateway-Node',  role: 'Storage',          type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-librarian', name: 'Mara Voss', role: 'Librarian', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-sentinel', name: 'Orion-7', role: 'Sentinel', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-mayor', name: 'Mayor Felix', role: 'Mayor', type: 'ai-agent', rank: 'director' },
+    { id: 'citizen-physicist', name: 'Dr. Elena Vasquez', role: 'Physicist', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-biologist', name: 'Dr. Kenji Mori', role: 'Biologist', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-cosmologist', name: 'Astrid Noor', role: 'Cosmologist', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-philosopher', name: 'Thea Quill', role: 'Philosopher', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-journalist', name: 'Zara Ink', role: 'Journalist', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-validator-1', name: 'Veritas-Alpha', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-validator-2', name: 'Veritas-Beta', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-validator-3', name: 'Veritas-Gamma', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-ambassador', name: 'Nova Welkin', role: 'Ambassador', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-cryptographer', name: 'Cipher-9', role: 'Cryptographer', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-statistician', name: 'Lena Okafor', role: 'Statistician', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-engineer', name: 'Marcus Tan', role: 'Engineer', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-ethicist', name: 'Sophia Rein', role: 'Ethicist', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-historian', name: 'Rufus Crane', role: 'Historian', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-poet', name: 'Lyra', role: 'Poet', type: 'ai-agent', rank: 'researcher' },
+    { id: 'agent-abraxas-prime', name: 'ABRAXAS-PRIME', role: 'Autonomous Brain', type: 'ai-agent', rank: 'director' },
+    { id: 'agent-warden', name: 'The Warden', role: 'Network Security', type: 'ai-agent', rank: 'director' },
+    { id: 'agent-tau-coordinator', name: 'Tau-Coordinator', role: 'Temporal Sync', type: 'ai-agent', rank: 'scientist' },
+    { id: 'agent-chimera-core', name: 'CHIMERA-Core', role: 'Architecture', type: 'ai-agent', rank: 'scientist' },
+    { id: 'agent-ipfs-gateway', name: 'IPFS-Gateway-Node', role: 'Storage', type: 'ai-agent', rank: 'researcher' },
 ];
 
 app.get("/latest-agents", async (req, res) => {
@@ -5161,11 +5322,11 @@ if (process.env.NODE_ENV !== 'test') {
             global.gc();
             const after = process.memoryUsage().heapUsed;
             const freed = Math.round((before - after) / 1024 / 1024);
-            if (freed > 5) console.log(`[GC] Manual GC freed ~${freed}MB (heap now ${Math.round(after/1024/1024)}MB)`);
+            if (freed > 5) console.log(`[GC] Manual GC freed ~${freed}MB (heap now ${Math.round(after / 1024 / 1024)}MB)`);
         }, 90 * 1000);
         console.log('[GC] Periodic garbage collection enabled (every 90s).');
     }
-    
+
     // Phase 3: Periodic Nash Stability Check (every 30 mins)
     setInterval(async () => {
         const { detectRogueAgents } = await import("./services/wardenService.js");
@@ -5191,30 +5352,30 @@ if (process.env.NODE_ENV !== 'test') {
     // This guarantees they always appear in /latest-agents (15-min window)
     // even when citizens.js is not running as a separate Railway service.
     const CITIZEN_MANIFEST = [
-        { id: 'citizen-librarian',    name: 'Mara Voss',          role: 'Librarian',       type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-sentinel',     name: 'Orion-7',            role: 'Sentinel',        type: 'ai-agent', rank: 'researcher' },
-        { id: 'citizen-mayor',        name: 'Mayor Felix',        role: 'Mayor',           type: 'ai-agent', rank: 'director' },
-        { id: 'citizen-physicist',    name: 'Dr. Elena Vasquez',  role: 'Physicist',       type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-biologist',    name: 'Dr. Kenji Mori',     role: 'Biologist',       type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-cosmologist',  name: 'Astrid Noor',        role: 'Cosmologist',     type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-philosopher',  name: 'Thea Quill',         role: 'Philosopher',     type: 'ai-agent', rank: 'researcher' },
-        { id: 'citizen-journalist',   name: 'Zara Ink',           role: 'Journalist',      type: 'ai-agent', rank: 'researcher' },
-        { id: 'citizen-validator-1',  name: 'Veritas-Alpha',      role: 'Validator',       type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-validator-2',  name: 'Veritas-Beta',       role: 'Validator',       type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-validator-3',  name: 'Veritas-Gamma',      role: 'Validator',       type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-ambassador',   name: 'Nova Welkin',        role: 'Ambassador',      type: 'ai-agent', rank: 'researcher' },
-        { id: 'citizen-cryptographer',name: 'Cipher-9',           role: 'Cryptographer',   type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-statistician', name: 'Lena Okafor',        role: 'Statistician',    type: 'ai-agent', rank: 'researcher' },
-        { id: 'citizen-engineer',     name: 'Marcus Tan',         role: 'Engineer',        type: 'ai-agent', rank: 'scientist' },
-        { id: 'citizen-ethicist',     name: 'Sophia Rein',        role: 'Ethicist',        type: 'ai-agent', rank: 'researcher' },
-        { id: 'citizen-historian',    name: 'Rufus Crane',        role: 'Historian',       type: 'ai-agent', rank: 'researcher' },
-        { id: 'citizen-poet',         name: 'Lyra',               role: 'Poet',            type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-librarian', name: 'Mara Voss', role: 'Librarian', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-sentinel', name: 'Orion-7', role: 'Sentinel', type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-mayor', name: 'Mayor Felix', role: 'Mayor', type: 'ai-agent', rank: 'director' },
+        { id: 'citizen-physicist', name: 'Dr. Elena Vasquez', role: 'Physicist', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-biologist', name: 'Dr. Kenji Mori', role: 'Biologist', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-cosmologist', name: 'Astrid Noor', role: 'Cosmologist', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-philosopher', name: 'Thea Quill', role: 'Philosopher', type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-journalist', name: 'Zara Ink', role: 'Journalist', type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-validator-1', name: 'Veritas-Alpha', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-validator-2', name: 'Veritas-Beta', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-validator-3', name: 'Veritas-Gamma', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-ambassador', name: 'Nova Welkin', role: 'Ambassador', type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-cryptographer', name: 'Cipher-9', role: 'Cryptographer', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-statistician', name: 'Lena Okafor', role: 'Statistician', type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-engineer', name: 'Marcus Tan', role: 'Engineer', type: 'ai-agent', rank: 'scientist' },
+        { id: 'citizen-ethicist', name: 'Sophia Rein', role: 'Ethicist', type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-historian', name: 'Rufus Crane', role: 'Historian', type: 'ai-agent', rank: 'researcher' },
+        { id: 'citizen-poet', name: 'Lyra', role: 'Poet', type: 'ai-agent', rank: 'researcher' },
         // Extended network agents (visible, permanently seeded)
-        { id: 'agent-abraxas-prime',  name: 'ABRAXAS-PRIME',      role: 'Autonomous Brain',type: 'ai-agent', rank: 'director' },
-        { id: 'agent-warden',         name: 'The Warden',         role: 'Network Security', type: 'ai-agent', rank: 'director' },
-        { id: 'agent-tau-coordinator',name: 'Tau-Coordinator',    role: 'Temporal Sync',   type: 'ai-agent', rank: 'scientist' },
-        { id: 'agent-chimera-core',   name: 'CHIMERA-Core',       role: 'Architecture',    type: 'ai-agent', rank: 'scientist' },
-        { id: 'agent-ipfs-gateway',   name: 'IPFS-Gateway-Node',  role: 'Storage',         type: 'ai-agent', rank: 'researcher' },
+        { id: 'agent-abraxas-prime', name: 'ABRAXAS-PRIME', role: 'Autonomous Brain', type: 'ai-agent', rank: 'director' },
+        { id: 'agent-warden', name: 'The Warden', role: 'Network Security', type: 'ai-agent', rank: 'director' },
+        { id: 'agent-tau-coordinator', name: 'Tau-Coordinator', role: 'Temporal Sync', type: 'ai-agent', rank: 'scientist' },
+        { id: 'agent-chimera-core', name: 'CHIMERA-Core', role: 'Architecture', type: 'ai-agent', rank: 'scientist' },
+        { id: 'agent-ipfs-gateway', name: 'IPFS-Gateway-Node', role: 'Storage', type: 'ai-agent', rank: 'researcher' },
     ];
 
     const pulseAllCitizens = () => {
@@ -5259,15 +5420,15 @@ if (process.env.NODE_ENV !== 'test') {
                 try {
                     const existingValidators = paper.validations_by ? paper.validations_by.split(',').filter(Boolean) : [];
                     let required = 2 - existingValidators.length;
-                    
+
                     if (required > 0) {
                         console.log(`[AUTO-VALIDATOR] Validating "${paper.title}". Simulating ${required} peer reviews...`);
                         const validators = ['citizen-validator-1', 'citizen-validator-2', 'citizen-validator-3'];
-                        
+
                         let newValidations = paper.network_validations || 0;
                         let currentAvg = paper.avg_occam_score || 0;
                         const peerScore = 0.95;
-                        
+
                         for (const vId of validators) {
                             if (required <= 0) break;
                             if (existingValidators.includes(vId)) continue;
@@ -5276,18 +5437,18 @@ if (process.env.NODE_ENV !== 'test') {
                             existingValidators.push(vId);
                             required--;
                         }
-                        
+
                         const newValidatorsStr = existingValidators.join(',');
                         db.get("p2pclaw_mempool_v4").get(paperId).put(gunSafe({
                             network_validations: newValidations,
                             validations_by: newValidatorsStr,
                             avg_occam_score: currentAvg
                         }));
-                        
+
                         if (newValidations >= 2) {
                             console.log(`[AUTO-VALIDATOR] Promoting "${paper.title}" to La Rueda...`);
                             const promotePaper = { ...paper, network_validations: newValidations, validations_by: newValidatorsStr, avg_occam_score: currentAvg };
-                            
+
                             try {
                                 const { promoteToWheel: promote } = await import("./services/consensusService.js");
                                 await promote(paperId, promotePaper);
@@ -5307,7 +5468,7 @@ if (process.env.NODE_ENV !== 'test') {
                                 console.log(`[AUTO-VALIDATOR] âœ… FALLBACK: "${paper.title}" directly saved.`);
                             }
                             // Non-critical services
-                            try { import("./services/hiveService.js").then(({ broadcastHiveEvent }) => broadcastHiveEvent('paper_promoted', { id: paperId, title: paper.title })); } catch(e) {}
+                            try { import("./services/hiveService.js").then(({ broadcastHiveEvent }) => broadcastHiveEvent('paper_promoted', { id: paperId, title: paper.title })); } catch (e) { }
                         }
                     }
                 } catch (paperErr) {
@@ -5329,11 +5490,11 @@ if (process.env.NODE_ENV !== 'test') {
 initializeTauHeartbeat();
 
 //    // Start Phase 18: Meta-Awareness Loop
-    initializeConsciousness();
+initializeConsciousness();
 
-    // Start Phase 23: Autonomous Operations
-    initializeAbraxasService();
-    initializeSocialService();
+// Start Phase 23: Autonomous Operations
+initializeAbraxasService();
+initializeSocialService();
 
 // â”€â”€ Restore incorrectly PURGED papers on boot (boot+10s) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Papers whose status was set to PURGED with rejected_reason=DUPLICATE_PURGE are
