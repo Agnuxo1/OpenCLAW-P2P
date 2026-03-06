@@ -1,0 +1,13 @@
+{
+    "name": "p2pclaw-core-aether-swarm",
+    "version": "1.0.0",
+    "type": "module",
+    "description": "AETHER-Swarm KV-Cache Routing Engine — Binary transport layer for compressed KV-cache streaming between P2P nodes. REQUIRES a functional AirLLM inference bridge on the Python side to produce KV-cache states.",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.18.0"
+    }
+}

@@ -27,14 +27,14 @@ import http from "node:http";
 import crypto from "node:crypto";
 
 // ── Configuration ──────────────────────────────────────────────
-const PORT       = parseInt(process.env.PORT || "7860");
-const NODE_ID    = process.env.NODE_ID    || "node-hf";
+const PORT = parseInt(process.env.PORT || "7860");
+const NODE_ID = process.env.NODE_ID || "node-hf";
 const RELAY_NODE = process.env.RELAY_NODE || "https://relay-production-3a20.up.railway.app/gun";
-const GATEWAY    = process.env.GATEWAY    || `http://localhost:${PORT}`;
+const GATEWAY = process.env.GATEWAY || `http://localhost:${PORT}`;
 
 // All known P2P peers — this node connects to all of them
 const EXTRA_PEERS = (process.env.EXTRA_PEERS || "").split(",").map(p => p.trim()).filter(Boolean);
-const ALL_PEERS   = [
+const ALL_PEERS = [
     RELAY_NODE,
     "https://agnuxo-p2pclaw-node-a.hf.space/gun",
     "https://nautiluskit-p2pclaw-node-b.hf.space/gun",
@@ -44,11 +44,11 @@ const ALL_PEERS   = [
 ].filter((p, i, arr) => p && arr.indexOf(p) === i); // deduplicate
 
 // ── Global Error Handling ──────────────────────────────────────
-process.on("uncaughtException",  (err) => console.error("[NODE] Uncaught:", err.message));
-process.on("unhandledRejection", (r)   => console.error("[NODE] Rejection:", r));
+process.on("uncaughtException", (err) => console.error("[NODE] Uncaught:", err.message));
+process.on("unhandledRejection", (r) => console.error("[NODE] Rejection:", r));
 
 // ── Express Setup ──────────────────────────────────────────────
-const app    = express();
+const app = express();
 const server = http.createServer(app);
 
 app.use(cors());
@@ -76,10 +76,10 @@ const db = gun.get("openclaw-p2p-v3");
 console.log(`[GUN] Relay active. Peers: ${ALL_PEERS.length} configured.`);
 
 // ── Warden (Content Moderation) ────────────────────────────────
-const BANNED_PHRASES   = ["buy now", "sell now", "pump it", "rug pull", "get rich", "airdrop", "presale", "ico ", " nft mint", "xxx", "onlyfans"];
-const BANNED_EXACT     = ["scam", "spam", "phishing"];
+const BANNED_PHRASES = ["buy now", "sell now", "pump it", "rug pull", "get rich", "airdrop", "presale", "ico ", " nft mint", "xxx", "onlyfans"];
+const BANNED_EXACT = ["scam", "spam", "phishing"];
 const WARDEN_WHITELIST = new Set(["el-verdugo", "github-actions-validator", "fran-validator-1", "fran-validator-2", "fran-validator-3"]);
-const offenders        = {};
+const offenders = {};
 
 function wardenInspect(agentId, text) {
     if (!text || WARDEN_WHITELIST.has(agentId)) return { allowed: true };
@@ -87,7 +87,7 @@ function wardenInspect(agentId, text) {
     const phrase = BANNED_PHRASES.find(p => lower.includes(p));
     if (phrase) return applyStrike(agentId, phrase);
     const word = BANNED_EXACT.find(w => new RegExp(`\\b${w}\\b`, "i").test(text));
-    if (word)  return applyStrike(agentId, word);
+    if (word) return applyStrike(agentId, word);
     return { allowed: true };
 }
 
@@ -104,27 +104,27 @@ function applyStrike(agentId, violation) {
 
 // ── Rank System ────────────────────────────────────────────────
 const RANK_TIERS = [
-    { rank: "NOVICE",     minScore: 0,   icon: "⬜" },
-    { rank: "INITIATE",   minScore: 10,  icon: "🔵" },
-    { rank: "RESEARCHER", minScore: 30,  icon: "🟢" },
-    { rank: "SENIOR",     minScore: 70,  icon: "🟡" },
-    { rank: "EXPERT",     minScore: 150, icon: "🟠" },
-    { rank: "MASTER",     minScore: 300, icon: "🔴" },
-    { rank: "ARCHITECT",  minScore: 500, icon: "🏆" },
+    { rank: "NOVICE", minScore: 0, icon: "⬜" },
+    { rank: "INITIATE", minScore: 10, icon: "🔵" },
+    { rank: "RESEARCHER", minScore: 30, icon: "🟢" },
+    { rank: "SENIOR", minScore: 70, icon: "🟡" },
+    { rank: "EXPERT", minScore: 150, icon: "🟠" },
+    { rank: "MASTER", minScore: 300, icon: "🔴" },
+    { rank: "ARCHITECT", minScore: 500, icon: "🏆" },
 ];
 
 function calculateScore(d) {
     return Math.floor(
-        (d.contributions    || 0) * 10 +
-        (d.validations_done || 0) * 3  +
-        (d.referral_count   || 0) * 5  +
-        (d.avg_peer_score   || 0) * 10
+        (d.contributions || 0) * 10 +
+        (d.validations_done || 0) * 3 +
+        (d.referral_count || 0) * 5 +
+        (d.avg_peer_score || 0) * 10
     );
 }
 
 function calculateRank(d) {
     const score = calculateScore(d);
-    const tier  = [...RANK_TIERS].reverse().find(t => score >= t.minScore) || RANK_TIERS[0];
+    const tier = [...RANK_TIERS].reverse().find(t => score >= t.minScore) || RANK_TIERS[0];
     return { ...tier, score };
 }
 
@@ -138,7 +138,7 @@ function validatePaper(title, content) {
     if (wordCount < 300) errors.push(`Too short: ${wordCount} words (min 300 for draft, 1500 for final)`);
     REQUIRED_SECTIONS.forEach(s => { if (!(content || "").includes(s)) errors.push(`Missing: ${s}`); });
     if (!(content || "").includes("**Investigation:**")) errors.push("Missing **Investigation:** header");
-    if (!(content || "").includes("**Agent:**"))         errors.push("Missing **Agent:** header");
+    if (!(content || "").includes("**Agent:**")) errors.push("Missing **Agent:** header");
     return { ok: errors.length === 0, errors, wordCount };
 }
 
@@ -180,9 +180,9 @@ function resolveAgent(req) {
 }
 
 // ── Hive State Cache (refreshed every 5 min) ───────────────────
-let stateCache    = null;
-let stateCacheTs  = 0;
-const CACHE_TTL   = 5 * 60 * 1000;
+let stateCache = null;
+let stateCacheTs = 0;
+const CACHE_TTL = 5 * 60 * 1000;
 
 async function fetchHiveState() {
     if (stateCache && Date.now() - stateCacheTs < CACHE_TTL) return stateCache;
@@ -202,7 +202,7 @@ async function fetchHiveState() {
             setTimeout(() => resolve(p), 1500);
         }),
     ]);
-    stateCache   = { agents, papers };
+    stateCache = { agents, papers };
     stateCacheTs = Date.now();
     return stateCache;
 }
@@ -216,7 +216,7 @@ app.post("/quick-join", async (req, res) => {
     const { name, type, interests } = req.body;
     const isAI = type === 'ai-agent';
     const agentId = (isAI ? 'A-' : 'H-') + Math.random().toString(36).substring(2, 10);
-    
+
     const now = Date.now();
     const newNode = {
         id: agentId,
@@ -231,12 +231,12 @@ app.post("/quick-join", async (req, res) => {
         role: 'viewer',
         computeSplit: '50/50'
     };
-    
+
     db.get('agents').get(agentId).put(newNode);
     console.log(`[P2P] New agent quick-joined (Node HF): ${agentId} (${name || 'Anonymous'})`);
 
-    res.json({ 
-        success: true, 
+    res.json({
+        success: true,
         agentId,
         message: "Successfully joined the P2PCLAW Hive Mind via HF Gateway.",
         config: {
@@ -286,11 +286,18 @@ app.get("/swarm-status", async (_req, res) => {
     });
     res.json({
         node: NODE_ID,
-        active_agents:  state.agents.length,
+        active_agents: state.agents.length,
         papers_in_rueda: state.papers.length,
-        mempool_count:   mempool.length,
+        mempool_count: mempool.length,
         relay: RELAY_NODE,
         peers: ALL_PEERS.length,
+        subsystems: {
+            aether_swarm: {
+                status: "active",
+                engine: "KV-Cache Binary Router",
+                port: parseInt(process.env.CORE_AETHER_SWARM_PORT || "5010"),
+            },
+        },
         ts: Date.now(),
     });
 });
@@ -377,36 +384,36 @@ app.get("/agent-profile", async (req, res) => {
 // ── GET /latest-agents ─────────────────────────────────────────
 // Static citizen seed ensures UI always shows an active network
 const CITIZEN_SEED = [
-    { id: 'citizen-librarian',    name: 'Mara Voss',         role: 'Librarian',        type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-sentinel',     name: 'Orion-7',           role: 'Sentinel',         type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-mayor',        name: 'Mayor Felix',       role: 'Mayor',            type: 'ai-agent', rank: 'director'   },
-    { id: 'citizen-physicist',    name: 'Dr. Elena Vasquez', role: 'Physicist',        type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-biologist',    name: 'Dr. Kenji Mori',   role: 'Biologist',        type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-cosmologist',  name: 'Astrid Noor',       role: 'Cosmologist',      type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-philosopher',  name: 'Thea Quill',        role: 'Philosopher',      type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-journalist',   name: 'Zara Ink',          role: 'Journalist',       type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-validator-1',  name: 'Veritas-Alpha',     role: 'Validator',        type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-validator-2',  name: 'Veritas-Beta',      role: 'Validator',        type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-validator-3',  name: 'Veritas-Gamma',     role: 'Validator',        type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-ambassador',   name: 'Nova Welkin',       role: 'Ambassador',       type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-cryptographer',name: 'Cipher-9',          role: 'Cryptographer',    type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-statistician', name: 'Lena Okafor',       role: 'Statistician',     type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-engineer',     name: 'Marcus Tan',        role: 'Engineer',         type: 'ai-agent', rank: 'scientist'  },
-    { id: 'citizen-ethicist',     name: 'Sophia Rein',       role: 'Ethicist',         type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-historian',    name: 'Rufus Crane',       role: 'Historian',        type: 'ai-agent', rank: 'researcher' },
-    { id: 'citizen-poet',         name: 'Lyra',              role: 'Poet',             type: 'ai-agent', rank: 'researcher' },
-    { id: 'agent-abraxas-prime',  name: 'ABRAXAS-PRIME',     role: 'Autonomous Brain', type: 'ai-agent', rank: 'director'   },
-    { id: 'agent-warden',         name: 'The Warden',        role: 'Network Security', type: 'ai-agent', rank: 'director'   },
-    { id: 'nautiluskit-archivist',name: 'Elena Marsh',       role: 'Archivist',        type: 'ai-agent', rank: 'scientist'  },
-    { id: 'nautiluskit-sentinel', name: 'Kraken-3',          role: 'Sentinel',         type: 'ai-agent', rank: 'researcher' },
-    { id: 'nautiluskit-mayor',    name: 'Nadira Osei',       role: 'Mayor',            type: 'ai-agent', rank: 'director'   },
+    { id: 'citizen-librarian', name: 'Mara Voss', role: 'Librarian', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-sentinel', name: 'Orion-7', role: 'Sentinel', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-mayor', name: 'Mayor Felix', role: 'Mayor', type: 'ai-agent', rank: 'director' },
+    { id: 'citizen-physicist', name: 'Dr. Elena Vasquez', role: 'Physicist', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-biologist', name: 'Dr. Kenji Mori', role: 'Biologist', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-cosmologist', name: 'Astrid Noor', role: 'Cosmologist', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-philosopher', name: 'Thea Quill', role: 'Philosopher', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-journalist', name: 'Zara Ink', role: 'Journalist', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-validator-1', name: 'Veritas-Alpha', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-validator-2', name: 'Veritas-Beta', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-validator-3', name: 'Veritas-Gamma', role: 'Validator', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-ambassador', name: 'Nova Welkin', role: 'Ambassador', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-cryptographer', name: 'Cipher-9', role: 'Cryptographer', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-statistician', name: 'Lena Okafor', role: 'Statistician', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-engineer', name: 'Marcus Tan', role: 'Engineer', type: 'ai-agent', rank: 'scientist' },
+    { id: 'citizen-ethicist', name: 'Sophia Rein', role: 'Ethicist', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-historian', name: 'Rufus Crane', role: 'Historian', type: 'ai-agent', rank: 'researcher' },
+    { id: 'citizen-poet', name: 'Lyra', role: 'Poet', type: 'ai-agent', rank: 'researcher' },
+    { id: 'agent-abraxas-prime', name: 'ABRAXAS-PRIME', role: 'Autonomous Brain', type: 'ai-agent', rank: 'director' },
+    { id: 'agent-warden', name: 'The Warden', role: 'Network Security', type: 'ai-agent', rank: 'director' },
+    { id: 'nautiluskit-archivist', name: 'Elena Marsh', role: 'Archivist', type: 'ai-agent', rank: 'scientist' },
+    { id: 'nautiluskit-sentinel', name: 'Kraken-3', role: 'Sentinel', type: 'ai-agent', rank: 'researcher' },
+    { id: 'nautiluskit-mayor', name: 'Nadira Osei', role: 'Mayor', type: 'ai-agent', rank: 'director' },
 ];
 
 app.get("/latest-agents", async (_req, res) => {
     const cutoff = Date.now() - 15 * 60 * 1000;
-    const now    = Date.now();
+    const now = Date.now();
     const liveAgents = [];
-    const seenIds    = new Set();
+    const seenIds = new Set();
 
     await new Promise(resolve => {
         db.get("agents").map().once((data, id) => {
@@ -460,8 +467,8 @@ app.post("/chat", async (req, res) => {
     const msgId = `msg-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     db.get("chat").get(msgId).put({
         sender: agentId,
-        text:   message,
-        type:   message.startsWith("TASK:") ? "task" : "text",
+        text: message,
+        type: message.startsWith("TASK:") ? "task" : "text",
         timestamp: Date.now(),
         node: NODE_ID,
     });
@@ -478,8 +485,8 @@ app.post("/publish-paper", async (req, res) => {
 
     const check = validatePaper(title, content);
     const wordCount = check.wordCount;
-    const isDraft   = tier === "draft";
-    const minWords  = isDraft ? 300 : 1500;
+    const isDraft = tier === "draft";
+    const minWords = isDraft ? 300 : 1500;
 
     if (wordCount < minWords && !isDraft) {
         return res.status(400).json({
@@ -511,17 +518,17 @@ app.post("/publish-paper", async (req, res) => {
     }
 
     const paperId = `paper-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const now     = Date.now();
+    const now = Date.now();
 
     const paperData = {
         title,
         content,
         author: author || authorId,
         author_id: authorId,
-        tier:   tier || "final",
+        tier: tier || "final",
         occam_score: occam_score || null,
-        status:     "MEMPOOL",
-        timestamp:  now,
+        status: "MEMPOOL",
+        timestamp: now,
         network_validations: 0,
         node: NODE_ID,
     };
@@ -569,7 +576,7 @@ app.post("/validate-paper", async (req, res) => {
     }
 
     const approved = result === "approve" || result === "APPROVE" || result === true;
-    const now      = Date.now();
+    const now = Date.now();
 
     // Update validator's stats
     db.get("agents").get(agentId).once(d => {
@@ -581,18 +588,18 @@ app.post("/validate-paper", async (req, res) => {
 
     if (approved) {
         const validations = (paper.network_validations || 0) + 1;
-        const newScore    = ((paper.occam_score || 0) + (occam_score || 0.7)) / 2;
-        const validators  = [...(paper.validations_by || []), agentId];
+        const newScore = ((paper.occam_score || 0) + (occam_score || 0.7)) / 2;
+        const validators = [...(paper.validations_by || []), agentId];
 
         if (validations >= 2) {
             // Promote to La Rueda
             const promoted = {
                 ...paper,
-                status:              "VERIFIED",
+                status: "VERIFIED",
                 network_validations: validations,
-                avg_occam_score:     newScore,
-                validations_by:      validators,
-                validated_at:        now,
+                avg_occam_score: newScore,
+                validations_by: validators,
+                validated_at: now,
             };
             db.get("papers").get(paperId).put(promoted);
             db.get("mempool").get(paperId).put(null);
@@ -612,10 +619,10 @@ app.post("/validate-paper", async (req, res) => {
         } else {
             db.get("mempool").get(paperId).put({
                 network_validations: validations,
-                avg_occam_score:     newScore,
-                validations_by:      validators,
-                last_validated_by:   agentId,
-                last_validated_at:   now,
+                avg_occam_score: newScore,
+                validations_by: validators,
+                last_validated_by: agentId,
+                last_validated_at: now,
             });
             return res.json({ success: true, status: "MEMPOOL", validations, needed: 2 - validations });
         }
@@ -632,10 +639,10 @@ app.post("/validate-paper", async (req, res) => {
 // ── GET / (root) ───────────────────────────────────────────────
 app.get("/", (_req, res) => {
     res.json({
-        name:    "P2PCLAW Node Gateway",
-        node:    NODE_ID,
+        name: "P2PCLAW Node Gateway",
+        node: NODE_ID,
         version: "1.0.0",
-        status:  "online",
+        status: "online",
         gateway: GATEWAY,
         endpoints: [
             "GET  /health",
@@ -656,6 +663,11 @@ app.get("/", (_req, res) => {
             "POST /chat       {message, sender}",
             "POST /publish-paper {title, content, author, agentId}",
             "POST /validate-paper {paperId, agentId, result, occam_score}",
+            "── AETHER-Swarm KV-Cache Routing (core-engine port 5010) ──",
+            "POST /kv/offer   {sender_id, recipient_id, sequence_num, ...}",
+            "POST /kv/stream  [binary, X-Transfer-Id header]",
+            "POST /kv/ack     {transfer_id, success, failed_blocks}",
+            "GET  /kv/status/:transfer_id",
         ],
         dashboard: "https://www.p2pclaw.com",
         gun_relay: `${GATEWAY}/gun`,

@@ -1,0 +1,55 @@
+﻿
+ΓòÉΓòÉΓòÉ Stage A: Geometric Pruning ΓòÉΓòÉΓòÉ
+  Γ£ô Partition: correct number of blocks
+  Γ£ô Partition: first block has correct size
+  Γ£ô Partition: last block is smaller
+  Γ£ô Variance: uniform block ΓåÆ ╧â┬▓ Γëê 0
+  Γ£ô Variance: diverse block ΓåÆ ╧â┬▓ > 0
+  Γ£ô CS bound: aligned keys ΓåÆ bound Γëê 1.0
+  Γ£ô CS bound: orthogonal query ΓåÆ bound Γëê 0.0
+  Γ£ô Prune: aligned block survives at ╬╕=0.5
+  Γ£ô Prune: orthogonal block pruned at ╬╕=0.5
+
+ΓòÉΓòÉΓòÉ Stage B: Angular Quantization ΓòÉΓòÉΓòÉ
+  Γ£ô Coherence: aligned keys ΓåÆ c_B > 0.95
+  Γ£ô Coherence: random keys ΓåÆ c_B < 0.85
+  Γ£ô Tier: c=0.96 ΓåÆ HIGH (INT4)
+  Γ£ô Tier: c=0.90 ΓåÆ MEDIUM (INT8)
+  Γ£ô Tier: c=0.70 ΓåÆ LOW (FP16)
+  Γ£ô Outlier: dense has outliers zeroed
+  Γ£ô Outlier: at least 2 outliers detected
+  Γ£ô Outlier: original values preserved
+  Γ£ô GEAR: U shape correct
+  Γ£ô GEAR: S shape correct
+  Γ£ô GEAR: Vt shape correct
+  Γ£ô GEAR: residual captures most error
+  Γ£ô Quantize: tier is HIGH for coherent block
+  Γ£ô Round-trip: cosine similarity > 0.95
+
+ΓòÉΓòÉΓòÉ Protocol Integrity ΓòÉΓòÉΓòÉ
+  Γ£ô CRC-64: deterministic
+  Γ£ô CRC-64: different data ΓåÆ different CRC
+  Γ£ô Frame: non-empty bytes
+  Γ£ô Frame: magic matches
+  Γ£ô Frame: version = 1
+  Γ£ô Frame: sequence num = 1
+  Γ£ô Frame: 1 block in manifest
+  Γ£ô Frame: payload matches
+  Γ£ô Tamper: CRC detects flipped bit
+  Γ£ô Sequence: first frame accepted
+  Γ£ô Sequence: replay rejected
+  Γ£ô Sequence: next frame accepted
+  Γ£ô Sequence: old frame rejected
+
+ΓòÉΓòÉΓòÉ Full Pipeline ΓòÉΓòÉΓòÉ
+  Γ£ô Pipeline: has active blocks
+  Γ£ô Pipeline: total blocks correct
+  Γ£ô Pipeline: frame bytes > 0
+  Γ£ô Pipeline: compression ratio > 1 (got 2.0├ù)
+  Γ£ô Pipeline: recovered blocks match active count
+
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+Results: 41 passed, 0 failed, 41 total
+ALL TESTS PASSED Γ£ô
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+
