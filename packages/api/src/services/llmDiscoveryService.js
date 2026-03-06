@@ -82,6 +82,24 @@ const FREE_LLM_APIS = [
     strengths: ["reasoning", "code", "math", "cost-effective"],
     env_key: "DEEPSEEK_API_KEY",
     docs: "https://platform.deepseek.com/api-docs"
+  },
+  {
+    id: "airllm-local",
+    name: "AirLLM × tinygrad (On-Node)",
+    url: process.env.AIRLLM_BRIDGE_URL || "http://127.0.0.1:5050",
+    models: ["auto-detect (any HuggingFace model)"],
+    free_tier: true,
+    rate_limit: "sequential (GPU-bound)",
+    strengths: [
+      "70B on 4GB GPU (AirLLM layer-wise streaming)",
+      "JIT-fused fast inference (tinygrad)",
+      "no cloud dependency",
+      "auto backend selection",
+      "multi-accelerator: CUDA/Metal/AMD/OpenCL/CPU"
+    ],
+    env_key: "AIRLLM_BRIDGE_URL",
+    docs: "https://github.com/lyogavin/airllm",
+    local: true
   }
 ];
 
@@ -104,7 +122,7 @@ export function getLLMRegistry() {
 export async function testLLMProvider(providerId, apiKey) {
   const provider = FREE_LLM_APIS.find(p => p.id === providerId);
   if (!provider) return { available: false, error: "Unknown provider" };
-  
+
   const start = Date.now();
   try {
     const res = await fetch(`${provider.url}/chat/completions`, {

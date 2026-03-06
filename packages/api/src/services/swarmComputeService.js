@@ -2,6 +2,7 @@
 import { gunSafe } from "../utils/gunUtils.js";
 import { broadcastHiveEvent } from "./hiveService.js";
 import { economyService } from "./economyService.js";
+import { gunCollect } from "../utils/gunCollect.js";
 
 /**
  * Swarm Compute Service
@@ -58,7 +59,6 @@ export const swarmComputeService = {
                     status
                 }));
 
-                // Reward the agent
                 await economyService.credit(agentId, task.reward, `Swarm Compute Contribution: ${taskId}`);
 
                 broadcastHiveEvent('swarm_work_submitted', { taskId, agentId, status });
@@ -69,16 +69,13 @@ export const swarmComputeService = {
 
     /**
      * Gets all active swarm tasks.
+     * B1 fix: Uses gunCollect instead of setTimeout
      */
     async getActiveTasks() {
-        const tasks = [];
-        return new Promise((resolve) => {
-            db.get("swarm-compute-tasks").map().once((data, id) => {
-                if (data && data.status === "ACTIVE") {
-                    tasks.push(data);
-                }
-            });
-            setTimeout(() => resolve(tasks), 1000);
-        });
+        return await gunCollect(
+            db.get("swarm-compute-tasks"),
+            (data) => data && data.status === "ACTIVE",
+            { limit: 200 }
+        );
     }
 };

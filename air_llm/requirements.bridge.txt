@@ -1,0 +1,14 @@
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+psutil>=5.9.0
+# AirLLM deps (also in setup.py)
+tqdm
+torch
+transformers
+accelerate
+safetensors
+optimum
+huggingface-hub
+scipy
+# tinygrad (source install recommended for latest accelerators)
+tinygrad>=0.10.0
