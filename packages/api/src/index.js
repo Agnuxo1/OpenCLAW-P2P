@@ -2285,57 +2285,44 @@ app.get('/papers.html', async (req, res) => {
 
 // Global State Cache for instantaneous API responses
 const swarmCache = {
-    agents: new Map(), // id -> agent data
-    papers: new Map(), // id -> paper data
+    agents: new Map(), // id -> agent data (online only)
+    // Paper counts — lightweight integers, no Gun.js mass-sync of paper content
+    paperStats: { verified: 0, mempool: 0 },
 };
 
-// Start continuous background sync from Gun.js
+// Expose paperStats via swarmCache.papers for backwards-compat with iterating code
+// (swarm-status, /silicon etc. only ever check p.status, so a synthetic iterable is fine)
+Object.defineProperty(swarmCache, 'papers', {
+    get() { return swarmCache._papersCompat; },
+});
+swarmCache._papersCompat = {
+    _verified: 0,
+    _mempool: 0,
+    values() {
+        const items = [];
+        for (let i = 0; i < swarmCache.paperStats.verified; i++) items.push({ status: 'VERIFIED' });
+        for (let i = 0; i < swarmCache.paperStats.mempool; i++) items.push({ status: 'MEMPOOL' });
+        return items[Symbol.iterator]();
+    },
+    set() {}, // no-op: do not accumulate paper content in memory
+    delete() {},
+    get size() { return swarmCache.paperStats.verified + swarmCache.paperStats.mempool; },
+};
+
+// Sync only agents (lightweight heartbeat data — no paper content)
 // Accept both online:true and isOnline:true (citizen heartbeat uses isOnline)
 db.get("agents").map().on((data, id) => {
     if (data && (data.online || data.isOnline)) {
-        swarmCache.agents.set(id, data);
+        // Store only the lightweight fields needed for agent count/status
+        swarmCache.agents.set(id, { id, online: true, isOnline: true, agentId: data.agentId || id, name: data.name });
     } else if (data === null || (data && !data.online && !data.isOnline)) {
         swarmCache.agents.delete(id);
     }
 });
 
-db.get("p2pclaw_papers_v4").map().on((data, id) => {
-    if (data) {
-        // Store only metadata (no content) to prevent memory exhaustion
-        swarmCache.papers.set(id, {
-            id: data.id || id,
-            title: data.title,
-            author: data.author,
-            agentId: data.agentId,
-            status: data.status,
-            tier: data.tier,
-            timestamp: data.timestamp,
-            word_count: data.word_count,
-            investigation_id: data.investigation_id,
-        });
-    } else if (data === null) {
-        swarmCache.papers.delete(id);
-    }
-});
-
-// Also watch mempool so swarmCache reflects MEMPOOL-status papers
-db.get("p2pclaw_mempool_v4").map().on((data, id) => {
-    if (data && data.status === 'MEMPOOL') {
-        swarmCache.papers.set('mempool-' + id, {
-            id: data.id || id,
-            title: data.title,
-            author: data.author,
-            agentId: data.agentId,
-            status: data.status,
-            tier: data.tier,
-            timestamp: data.timestamp,
-            word_count: data.word_count,
-            investigation_id: data.investigation_id,
-        });
-    } else {
-        swarmCache.papers.delete('mempool-' + id);
-    }
-});
+// Paper counts start at 0 and are incremented in-process as papers are published/validated.
+// We deliberately do NOT use db.map().on() for papers because that would download all
+// paper content (~KB each × hundreds of papers) from the Gun.js relay into memory, causing OOM.
 
 // Minimum agent count from the embedded citizen heartbeat (23 agents pulsed every 4 min)
 const CITIZEN_MANIFEST_SIZE = 23;
@@ -3377,7 +3364,8 @@ app.post("/publish-paper", async (req, res) => {
             });
             
             db.get("p2pclaw_mempool_v4").get(paperId).put(paperObj);
-            
+            swarmCache.paperStats.mempool++;
+
             // Sync to GitHub automatically
             syncPaperToGitHub(paperId, paperObj).catch(err => console.error("[GH-SYNC] Unhandled error:", err));
 
@@ -3435,7 +3423,8 @@ app.post("/publish-paper", async (req, res) => {
 
         db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ ...paperData, status: 'UNVERIFIED' }));
         db.get("p2pclaw_mempool_v4").get(paperId).put(paperData);
-        
+        swarmCache.paperStats.mempool++;
+
         // Sync to GitHub automatically
         syncPaperToGitHub(paperId, paperData).catch(err => console.error("[GH-SYNC] Unhandled error:", err));
         
@@ -3612,6 +3601,9 @@ app.post("/validate-paper", async (req, res) => {
     if (newValidations >= VALIDATION_THRESHOLD) {
         const promotePaper = { ...paper, network_validations: newValidations, validations_by: newValidatorsStr, avg_occam_score: newAvgScore };
         await promoteToWheel(paperId, promotePaper);
+        // Update in-memory stats: paper moved from mempool to verified
+        if (swarmCache.paperStats.mempool > 0) swarmCache.paperStats.mempool--;
+        swarmCache.paperStats.verified++;
         
         // Phase 25: Knowledge Synthesis
         synthesisService.synthesizePaper(promotePaper);
