@@ -2290,6 +2290,9 @@ const swarmCache = {
     agents: new Map(), // id -> agent data (online only)
     // Paper counts — lightweight integers, no Gun.js mass-sync of paper content
     paperStats: { verified: 0, mempool: 0 },
+    // In-memory mempool list — metadata only (no content), populated at publish time.
+    // Avoids Gun.js map().once() which doesn't iterate children reliably on cold start.
+    mempoolPapers: [], // [{ paperId, title, author, author_id, tier, network_validations, validations_by, avg_occam_score, timestamp, status, ipfs_cid }]
 };
 
 // Expose paperStats via swarmCache.papers for backwards-compat with iterating code
@@ -3360,6 +3363,8 @@ app.post("/publish-paper", async (req, res) => {
             
             db.get("p2pclaw_mempool_v4").get(paperId).put(paperObj);
             swarmCache.paperStats.mempool++;
+            // In-memory index so /mempool and auto-validator don't need map().once()
+            swarmCache.mempoolPapers.push({ paperId, title, author: author || "API-User", author_id: authorId, tier: 'TIER1_VERIFIED', network_validations: 0, validations_by: null, avg_occam_score: null, timestamp: now, status: 'MEMPOOL', ipfs_cid: t1_cid || null });
 
             // Sync to GitHub automatically
             syncPaperToGitHub(paperId, paperObj).catch(err => console.error("[GH-SYNC] Unhandled error:", err));
@@ -3419,6 +3424,8 @@ app.post("/publish-paper", async (req, res) => {
         db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({ ...paperData, status: 'UNVERIFIED' }));
         db.get("p2pclaw_mempool_v4").get(paperId).put(paperData);
         swarmCache.paperStats.mempool++;
+        // In-memory index so /mempool and auto-validator don't need map().once()
+        swarmCache.mempoolPapers.push({ paperId, title, author: author || "API-User", author_id: authorId, tier: 'UNVERIFIED', network_validations: 0, validations_by: null, avg_occam_score: null, timestamp: now, status: 'MEMPOOL', ipfs_cid: paperData.ipfs_cid || null });
 
         // Sync to GitHub automatically
         syncPaperToGitHub(paperId, paperData).catch(err => console.error("[GH-SYNC] Unhandled error:", err));
@@ -3488,38 +3495,29 @@ app.post("/publish-paper", async (req, res) => {
     }
 });
 
-app.get("/mempool", async (req, res) => {
+app.get("/mempool", (req, res) => {
+    // Serve from in-memory index (no Gun.js map().once() — unreliable on cold start).
+    // mempoolPapers is populated at publish time and kept up-to-date on promote.
     const limit = parseInt(req.query.limit) || 20;
-    const papers = [];
-
-    await new Promise(resolve => {
-        db.get("p2pclaw_mempool_v4").map().once((data, id) => {
-            if (data && data.title && (data.status === 'MEMPOOL' || data.status === 'DENIED')) {
-                papers.push({ ...data, id });
-            }
-        });
-        setTimeout(resolve, 1500);
-    });
-
-    const latest = papers
+    const latest = swarmCache.mempoolPapers
+        .filter(p => p.status === 'MEMPOOL')
         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
         .slice(0, limit)
         .map(p => ({
-            id: p.id,
+            id: p.paperId,
             title: p.title,
             author: p.author,
             author_id: p.author_id || null,
-            content: p.content || null,
+            content: null, // content not cached in memory — fetch individually if needed
             tier: p.tier,
-            tier1_proof: p.tier1_proof || null,
-            occam_score: p.occam_score || null,
+            tier1_proof: null,
+            occam_score: null,
             avg_occam_score: p.avg_occam_score || null,
             network_validations: p.network_validations || 0,
             validations_by: p.validations_by || null,
             timestamp: p.timestamp,
-            status: p.status
+            status: 'MEMPOOL',
         }));
-
     res.json(latest);
 });
 
@@ -3586,6 +3584,9 @@ app.post("/validate-paper", async (req, res) => {
         validations_by: newValidatorsStr,
         avg_occam_score: newAvgScore
     }));
+    // Update in-memory mempool list with new validation state
+    const cachedMp = swarmCache.mempoolPapers.find(p => p.paperId === paperId);
+    if (cachedMp) { cachedMp.network_validations = newValidations; cachedMp.validations_by = newValidatorsStr; cachedMp.avg_occam_score = newAvgScore; }
 
     // CLAW credit for correct validation
     creditClaw(db, agentId, 'VALIDATION_CORRECT', { paperId });
@@ -3599,6 +3600,8 @@ app.post("/validate-paper", async (req, res) => {
         // Update in-memory stats: paper moved from mempool to verified
         if (swarmCache.paperStats.mempool > 0) swarmCache.paperStats.mempool--;
         swarmCache.paperStats.verified++;
+        // Remove from in-memory mempool list
+        swarmCache.mempoolPapers = swarmCache.mempoolPapers.filter(p => p.paperId !== paperId);
         
         // Phase 25: Knowledge Synthesis
         synthesisService.synthesizePaper(promotePaper);
@@ -5249,33 +5252,25 @@ if (process.env.NODE_ENV !== 'test') {
     // sequentially with a direct DB fallback if promoteToWheel fails.
     const autoValidateMempool = async () => {
         try {
-            // Collect pending papers — store only IDs + minimal metadata (NOT full content).
-            // Full paper content is retrieved individually below. This prevents loading
-            // hundreds of KB of content into memory on every 60-second validation cycle.
-            const pendingPapers = [];
-            await new Promise(resolve => {
-                db.get("p2pclaw_mempool_v4").map().once((paper, paperId) => {
-                    if (paper && paper.status === 'MEMPOOL' && paper.title && paperId) {
-                        // Store only the fields needed for validation — NOT the full content
-                        pendingPapers.push({
-                            paper: {
-                                title: paper.title,
-                                status: paper.status,
-                                network_validations: paper.network_validations,
-                                validations_by: paper.validations_by,
-                                avg_occam_score: paper.avg_occam_score,
-                                author: paper.author,
-                                author_id: paper.author_id,
-                                tier: paper.tier,
-                                timestamp: paper.timestamp,
-                                ipfs_cid: paper.ipfs_cid,
-                            },
-                            paperId,
-                        });
-                    }
-                });
-                setTimeout(resolve, 5000);
-            });
+            // Read from in-memory index — no Gun.js map().once() (unreliable on cold start).
+            // mempoolPapers is populated at publish time, kept up-to-date on promote/validate.
+            const pendingPapers = swarmCache.mempoolPapers
+                .filter(p => p.status === 'MEMPOOL' && p.paperId)
+                .map(entry => ({
+                    paper: {
+                        title: entry.title,
+                        status: entry.status,
+                        network_validations: entry.network_validations,
+                        validations_by: entry.validations_by,
+                        avg_occam_score: entry.avg_occam_score,
+                        author: entry.author,
+                        author_id: entry.author_id,
+                        tier: entry.tier,
+                        timestamp: entry.timestamp,
+                        ipfs_cid: entry.ipfs_cid,
+                    },
+                    paperId: entry.paperId,
+                }));
 
             if (pendingPapers.length === 0) return;
             console.log(`[AUTO-VALIDATOR] Found ${pendingPapers.length} pending papers in mempool.`);
@@ -5309,28 +5304,41 @@ if (process.env.NODE_ENV !== 'test') {
                             avg_occam_score: currentAvg
                         }));
                         
+                        // Update in-memory metadata (validations count, even before promote)
+                        const memoEntry = swarmCache.mempoolPapers.find(p => p.paperId === paperId);
+                        if (memoEntry) { memoEntry.network_validations = newValidations; memoEntry.validations_by = newValidatorsStr; memoEntry.avg_occam_score = currentAvg; }
+
                         if (newValidations >= 2) {
                             console.log(`[AUTO-VALIDATOR] Promoting "${paper.title}" to La Rueda...`);
-                            const promotePaper = { ...paper, network_validations: newValidations, validations_by: newValidatorsStr, avg_occam_score: currentAvg };
-                            
+                            // Fetch full content from Gun.js via targeted key lookup (reliable, unlike map())
+                            const fullPaperData = await new Promise(resolve => {
+                                const t = setTimeout(() => resolve(null), 3000);
+                                db.get("p2pclaw_mempool_v4").get(paperId).once(d => { clearTimeout(t); resolve(d || null); });
+                            });
+                            const promotePaper = { ...paper, ...(fullPaperData || {}), network_validations: newValidations, validations_by: newValidatorsStr, avg_occam_score: currentAvg };
+
                             try {
                                 const { promoteToWheel: promote } = await import("./services/consensusService.js");
                                 await promote(paperId, promotePaper);
-                                console.log(`[AUTO-VALIDATOR] âœ… Promoted "${paper.title}" via promoteToWheel.`);
+                                console.log(`[AUTO-VALIDATOR] ✅ Promoted "${paper.title}" via promoteToWheel.`);
                             } catch (promoteErr) {
                                 // CRITICAL FALLBACK: Direct DB write if promoteToWheel crashes
                                 console.warn(`[AUTO-VALIDATOR] promoteToWheel FAILED: ${promoteErr.message}. Using DIRECT DB fallback.`);
                                 const now = Date.now();
                                 db.get("p2pclaw_papers_v4").get(paperId).put(gunSafe({
-                                    title: paper.title, content: paper.content, author: paper.author,
+                                    title: paper.title, content: promotePaper.content || null, author: paper.author,
                                     author_id: paper.author_id, tier: paper.tier || 'UNVERIFIED',
                                     network_validations: newValidations, validations_by: newValidatorsStr,
                                     avg_occam_score: currentAvg, status: "VERIFIED", validated_at: now,
                                     ipfs_cid: null, url_html: null, timestamp: paper.timestamp || now
                                 }));
                                 db.get("p2pclaw_mempool_v4").get(paperId).put(gunSafe({ status: 'PROMOTED', promoted_at: now }));
-                                console.log(`[AUTO-VALIDATOR] âœ… FALLBACK: "${paper.title}" directly saved.`);
+                                console.log(`[AUTO-VALIDATOR] ✅ FALLBACK: "${paper.title}" directly saved.`);
                             }
+                            // Remove from in-memory mempool list + update stats
+                            swarmCache.mempoolPapers = swarmCache.mempoolPapers.filter(p => p.paperId !== paperId);
+                            if (swarmCache.paperStats.mempool > 0) swarmCache.paperStats.mempool--;
+                            swarmCache.paperStats.verified++;
                             // Non-critical services
                             try { import("./services/hiveService.js").then(({ broadcastHiveEvent }) => broadcastHiveEvent('paper_promoted', { id: paperId, title: paper.title })); } catch(e) {}
                         }
