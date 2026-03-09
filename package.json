@@ -9,7 +9,7 @@
     "packages/core-engines/*"
   ],
   "scripts": {
-    "start": "node --max-old-space-size=300 --expose-gc packages/api/src/index.js",
+    "start": "node --max-old-space-size=768 --expose-gc packages/api/src/index.js",
     "api": "node packages/api/src/index.js",
     "abraxas": "node packages/api/scripts/abraxasPulse.js",
     "citizens": "node packages/agents/citizens.js",
