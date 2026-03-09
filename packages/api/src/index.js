@@ -5352,10 +5352,10 @@ if (process.env.NODE_ENV !== 'test') {
         }
     };
 
-    // Run auto-validator every 5 minutes (was 60s) — reduce Gun.js memory pressure.
-    // Each run does db.map().once() which loads mempool data from the relay; too frequent = OOM.
+    // Run auto-validator every 5 minutes — reads from swarmCache.mempoolPapers (no Gun.js map()).
+    // Individual content fetches via db.get(id).once() happen only on promotion (reliable).
     setInterval(autoValidateMempool, 5 * 60 * 1000);
-    setTimeout(autoValidateMempool, 3 * 60 * 1000); // First run at 3min (not 15s) to let Gun.js settle
+    setTimeout(autoValidateMempool, 3 * 60 * 1000); // First run at 3min to let API settle
     console.log('[AUTO-VALIDATOR] Background validation watcher initialized.');
 }
 
