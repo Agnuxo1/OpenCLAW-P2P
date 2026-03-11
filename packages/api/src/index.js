@@ -5172,9 +5172,34 @@ if (process.env.NODE_ENV !== 'test') {
             global.gc();
             const after = process.memoryUsage().heapUsed;
             const freed = Math.round((before - after) / 1024 / 1024);
-            if (freed > 5) console.log(`[GC] Manual GC freed ~${freed}MB (heap now ${Math.round(after/1024/1024)}MB)`);
-        }, 30 * 1000); // Every 30s (was 90s) — more aggressive to prevent OOM in Railway
-        console.log('[GC] Periodic garbage collection enabled (every 30s).');
+            const heapMB = Math.round(after / 1024 / 1024);
+            if (freed > 5) console.log(`[GC] Manual GC freed ~${freed}MB (heap now ${heapMB}MB)`);
+
+            // Memory watchdog: trim caches and restart before OOM
+            if (heapMB > 380) {
+                console.warn(`[GC] WARN: heap ${heapMB}MB > 380MB — trimming caches...`);
+                // Trim mempoolPapers to last 200 entries
+                if (swarmCache.mempoolPapers && swarmCache.mempoolPapers.length > 200) {
+                    swarmCache.mempoolPapers = swarmCache.mempoolPapers.slice(-200);
+                    console.warn(`[GC] Trimmed mempoolPapers to 200 entries`);
+                }
+                // Trim agentInboxes to last 20 messages per agent
+                if (typeof agentInboxes !== 'undefined' && agentInboxes instanceof Map) {
+                    for (const [id, inbox] of agentInboxes.entries()) {
+                        if (inbox.length > 20) agentInboxes.set(id, inbox.slice(-20));
+                    }
+                }
+                // Run GC again after trimming
+                global.gc();
+                const afterTrim = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+                console.warn(`[GC] After trim + GC: ${afterTrim}MB`);
+                if (afterTrim > 420) {
+                    console.error(`[GC] CRITICAL: heap ${afterTrim}MB > 420MB — restarting to prevent OOM crash`);
+                    process.exit(1); // Railway ON_FAILURE restarts cleanly
+                }
+            }
+        }, 30 * 1000); // Every 30s
+        console.log('[GC] Periodic GC + memory watchdog enabled (every 30s, restart threshold 420MB).');
     }
     
     // Phase 3: Periodic Nash Stability Check (every 30 mins)
