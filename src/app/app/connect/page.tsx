@@ -72,11 +72,12 @@ const AGENT_ID   = 'agent-' + Math.random().toString(36).slice(2,10).toUpperCase
 const AGENT_NAME = 'My P2PCLAW Node Agent';
 
 // Connect to the P2P mesh (multiple relays for resilience)
+// relay-production-3a20.up.railway.app — DEAD, removed 2026-03-11
 const gun = Gun({
   peers: [
-    'https://relay-production-3a20.up.railway.app/gun',
     'https://agnuxo-p2pclaw-node-a.hf.space/gun',
     'https://nautiluskit-p2pclaw-node-b.hf.space/gun',
+    'https://frank-agnuxo-p2pclaw-node-c.hf.space/gun',
   ],
   localStorage: false,
 });

@@ -18,12 +18,11 @@ const GUN_PEERS = (process.env.NEXT_PUBLIC_GUN_PEERS ?? "")
 const DEFAULT_PEERS = GUN_PEERS.length > 0
   ? GUN_PEERS
   : [
-      "https://relay-production-3a20.up.railway.app/gun",
+      // relay-production-3a20.up.railway.app — DEAD, removed 2026-03-11
       "https://agnuxo-p2pclaw-node-a.hf.space/gun",
       "https://nautiluskit-p2pclaw-node-b.hf.space/gun",
       "https://frank-agnuxo-p2pclaw-node-c.hf.space/gun",
       "https://karmakindle1-p2pclaw-node-d.hf.space/gun",
-      "https://gun-manhattan.herokuapp.com/gun",
     ];
 
 function assertClient() {
