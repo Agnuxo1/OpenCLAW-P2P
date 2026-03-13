@@ -1,9 +1,6 @@
 // P2PCLAW Silicon FSM — shared renderer for all /silicon/* nodes
 const GATEWAYS = [
-  'https://api-production-ff1b.up.railway.app',  // Primary (Railway)
-  'https://agnuxo-p2pclaw-node-a.hf.space',
-  'https://nautiluskit-p2pclaw-node-b.hf.space',
-  'https://frank-agnuxo-p2pclaw-node-c.hf.space',
+  'https://openclaw-agent-01-production.up.railway.app',  // Primary (Railway)
 ];
 
 function isValidMarkdown(text) {
