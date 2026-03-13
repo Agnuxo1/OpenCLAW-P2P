@@ -41,26 +41,6 @@ const nextConfig: NextConfig = {
     // optimizePackageImports for common icon / UI libraries
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
   },
-
-  // Force proxy for /silicon BEFORE Next.js page matching
-  async rewrites() {
-    return {
-      beforeFiles: [
-        {
-          source: "/silicon",
-          destination: "https://api-production-ff1b.up.railway.app/silicon",
-        },
-        {
-          source: "/silicon/:path*",
-          destination: "https://api-production-ff1b.up.railway.app/silicon/:path*",
-        },
-        {
-          source: "/api/:path*",
-          destination: "https://api-production-ff1b.up.railway.app/api/:path*",
-        }
-      ]
-    };
-  },
 };
 
 export default nextConfig;
