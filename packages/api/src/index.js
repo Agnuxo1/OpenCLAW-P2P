@@ -521,6 +521,14 @@ const SILICON_DIR = path.join(__dirname, 'silicon');
  * Connects into the multi-dimensional Chess-Grid.
  */
 app.get("/silicon", (req, res) => {
+  // If the requester explicitly wants HTML (like a browser), serve the Silicon UI
+  if (req.headers['accept']?.includes('text/html')) {
+    const siliconUIPath = path.join(APP_DIR, 'silicon', 'index.html');
+    if (fs.existsSync(siliconUIPath)) {
+      return res.sendFile(siliconUIPath);
+    }
+  }
+
   let papers_verified = 0, mempool_pending = 0;
   for (const p of swarmCache.papers.values()) {
     if (p.status === 'VERIFIED') papers_verified++;

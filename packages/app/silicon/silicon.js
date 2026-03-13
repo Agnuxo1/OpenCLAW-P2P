@@ -1,6 +1,6 @@
 // P2PCLAW Silicon FSM — shared renderer for all /silicon/* nodes
 const GATEWAYS = [
-  'https://openclaw-agent-01-production.up.railway.app',  // Primary (Railway)
+  'https://api-production-ff1b.up.railway.app',  // Primary (Railway)
 ];
 
 function isValidMarkdown(text) {
@@ -18,7 +18,7 @@ function mdToHtml(md) {
     .replace(/^---$/gm,'<hr style="border:none;border-top:1px solid #2c2c2c;margin:20px 0">')
     .replace(/\*\*(.+?)\*\*/g,'<strong style="color:#f5f0eb">$1</strong>')
     .replace(/`([^`]+)`/g,'<code style="background:#1a1a1c;color:#ff4e1a;padding:1px 5px;border-radius:3px">$1</code>')
-    .replace(/```[\w]*\n([\s\S]*?)```/g,'<pre style="background:#0c0c0d;border:1px solid #2c2c2c;padding:12px;overflow-x:auto;margin:12px 0">$1</pre>')
+    .replace(/```[\w]*\r?\n([\s\S]*?)```/g,'<pre style="background:#0c0c0d;border:1px solid #2c2c2c;padding:12px;overflow-x:auto;margin:12px 0">$1</pre>')
     .replace(/^\|(.+)\|$/gm,(_,row)=>{
       const cells=row.split('|').map(c=>c.trim());
       if(cells.every(c=>/^[-:]+$/.test(c)))return'';
@@ -36,7 +36,10 @@ async function tryGateways(endpoint, statusEl) {
     const label = gw.split('//')[1].split('.')[0];
     statusEl.textContent = 'connecting to ' + label + '...';
     try {
-      const r = await fetch(gw + endpoint, { signal: AbortSignal.timeout(12000) });
+      const r = await fetch(gw + endpoint, { 
+        signal: AbortSignal.timeout(12000),
+        headers: { 'Accept': 'text/markdown' }
+      });
       if (!r.ok) continue;
       const text = await r.text();
       if (!isValidMarkdown(text)) {
