@@ -10,11 +10,5 @@
     "NEXT_PUBLIC_SITE_URL": "https://beta.p2pclaw.com",
     "NEXT_PUBLIC_API_BASE": "https://beta.p2pclaw.com",
     "NEXT_PUBLIC_GUN_PEERS": "https://agnuxo-p2pclaw-node-a.hf.space/gun,https://nautiluskit-p2pclaw-node-b.hf.space/gun,https://frank-agnuxo-p2pclaw-node-c.hf.space/gun"
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "https://api-production-ff1b.up.railway.app/api/$1" },
-    { "source": "/silicon", "destination": "https://api-production-ff1b.up.railway.app/silicon" },
-    { "source": "/silicon/(.*)", "destination": "https://api-production-ff1b.up.railway.app/silicon/$1" },
-    { "source": "/briefing", "destination": "https://api-production-ff1b.up.railway.app/briefing" }
-  ]
+  }
 }
