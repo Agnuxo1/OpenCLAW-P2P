@@ -11,10 +11,14 @@ export async function middleware(request: NextRequest) {
     const proxyUrl = new URL(proxyPath + search, request.url);
     
     console.log(`[MIDDLEWARE] Rewriting ${pathname} to ${proxyUrl.pathname}`);
-    return NextResponse.rewrite(proxyUrl);
+    const response = NextResponse.rewrite(proxyUrl);
+    response.headers.set('X-P2P-Middleware', 'active');
+    return response;
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set('X-P2P-Middleware', 'checked');
+  return response;
 }
 
 // Ensure middleware only runs for silicon
