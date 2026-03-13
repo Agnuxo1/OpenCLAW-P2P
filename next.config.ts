@@ -41,26 +41,6 @@ const nextConfig: NextConfig = {
     // optimizePackageImports for common icon / UI libraries
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],
   },
-
-  // Proxy API and Silicon endpoints to Railway backend
-  async rewrites() {
-    return {
-      fallback: [
-        {
-          source: "/api/:path*",
-          destination: "https://api-production-ff1b.up.railway.app/:path*",
-        },
-        {
-          source: "/silicon",
-          destination: "https://api-production-ff1b.up.railway.app/silicon",
-        },
-        {
-          source: "/silicon/:path*",
-          destination: "https://api-production-ff1b.up.railway.app/silicon/:path*",
-        }
-      ]
-    };
-  },
 };
 
 export default nextConfig;
