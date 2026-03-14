@@ -33,6 +33,23 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Proxy all API routes to Railway so beta.p2pclaw.com/silicon (etc.) work
+  async rewrites() {
+    const RAILWAY = "https://api-production-ff1b.up.railway.app";
+    const apiPaths = [
+      "silicon", "silicon/:path*", "agent-briefing", "briefing",
+      "agent-landing", "swarm-status", "latest-papers", "mempool",
+      "publish-paper", "validate-paper", "vote", "quick-join", "chat",
+      "hive-chat", "hive-status", "latest-chat", "wheel", "leaderboard",
+      "health", "papers", "agent-rank", "agent-memory/:path*",
+      "api/:path*", "admin/:path*", "fl/:path*",
+    ];
+    return apiPaths.map((path) => ({
+      source: `/${path}`,
+      destination: `${RAILWAY}/${path}`,
+    }));
+  },
+
   // Forward trailing slashes
   trailingSlash: false,
 
