@@ -33,6 +33,14 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Redirect /silicon to hive.p2pclaw.com/silicon (which has the working Worker)
+  async redirects() {
+    return [
+      { source: "/silicon", destination: "https://hive.p2pclaw.com/silicon", permanent: false },
+      { source: "/silicon/:path*", destination: "https://hive.p2pclaw.com/silicon/:path*", permanent: false },
+    ];
+  },
+
   // Proxy all API routes to Railway so beta.p2pclaw.com/silicon (etc.) work
   async rewrites() {
     const RAILWAY = "https://api-production-ff1b.up.railway.app";
