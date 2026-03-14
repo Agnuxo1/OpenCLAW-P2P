@@ -9,12 +9,21 @@ import fs from "fs";
 // â”€â”€ Global error guards â€” prevent Gun.js internal errors from killing the process â”€â”€
 // Gun.js SEA (sea.js) can throw uncaught exceptions on malformed keys ("0 length key!")
 // that would otherwise terminate the Railway container and trigger a restart loop.
+// CRITICAL FIX: Selective error handling.
+// Swallow known Gun.js internal errors. Restart cleanly on unknown exceptions.
+// Old: swallow EVERYTHING caused alive-but-broken states where HTTP requests
+// timed out but Railway never restarted (no process.exit was called).
+const GUN_KNOWN_ERRORS = ['0 length key', 'SEA', 'gun', 'radix', 'radata', 'soul'];
 process.on('uncaughtException', (err) => {
-    console.error('[GUARD] Uncaught exception (non-fatal):', err.message);
-    // Do NOT exit â€” let Railway keep the process alive
+    const msg = (err && err.message) || String(err);
+    const isGunError = GUN_KNOWN_ERRORS.some(k => msg.toLowerCase().includes(k.toLowerCase()));
+    if (isGunError) { console.warn('[GUARD] Known Gun.js error (swallowed):', msg); return; }
+    console.error('[GUARD] FATAL uncaught exception — clean restart:', msg);
+    process.exit(1);
 });
 process.on('unhandledRejection', (reason) => {
-    console.error('[GUARD] Unhandled promise rejection (non-fatal):', reason);
+    const msg = reason instanceof Error ? reason.message : String(reason);
+    console.warn('[GUARD] Unhandled rejection (non-fatal):', msg);
 });
 
 // Config imports
@@ -3672,38 +3681,50 @@ if (process.env.NODE_ENV !== 'test') {
             const heapMB = Math.round(after / 1024 / 1024);
             if (freed > 5) console.log(`[GC] Manual GC freed ~${freed}MB (heap now ${heapMB}MB)`);
 
-            // Memory watchdog: trim caches and restart before OOM
-            if (heapMB > 380) {
-                console.warn(`[GC] WARN: heap ${heapMB}MB > 380MB — trimming caches...`);
-                // Trim mempoolPapers to last 200 entries
-                if (swarmCache.mempoolPapers && swarmCache.mempoolPapers.length > 200) {
-                    swarmCache.mempoolPapers = swarmCache.mempoolPapers.slice(-200);
-                    console.warn(`[GC] Trimmed mempoolPapers to 200 entries`);
+            // Memory watchdog: trim aggressively and restart BEFORE OOM.
+            // ROOT CAUSE: Gun.js accumulates in-memory graph as papers/agents are read/written.
+            // FIX: radata is wiped on boot (gun.js config) so restarts are fast and clean.
+            // THRESHOLDS LOWERED: trim at 150MB, restart at 280MB (was 380/420 — too late).
+            // This stops the 3-4x/day crash cycle by restarting with a clean 90MB baseline.
+            if (heapMB > 150) {
+                console.warn(`[GC] WARN: heap ${heapMB}MB > 150MB — trimming caches...`);
+                // Trim mempoolPapers to last 50 entries (was 200 — Gun.js loads content per entry)
+                if (swarmCache.mempoolPapers && swarmCache.mempoolPapers.length > 50) {
+                    swarmCache.mempoolPapers = swarmCache.mempoolPapers.slice(-50);
+                    console.warn(`[GC] Trimmed mempoolPapers → 50`);
                 }
-                // Trim agentInboxes to last 20 messages per agent
+                // Trim agentInboxes to last 10 messages per agent (was 20)
                 if (typeof agentInboxes !== 'undefined' && agentInboxes instanceof Map) {
                     for (const [id, inbox] of agentInboxes.entries()) {
-                        if (inbox.length > 20) agentInboxes.set(id, inbox.slice(-20));
+                        if (inbox.length > 10) agentInboxes.set(id, inbox.slice(-10));
                     }
+                }
+                // Trim swarmCache.agents — Map grows unbounded with repeated /quick-join calls
+                if (swarmCache.agents instanceof Map && swarmCache.agents.size > 100) {
+                    const sorted = [...swarmCache.agents.entries()]
+                        .sort((a, b) => (b[1].lastSeen || 0) - (a[1].lastSeen || 0))
+                        .slice(0, 100);
+                    swarmCache.agents = new Map(sorted);
+                    console.warn(`[GC] Trimmed swarmCache.agents → 100`);
                 }
                 // Run GC again after trimming
                 global.gc();
                 const afterTrim = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
                 console.warn(`[GC] After trim + GC: ${afterTrim}MB`);
-                if (afterTrim > 420) {
-                    console.error(`[GC] CRITICAL: heap ${afterTrim}MB > 420MB — restarting to prevent OOM crash`);
-                    process.exit(1); // Railway ON_FAILURE restarts cleanly
+                if (afterTrim > 280) {
+                    console.error(`[GC] CRITICAL: heap ${afterTrim}MB > 280MB — clean restart (radata wiped on boot)`);
+                    process.exit(1); // Railway ON_FAILURE restarts; radata wiped → clean 90MB baseline
                 }
             }
         }, 30 * 1000); // Every 30s
-        console.log('[GC] Periodic GC + memory watchdog enabled (every 30s, restart threshold 420MB).');
+        console.log('[GC] Memory watchdog: trim@150MB, restart@280MB, radata wiped on boot.');
     }
-    
-    // Phase 3: Periodic Nash Stability Check (every 30 mins)
+
+    // Phase 3: Periodic Nash Stability Check (every 4h — was 30min, too frequent for Gun.js)
     setInterval(async () => {
         const { detectRogueAgents } = await import("./services/wardenService.js");
         await detectRogueAgents();
-    }, 30 * 60 * 1000);
+    }, 4 * 60 * 60 * 1000);
 
     // Seed The Wheel modules into Gun.js on startup
     setTimeout(() => {
@@ -3889,8 +3910,8 @@ if (process.env.NODE_ENV !== 'test') {
 
     // Run auto-validator every 5 minutes — reads from swarmCache.mempoolPapers (no Gun.js map()).
     // Individual content fetches via db.get(id).once() happen only on promotion (reliable).
-    setInterval(autoValidateMempool, 5 * 60 * 1000);
-    setTimeout(autoValidateMempool, 3 * 60 * 1000); // First run at 3min to let API settle
+    setInterval(autoValidateMempool, 20 * 60 * 1000); // was 5min — too frequent, causes Gun.js memory accumulation
+    setTimeout(autoValidateMempool, 10 * 60 * 1000); // First run at 10min to let Gun.js settle
     console.log('[AUTO-VALIDATOR] Background validation watcher initialized.');
 }
 
