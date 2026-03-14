@@ -41,17 +41,11 @@ export function setupServer(app) {
 
   // Serve the frontend app
   const APP_FRONTEND_DIR = path.join(__dirname, '../../../app');
-  if (fs.existsSync(APP_FRONTEND_DIR)) {
-      console.log('[Frontend] Serving static frontend from:', APP_FRONTEND_DIR);
-      // Serve static files at root ONLY — do NOT register /silicon here.
-      // The /silicon route is handled by index.js with proper Accept-header
-      // content negotiation (markdown for agents, HTML for browsers).
-      // Registering app.use('/silicon', static) here would intercept ALL
-      // /silicon requests before the route handler runs, always returning HTML.
-      app.use('/', express.static(APP_FRONTEND_DIR));
-  } else {
-      console.warn('[Frontend] App directory not found. Static files will not be served.');
-  }
+  // NOTE: Static file serving is intentionally NOT registered here.
+  // index.js registers app.use(express.static(APP_DIR)) AFTER all API routes,
+  // which gives routes (including /silicon with content-negotiation) priority
+  // over static files. Registering static BEFORE routes would intercept /silicon
+  // and always return HTML regardless of the Accept header.
 
   // Markdown for Agents Middleware
   app.use((req, res, next) => {
