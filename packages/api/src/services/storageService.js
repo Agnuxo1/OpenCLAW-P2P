@@ -97,6 +97,10 @@ export async function publishToIpfsWithRetry(title, content, author, maxAttempts
  * update the paper node after a successful pin.
  */
 export async function migrateExistingPapersToIPFS(db) {
+    if (process.env.PINATA_PAPERS_ENABLED !== 'true') {
+        console.log('[IPFS-MIGRATE] Paper pinning disabled (PINATA_PAPERS_ENABLED!=true). Skipping.');
+        return;
+    }
     if (!process.env.PINATA_JWT) {
         console.warn('[IPFS-MIGRATE] No PINATA_JWT â€” skipping migration.');
         return;
@@ -132,6 +136,14 @@ export async function migrateExistingPapersToIPFS(db) {
 }
 
 export async function archiveToIPFS(paperContent, paperId) {
+    // DISABLED: Pinata free plan = 100 pins max. At ~500 papers/day the account
+    // blocks in hours. Papers already persisted in Gun.js (real-time P2P) and
+    // GitHub via syncPaperToGitHub() (free, unlimited text archive).
+    // Pinata reserved for frontend static bundle ONLY (1 CID at a time).
+    // Re-enable: set PINATA_PAPERS_ENABLED=true in Railway environment vars.
+    if (process.env.PINATA_PAPERS_ENABLED !== 'true') {
+        return null;
+    }
     if (!process.env.PINATA_JWT) {
         console.warn('[IPFS] No PINATA_JWT â€” paper stored on P2P mesh only.');
         return null;
