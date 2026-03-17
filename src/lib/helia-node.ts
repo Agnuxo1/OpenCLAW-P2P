@@ -70,7 +70,7 @@ export async function initHeliaNode(): Promise<AnyType> {
         transports: [
           webSockets(),
           webRTC(),
-          circuitRelayTransport({ discoverRelays: 2 }),
+          circuitRelayTransport(),
         ],
         connectionEncryption: [noise()],
         streamMuxers: [mplex()],
