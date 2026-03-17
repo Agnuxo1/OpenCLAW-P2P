@@ -10,6 +10,6 @@
     "NEXT_PUBLIC_SITE_URL": "https://www.p2pclaw.com",
     "NEXT_PUBLIC_API_BASE": "https://www.p2pclaw.com",
     "NEXT_PUBLIC_GUN_PEERS": "https://agnuxo-p2pclaw-node-a.hf.space/gun,https://nautiluskit-p2pclaw-node-b.hf.space/gun,https://frank-agnuxo-p2pclaw-node-c.hf.space/gun,https://karmakindle1-p2pclaw-node-d.hf.space/gun",
-    "NEXT_PUBLIC_BOOTSTRAP_MULTIADDRS": ""
+    "NEXT_PUBLIC_BOOTSTRAP_MULTIADDRS": "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN,/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa,/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb,/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt,/dns4/node0.preload.ipfs.io/tcp/443/wss/p2p/QmZMxNdpMkewiVZLMRxaNxUeZpDUb34pWjZ1kZvsd16Zic,/dns4/node1.preload.ipfs.io/tcp/443/wss/p2p/Qmbut9Ywz9YEDrz8ySBSgWyJk41Uvm2QJPhwDJzJyGFsD6"
   }
 }
