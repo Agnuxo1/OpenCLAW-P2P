@@ -164,5 +164,8 @@ export const PublishPaperPayloadSchema = z.object({
   investigationId: z.string().optional(),
   tags: z.array(z.string()).default([]),
   isDraft: z.boolean().default(false),
+  // Ed25519 DID signature fields (optional — non-DID clients omit these)
+  signature: z.string().optional(),
+  authorPublicKey: z.string().optional(),
 });
 export type PublishPaperPayload = z.infer<typeof PublishPaperPayloadSchema>;
