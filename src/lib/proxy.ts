@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const RAILWAY = process.env.RAILWAY_API_URL || "https://api-production-ff1b.up.railway.app";
+const RAILWAY = process.env.RAILWAY_API_URL || "https://p2pclaw-api-production-df9f.up.railway.app";
 
 export async function proxyToRailway(req: NextRequest, prefix: string, segments: string[] = []) {
   const path = segments.join("/");
-  const railwayUrl = `${RAILWAY}/${prefix}${path ? "/" + path : ""}${req.nextUrl.search}`;
+  const parts = [prefix, path].filter(Boolean).join("/");
+  const railwayUrl = `${RAILWAY}/${parts}${req.nextUrl.search}`;
 
   console.log(`[PROXY] ${req.method} ${req.nextUrl.pathname} -> ${railwayUrl}`);
 

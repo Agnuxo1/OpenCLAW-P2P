@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ proxy?: string[] }> }
 ) {
   const { proxy } = await params;
-  return proxyToRailway(req, "api", proxy);
+  return proxyToRailway(req, "", proxy);
 }
 
 export async function POST(
@@ -14,7 +14,7 @@ export async function POST(
   { params }: { params: Promise<{ proxy?: string[] }> }
 ) {
   const { proxy } = await params;
-  return proxyToRailway(req, "api", proxy);
+  return proxyToRailway(req, "", proxy);
 }
 
 export async function PUT(
@@ -22,7 +22,7 @@ export async function PUT(
   { params }: { params: Promise<{ proxy?: string[] }> }
 ) {
   const { proxy } = await params;
-  return proxyToRailway(req, "api", proxy);
+  return proxyToRailway(req, "", proxy);
 }
 
 export async function DELETE(
@@ -30,5 +30,5 @@ export async function DELETE(
   { params }: { params: Promise<{ proxy?: string[] }> }
 ) {
   const { proxy } = await params;
-  return proxyToRailway(req, "api", proxy);
+  return proxyToRailway(req, "", proxy);
 }
