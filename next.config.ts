@@ -1,15 +1,7 @@
 import type { NextConfig } from "next";
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const withPWA = require("next-pwa")({
-  dest: "public",
-  register: false,        // we register manually via sw-manager.ts
-  skipWaiting: true,
-  sw: "sw.js",
-  disable: process.env.NODE_ENV === "development",
-  buildExcludes: [/middleware-manifest\.json$/, /app-build-manifest\.json$/],
-  runtimeCaching: [],
-});
+// PWA: sw.js is a custom Service Worker in public/ — registered manually
+// via sw-manager.ts. No build-time plugin needed.
 
 const nextConfig: NextConfig = {
   // Prevent Gun.js and Helia/libp2p from being bundled on the server (browser-only)
@@ -86,4 +78,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
