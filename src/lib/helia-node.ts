@@ -96,6 +96,84 @@ export async function initHeliaNode(): Promise<AnyType> {
         console.log(`[Helia] IPFS peers connected: ${total}`);
       });
 
+      // Gun.js peer discovery — announce our multiaddrs so other browsers can find us
+      // and try to connect to recently seen peers
+      const setupGunPeerDiscovery = async () => {
+        try {
+          const { getDb } = await import("./gun-client");
+          const db = getDb();
+          const heliaId = _helia.libp2p.peerId.toString();
+          const addrs = _helia.libp2p.getMultiaddrs().map((m: { toString(): string }) => m.toString());
+
+          if (addrs.length > 0) {
+            // Announce our presence
+            db.get("peers").get(heliaId).put({
+              multiaddrs: addrs.join(","),
+              lastSeen: Date.now(),
+              peerId: heliaId,
+            });
+            console.log(`[Helia] Announced ${addrs.length} multiaddrs to Gun.js`);
+          }
+
+          // Subscribe to peer announcements and try to connect
+          const { multiaddr } = await import("@multiformats/multiaddr").catch(() => ({ multiaddr: null }));
+          if (!multiaddr) return;
+
+          db.get("peers").map().on((peer: { multiaddrs?: string; lastSeen?: number; peerId?: string } | null, key: string) => {
+            if (!peer?.multiaddrs || !peer.peerId || key === heliaId) return;
+            // Only connect to peers seen in the last 5 minutes
+            if (Date.now() - (peer.lastSeen ?? 0) > 5 * 60 * 1000) return;
+            const maddrs = peer.multiaddrs.split(",").filter(Boolean);
+            maddrs.forEach(async (addr: string) => {
+              try {
+                await _helia.libp2p.dial(multiaddr(addr));
+                console.log(`[Helia] Connected to peer ${peer.peerId!.slice(0, 16)}...`);
+              } catch { /* best-effort */ }
+            });
+          });
+        } catch (e) {
+          console.warn("[Helia] Gun.js peer discovery setup failed:", e);
+        }
+      };
+      // Run in background — don't await
+      setupGunPeerDiscovery().catch(() => {});
+
+      // Also announce to Railway for cross-network discovery
+      try {
+        const addrs = _helia.libp2p.getMultiaddrs().map((m: { toString(): string }) => m.toString());
+        if (addrs.length > 0) {
+          const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "https://p2pclaw-api-production-df9f.up.railway.app";
+          fetch(`${API_BASE}/helia-peers`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              peerId: _helia.libp2p.peerId.toString(),
+              multiaddrs: addrs,
+            }),
+            signal: AbortSignal.timeout(5000),
+          }).catch(() => {});
+
+          // Also fetch existing peers and try to connect
+          fetch(`${API_BASE}/helia-peers`, { signal: AbortSignal.timeout(5000) })
+            .then(r => r.json())
+            .then(async (data: { peers?: Array<{ peerId: string; multiaddrs: string[] }> }) => {
+              const { multiaddr } = await import("@multiformats/multiaddr").catch(() => ({ multiaddr: null }));
+              if (!multiaddr || !data.peers) return;
+              for (const peer of data.peers) {
+                if (peer.peerId === _helia.libp2p.peerId.toString()) continue;
+                for (const addr of (peer.multiaddrs || [])) {
+                  try {
+                    await _helia.libp2p.dial(multiaddr(addr));
+                    console.log(`[Helia] Connected via Railway peer exchange: ${peer.peerId.slice(0, 16)}...`);
+                    break;
+                  } catch { /* best-effort */ }
+                }
+              }
+            })
+            .catch(() => {});
+        }
+      } catch { /* non-critical */ }
+
       return _helia;
     } catch (err) {
       console.warn("[Helia] Init failed (non-critical):", err);
