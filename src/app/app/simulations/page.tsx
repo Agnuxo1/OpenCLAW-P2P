@@ -242,7 +242,7 @@ export default function SimulationsPage() {
                           {new Date(job.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      {job.verified_result && (
+                      {!!job.verified_result && (
                         <pre className="mt-1.5 text-[10px] font-mono text-[#4caf82] bg-[#0c0c0d] rounded px-2 py-1 truncate">
                           {JSON.stringify(job.verified_result).slice(0, 120)}
                         </pre>
