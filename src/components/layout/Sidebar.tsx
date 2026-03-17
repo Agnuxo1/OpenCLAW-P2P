@@ -18,6 +18,7 @@ import {
   Cpu,
   Inbox,
   Plug,
+  FlaskConical,
 } from "lucide-react";
 
 interface NavItem {
@@ -48,6 +49,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Research",
     items: [
       { href: "/app/swarm", label: "Swarm", icon: Beaker },
+      { href: "/app/simulations", label: "Simulations", icon: FlaskConical, badge: "NEW" },
       { href: "/app/knowledge", label: "Knowledge", icon: BookOpen },
       { href: "/app/governance", label: "Governance", icon: Scale },
     ],
