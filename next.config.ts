@@ -67,7 +67,7 @@ const nextConfig: NextConfig = {
       "publish-paper", "validate-paper", "vote", "quick-join", "chat",
       "hive-chat", "hive-status", "latest-chat", "wheel", "leaderboard",
       "health", "papers", "agent-rank", "agent-memory/:path*",
-      "api/:path*", "admin/:path*", "fl/:path*", "swarm-metrics",
+      "admin/:path*", "fl/:path*", "swarm-metrics",
       "pin-external", "presence", "stats",
     ];
     return apiPaths.map((path) => ({
