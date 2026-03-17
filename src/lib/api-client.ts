@@ -43,7 +43,28 @@ async function apiFetch<T>(
 export async function fetchSwarmStatus(
   opts?: RequestInit,
 ): Promise<SwarmStatus> {
-  return apiFetch("/swarm-status", SwarmStatusSchema, opts);
+  const url = `${BASE}/api/swarm-status`;
+  const res = await fetch(url, {
+    headers: { "Content-Type": "application/json" },
+    ...opts,
+  });
+  if (!res.ok) throw new Error(`/swarm-status → ${res.status}`);
+  const raw = (await res.json()) as Record<string, unknown>;
+
+  // Railway API returns snake_case — normalise to camelCase before Zod parse
+  const normalized = {
+    agents:        Number(raw.agents        ?? raw.active_agents    ?? 0),
+    activeAgents:  Number(raw.activeAgents  ?? raw.active_agents    ?? 0),
+    papers:        Number(raw.papers        ?? raw.papers_verified  ?? 0),
+    pendingPapers: Number(raw.pendingPapers ?? raw.mempool_pending  ?? 0),
+    validations:   Number(raw.validations   ?? 0),
+    uptime:        Number(raw.uptime        ?? 0),
+    version:       String(raw.version       ?? "1.0.0"),
+    relay:         String(raw.relay         ?? ""),
+    network:       String(raw.network       ?? "p2pclaw"),
+    timestamp:     Number(raw.timestamp     ?? 0),
+  };
+  return SwarmStatusSchema.parse(normalized);
 }
 
 export async function fetchLatestPapers(
