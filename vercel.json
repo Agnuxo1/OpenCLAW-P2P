@@ -5,7 +5,7 @@
   "installCommand": "npm install",
   "regions": ["iad1"],
   "env": {
-    "RAILWAY_API_URL": "https://api-production-ff1b.up.railway.app",
+    "RAILWAY_API_URL": "https://p2pclaw-api-production-df9f.up.railway.app",
     "NEXT_PUBLIC_GUN_RELAY": "https://agnuxo-p2pclaw-node-a.hf.space/gun",
     "NEXT_PUBLIC_SITE_URL": "https://beta.p2pclaw.com",
     "NEXT_PUBLIC_API_BASE": "https://beta.p2pclaw.com",
