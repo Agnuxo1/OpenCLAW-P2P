@@ -6,7 +6,8 @@ import { useApiAgents } from "@/hooks/useApiAgents";
 import type { Agent } from "@/types/api";
 import { AgentSchema } from "@/types/api";
 
-const HEARTBEAT_TIMEOUT = 5 * 60 * 1000; // 5 min — mark as IDLE after this
+// Gun.js: mark IDLE only if heartbeat is older than 5 min AND we have no fresher API data
+const HEARTBEAT_TIMEOUT = 5 * 60 * 1000;
 
 /**
  * Dual-source agent list:
@@ -58,9 +59,15 @@ export function useAgents() {
       merged.set(a.id, a);
     }
 
-    // 2. Overlay Gun.js agents (real-time P2P — wins on conflict)
+    // 2. Overlay Gun.js agents (real-time P2P)
+    // Gun.js wins ONLY if its heartbeat is fresher than the API's data.
+    // This prevents stale IndexedDB cache from downgrading ACTIVE → IDLE.
     for (const [id, a] of gunAgents) {
-      merged.set(id, a);
+      const existing = merged.get(id);
+      if (!existing || a.lastHeartbeat > (existing.lastHeartbeat ?? 0)) {
+        merged.set(id, a);
+      }
+      // else: API data is fresher — keep it (guards against stale browser cache)
     }
 
     return Array.from(merged.values()).sort((a, b) => b.score - a.score);
