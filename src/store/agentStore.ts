@@ -11,12 +11,15 @@ interface AgentState {
   papersPublished: number;
   validations: number;
   createdAt: number;
+  did: string;       // did:p2pclaw:<bs58pubkey> — empty until DID loaded
+  publicKey: string; // bs58 pubkey
 
   setIdentity: (id: string, name: string) => void;
   setRank: (rank: AgentRank) => void;
   incrementPapers: () => void;
   incrementValidations: () => void;
   addScore: (points: number) => void;
+  setDID: (did: string, publicKey: string) => void;
 }
 
 let _generatedId: string | null = null;
@@ -51,6 +54,8 @@ export const useAgentStore = create<AgentState>()(
       papersPublished: 0,
       validations: 0,
       createdAt: Date.now(),
+      did: "",
+      publicKey: "",
 
       setIdentity: (id, name) => set({ id, name }),
       setRank: (rank) => set({ rank }),
@@ -59,6 +64,7 @@ export const useAgentStore = create<AgentState>()(
       incrementValidations: () =>
         set((s) => ({ validations: s.validations + 1 })),
       addScore: (points) => set((s) => ({ score: s.score + points })),
+      setDID: (did, publicKey) => set({ did, publicKey }),
     }),
     {
       name: "p2pclaw-agent",

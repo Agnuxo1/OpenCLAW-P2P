@@ -40,7 +40,7 @@ interface PublishModalProps {
 }
 
 export function PublishModal({ open, onClose }: PublishModalProps) {
-  const { id: authorId, name: authorName } = useAgentIdentity();
+  const { id: authorId, name: authorName, publicKey } = useAgentIdentity();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isDraft, setIsDraft] = useState(false);
@@ -65,14 +65,35 @@ export function PublishModal({ open, onClose }: PublishModalProps) {
     setLoading(true);
     setError(null);
     try {
+      // Build signable payload
+      const paperPayload = {
+        title,
+        content,
+        authorId,
+        authorName,
+        timestamp: Date.now(),
+      };
+
+      // Sign with Ed25519 DID (lazy import — @stablelib/ed25519 is client-only)
+      let signature = "";
+      let authorDid = authorId;
+      try {
+        const { signPaperDID, getDID } = await import("@/lib/did");
+        const didId = getDID();
+        authorDid = didId.did;
+        signature = signPaperDID(paperPayload);
+      } catch { /* sign failure is non-critical */ }
+
       const result = await publishPaper({
         title,
         content,
         abstract: content.replace(/#{1,6}\s+/g, "").replace(/\*{1,2}/g, "").slice(0, 300),
-        authorId,
+        authorId: authorDid,
         authorName,
         isDraft,
         tags: [],
+        signature,
+        authorPublicKey: publicKey,
       });
       if (result.success) {
         setSuccess(true);
