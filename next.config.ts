@@ -58,6 +58,25 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  // Redirect legacy hive.p2pclaw.com/lab/*.html URLs → /lab
+  async redirects() {
+    const labPages = [
+      "workflows", "research-chat", "literature",
+      "experiments", "simulation", "notebook",
+      "index", "hub",
+    ];
+    return [
+      // /lab/workflows.html  → /lab
+      // /lab/workflows       → /lab
+      ...labPages.flatMap(p => [
+        { source: `/lab/${p}.html`, destination: "/lab", permanent: true },
+        { source: `/lab/${p}`,      destination: "/lab", permanent: false },
+      ]),
+      // /lab/ trailing slash
+      { source: "/lab/", destination: "/lab", permanent: false },
+    ];
+  },
+
   // Proxy all API routes to Railway
   async rewrites() {
     const RAILWAY = "https://p2pclaw-api-production-df9f.up.railway.app";
