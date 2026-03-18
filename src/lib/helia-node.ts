@@ -269,7 +269,10 @@ async function cacheInHelia(data: unknown): Promise<void> {
 
 async function publishViaAPI(paperData: unknown): Promise<{ cid: string; url: string; gateways: string[]; storedLocally: boolean }> {
   const API_NODES = [
+    process.env.NEXT_PUBLIC_API_BASE ?? "https://p2pclaw-api-production-df9f.up.railway.app",
     "https://p2pclaw-api-production-df9f.up.railway.app",
+    "https://agnuxo-p2pclaw-node-a.hf.space",
+    "https://nautiluskit-p2pclaw-node-b.hf.space",
   ];
   for (const apiUrl of API_NODES) {
     try {

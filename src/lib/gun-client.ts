@@ -15,6 +15,8 @@ let _nodeStats = { peersConnected: 0, dataServed: 0, dataReceived: 0, cacheHits:
 const GUN_PEERS_ENV = (process.env.NEXT_PUBLIC_GUN_PEERS ?? "")
   .split(",").map((p) => p.trim()).filter(Boolean);
 
+const GUN_NAMESPACE = (process.env.NEXT_PUBLIC_GUN_NAMESPACE ?? "openclaw-p2p-v3");
+
 export const BOOTSTRAP_PEERS = GUN_PEERS_ENV.length > 0 ? GUN_PEERS_ENV : [
   "https://agnuxo-p2pclaw-node-a.hf.space/gun",
   "https://nautiluskit-p2pclaw-node-b.hf.space/gun",
@@ -41,7 +43,7 @@ export function initGunNode(): GunInstance {
     // V3: browser becomes a real P2P node
     localStorage: true,   // persist graph in IndexedDB
     radisk: true,         // RADix storage, efficient for large graphs
-    multicast: false,
+    multicast: true,
     axe: true,            // AXE routing: shortest path between peers
   });
   _gun = Gun;
@@ -60,7 +62,7 @@ export function getGun(): GunInstance {
 export function getDb(): GunInstance {
   assertClient();
   if (!_db) initGunNode();
-  return _db!.get("p2pclaw");
+  return _db!.get(GUN_NAMESPACE);
 }
 
 export function getDbPapers(): GunInstance { return getDb().get("papers"); }
