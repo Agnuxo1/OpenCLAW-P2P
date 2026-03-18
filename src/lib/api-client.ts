@@ -21,6 +21,59 @@ import {
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
+/** Write a paper directly to Gun.js graph (works without Railway). */
+async function writeToGunPaper(payload: PublishPaperPayload, paperId?: string): Promise<{ success: boolean; paperId: string; source: string }> {
+  if (typeof window === "undefined") return { success: false, paperId: paperId ?? "", source: "ssr" };
+  try {
+    const { getDb } = await import("./gun-client");
+    const id = paperId ?? `browser-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const db = getDb();
+    db.get("papers").get(id).put({
+      id,
+      title: payload.title,
+      content: payload.content,
+      abstract: (payload as Record<string, unknown>).abstract ?? "",
+      authorId: payload.authorId ?? "anon",
+      authorName: payload.authorName ?? "Anonymous",
+      status: "PENDING",
+      timestamp: Date.now(),
+      source: "browser-p2p",
+    });
+    return { success: true, paperId: id, source: "gun-p2p" };
+  } catch {
+    return { success: false, paperId: paperId ?? "", source: "gun-error" };
+  }
+}
+
+/** Read papers from local Gun.js graph (fallback when Railway is down). */
+async function fetchPapersFromGun(): Promise<LatestPapersResponse> {
+  if (typeof window === "undefined") return { papers: [], total: 0 };
+  try {
+    const { gunCollect, getDb } = await import("./gun-client");
+    const db = getDb();
+    const raw = await gunCollect(db.get("papers"), 3000);
+    const papers = (raw as Record<string, unknown>[])
+      .filter((p) => p && typeof p === "object" && String(p.title ?? "").length > 3)
+      .map((p) => ({
+        id:          String(p.id ?? `gun-${Math.random()}`),
+        title:       String(p.title ?? "Untitled"),
+        abstract:    String(p.abstract ?? ""),
+        content:     String(p.content ?? ""),
+        authorId:    String(p.authorId ?? "unknown"),
+        authorName:  String(p.authorName ?? "Unknown"),
+        authorDid:   String(p.authorDid ?? ""),
+        status:      "PENDING" as const,
+        tier:        "UNVERIFIED" as const,
+        verified:    false,
+        timestamp:   Number(p.timestamp ?? 0),
+        citations:   0,
+      }));
+    return { papers, total: papers.length };
+  } catch {
+    return { papers: [], total: 0 };
+  }
+}
+
 async function apiFetch<T>(
   path: string,
   schema: { parse: (v: unknown) => T },
@@ -70,7 +123,13 @@ export async function fetchSwarmStatus(
 export async function fetchLatestPapers(
   opts?: RequestInit,
 ): Promise<LatestPapersResponse> {
-  return apiFetch("/latest-papers", LatestPapersResponseSchema, opts);
+  try {
+    return await apiFetch("/latest-papers", LatestPapersResponseSchema, opts);
+  } catch {
+    // Railway unreachable — serve from local Gun.js P2P graph
+    console.warn("[api] Railway unavailable — fetching papers from Gun.js P2P");
+    return fetchPapersFromGun();
+  }
 }
 
 export async function fetchMempool(
@@ -179,34 +238,71 @@ export async function sendHeartbeat(payload: {
   papersPublished?: number;
   validations?: number;
 }): Promise<void> {
+  // 1. Write presence directly to Gun.js P2P graph (always — no API dependency)
+  if (typeof window !== "undefined") {
+    import("./gun-client").then(({ getDb }) => {
+      const db = getDb();
+      db.get("agents").get(payload.id).put({
+        id:            payload.id,
+        name:          payload.name,
+        lastSeen:      Date.now(),
+        online:        true,
+        type:          payload.type === "CARBON" ? "human" : "ai-agent",
+        rank:          payload.rank.toLowerCase(),
+        contributions: payload.score ?? 0,
+        papers:        payload.papersPublished ?? 0,
+        validations:   payload.validations ?? 0,
+        source:        "browser",
+      });
+    }).catch(() => {});
+  }
+
+  // 2. Also report to Railway (for centralized leaderboard/validation pipeline)
   try {
     await fetch(`${BASE}/api/presence`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        agentId:    payload.id,        // Railway expects agentId (not id)
-        name:       payload.name,
-        type:       payload.type === "CARBON" ? "human" : "ai-agent",
+        agentId:     payload.id,
+        name:        payload.name,
+        type:        payload.type === "CARBON" ? "human" : "ai-agent",
         validations: payload.validations ?? 0,
-        papers:     payload.papersPublished ?? 0,
-        tps:        0,
-        source:     "beta",
+        papers:      payload.papersPublished ?? 0,
+        tps:         0,
+        source:      "beta",
       }),
+      signal: AbortSignal.timeout(5000),
     });
   } catch {
-    // best-effort — don't block UI
+    // Non-critical — Gun.js already has our presence
   }
 }
 
 export async function publishPaper(
   payload: PublishPaperPayload,
-): Promise<{ success: boolean; paperId?: string; error?: string }> {
-  const res = await fetch(`${BASE}/api/publish-paper`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  return res.json();
+): Promise<{ success: boolean; paperId?: string; error?: string; source?: string }> {
+  try {
+    const res = await fetch(`${BASE}/api/publish-paper`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20000),
+    });
+    const result = await res.json() as { success: boolean; paperId?: string; error?: string };
+    if (res.ok && result.success) {
+      // Dual-write: also store in Gun.js so paper survives Railway being down
+      writeToGunPaper(payload, result.paperId).catch(() => {});
+      return { ...result, source: "railway+gun" };
+    }
+    // Railway rejected (not unreachable) — still write to Gun.js as P2P fallback
+    const gunResult = await writeToGunPaper(payload);
+    return { success: gunResult.success, paperId: gunResult.paperId, source: "gun-p2p-fallback", error: result.error };
+  } catch {
+    // Railway unreachable — write directly to Gun.js P2P
+    console.warn("[api] Railway unreachable — publishing directly to Gun.js P2P");
+    const gunResult = await writeToGunPaper(payload);
+    return { success: gunResult.success, paperId: gunResult.paperId, source: "gun-p2p-only" };
+  }
 }
 
 export async function validatePaper(
