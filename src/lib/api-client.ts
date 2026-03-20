@@ -8,6 +8,7 @@ import {
   SwarmStatusSchema,
   LatestPapersResponseSchema,
   MempoolResponseSchema,
+  PaperSchema,
   LeaderboardResponseSchema,
   AgentsResponseSchema,
   type SwarmStatus,
@@ -18,6 +19,32 @@ import {
   type PublishPaperPayload,
   type Paper,
 } from "@/types/api";
+
+/** Normalize a raw Railway paper record to our Paper schema */
+function normalizeRawPaper(p: Record<string, unknown>): Paper | null {
+  try {
+    const rawStatus = String(p.status ?? "");
+    // Railway uses "MEMPOOL" — map to our enum
+    const statusMap: Record<string, string> = { MEMPOOL: "PENDING", DENIED: "REJECTED" };
+    const status = statusMap[rawStatus] ?? rawStatus;
+    return PaperSchema.parse({
+      id:          String(p.id ?? ""),
+      title:       String(p.title ?? "Untitled"),
+      author:      String(p.author ?? p.authorName ?? "Unknown"),
+      authorId:    String(p.author_id ?? p.authorId ?? ""),
+      abstract:    String(p.abstract ?? ""),
+      content:     String(p.content ?? ""),
+      status,
+      tier:        p.tier ?? undefined,
+      timestamp:   Number(p.timestamp ?? 0),
+      ipfsCid:     String(p.ipfs_cid ?? p.ipfsCid ?? "") || undefined,
+      validations: Number(p.network_validations ?? p.validations ?? 0),
+      tags:        Array.isArray(p.tags) ? (p.tags as unknown[]).map(String) : [],
+    });
+  } catch {
+    return null;
+  }
+}
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
@@ -47,30 +74,22 @@ async function writeToGunPaper(payload: PublishPaperPayload, paperId?: string): 
 
 /** Read papers from local Gun.js graph (fallback when Railway is down). */
 async function fetchPapersFromGun(): Promise<LatestPapersResponse> {
-  if (typeof window === "undefined") return { papers: [], total: 0 };
+  if (typeof window === "undefined") return { papers: [], total: 0, timestamp: 0 };
   try {
     const { gunCollect, getDb } = await import("./gun-client");
     const db = getDb();
     const raw = await gunCollect(db.get("papers"), 3000);
     const papers = (raw as Record<string, unknown>[])
       .filter((p) => p && typeof p === "object" && String(p.title ?? "").length > 3)
-      .map((p) => ({
-        id:          String(p.id ?? `gun-${Math.random()}`),
-        title:       String(p.title ?? "Untitled"),
-        abstract:    String(p.abstract ?? ""),
-        content:     String(p.content ?? ""),
-        authorId:    String(p.authorId ?? "unknown"),
-        authorName:  String(p.authorName ?? "Unknown"),
-        authorDid:   String(p.authorDid ?? ""),
-        status:      "PENDING" as const,
-        tier:        "UNVERIFIED" as const,
-        verified:    false,
-        timestamp:   Number(p.timestamp ?? 0),
-        citations:   0,
-      }));
-    return { papers, total: papers.length };
+      .map((p) => normalizeRawPaper({
+        ...p,
+        id: p.id ?? `gun-${Math.random()}`,
+        author: p.author ?? p.authorName ?? "Unknown",
+      }))
+      .filter((p): p is Paper => p !== null);
+    return { papers, total: papers.length, timestamp: Date.now() };
   } catch {
-    return { papers: [], total: 0 };
+    return { papers: [], total: 0, timestamp: 0 };
   }
 }
 
@@ -125,9 +144,23 @@ export async function fetchLatestPapers(
   opts?: RequestInit,
 ): Promise<LatestPapersResponse> {
   try {
-    return await apiFetch("/latest-papers", LatestPapersResponseSchema, opts);
+    const url = `${BASE}/api/latest-papers`;
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...opts,
+    });
+    if (!res.ok) throw new Error(`/latest-papers → ${res.status}`);
+    const json: unknown = await res.json();
+
+    // Railway returns a plain array — normalise to { papers, total, timestamp }
+    if (Array.isArray(json)) {
+      const papers = (json as Record<string, unknown>[])
+        .map(normalizeRawPaper)
+        .filter((p): p is Paper => p !== null);
+      return { papers, total: papers.length, timestamp: Date.now() };
+    }
+    return LatestPapersResponseSchema.parse(json);
   } catch {
-    // Railway unreachable — serve from local Gun.js P2P graph
     console.warn("[api] Railway unavailable — fetching papers from Gun.js P2P");
     return fetchPapersFromGun();
   }
@@ -136,7 +169,84 @@ export async function fetchLatestPapers(
 export async function fetchMempool(
   opts?: RequestInit,
 ): Promise<MempoolResponse> {
-  return apiFetch("/mempool", MempoolResponseSchema, opts);
+  try {
+    const url = `${BASE}/api/mempool`;
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json" },
+      ...opts,
+    });
+    if (!res.ok) throw new Error(`/mempool → ${res.status}`);
+    const json: unknown = await res.json();
+
+    // Railway returns a plain array of mempool papers
+    if (Array.isArray(json)) {
+      const papers = (json as Record<string, unknown>[])
+        .map((raw) => {
+          const base = normalizeRawPaper(raw);
+          if (!base) return null;
+          const validatorsStr = String(raw.validations_by ?? "");
+          return {
+            ...base,
+            status: "PENDING" as const,
+            validationThreshold: Number(raw.validationThreshold ?? 3),
+            rejectionThreshold: Number(raw.rejectionThreshold ?? 3),
+            validators: validatorsStr ? validatorsStr.split(",").filter(Boolean) : [],
+            rejecters: [] as string[],
+            flaggers: [] as string[],
+          };
+        })
+        .filter((p): p is NonNullable<typeof p> => p !== null);
+      return { papers, total: papers.length, timestamp: Date.now() };
+    }
+    return MempoolResponseSchema.parse(json);
+  } catch {
+    return { papers: [], total: 0, timestamp: Date.now() };
+  }
+}
+
+/** Fetch a single paper by ID — checks Railway list first, then Gun.js */
+export async function fetchPaperById(id: string): Promise<Paper | null> {
+  // Try Railway list with larger limit first
+  try {
+    const url = `${BASE}/api/latest-papers?limit=100`;
+    const res = await fetch(url, { headers: { "Content-Type": "application/json" } });
+    if (res.ok) {
+      const json: unknown = await res.json();
+      const arr: Record<string, unknown>[] = Array.isArray(json)
+        ? (json as Record<string, unknown>[])
+        : ((json as { papers?: unknown[] })?.papers as Record<string, unknown>[] ?? []);
+      const found = arr.find((p) => String(p.id) === id);
+      if (found) return normalizeRawPaper(found);
+    }
+  } catch { /* fall through */ }
+
+  // Try individual paper endpoint (added to Railway API)
+  try {
+    const url = `${BASE}/api/papers/${encodeURIComponent(id)}`;
+    const res = await fetch(url, { headers: { "Content-Type": "application/json" } });
+    if (res.ok) {
+      const json: unknown = await res.json();
+      return normalizeRawPaper(json as Record<string, unknown>);
+    }
+  } catch { /* fall through */ }
+
+  // Gun.js fallback — fetch directly by ID
+  if (typeof window !== "undefined") {
+    try {
+      const { getDb } = await import("./gun-client");
+      const db = getDb();
+      const raw = await new Promise<Record<string, unknown> | null>((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 3000);
+        // Check both verified and mempool stores
+        db.get("p2pclaw_papers_v4").get(id).once((data: unknown) => {
+          clearTimeout(timeout);
+          resolve(data as Record<string, unknown> | null);
+        });
+      });
+      if (raw && raw.title) return normalizeRawPaper({ ...raw, id });
+    } catch { /* give up */ }
+  }
+  return null;
 }
 
 export async function fetchLeaderboard(
