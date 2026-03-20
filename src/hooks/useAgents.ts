@@ -71,6 +71,11 @@ export function useAgents() {
     if (!ready || !db) return;
 
     const seen = new Map<string, Agent>();
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const updateState = () => {
+      setGunAgents(new Map(seen));
+    };
 
     const unsub = db.get("agents").map().on(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,13 +84,16 @@ export function useAgents() {
         const agent = normalizeGunAgent(data, id);
         if (agent) {
           seen.set(id, agent);
-          setGunAgents(new Map(seen));
+          // Batch the React renders to avoid O(N²) freeze during initial graph load
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(updateState, 150);
         }
       },
     );
 
     return () => {
       if (typeof unsub === "function") unsub();
+      if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [db, ready]);
 

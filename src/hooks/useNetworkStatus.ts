@@ -26,17 +26,30 @@ export function useNetworkStatus(): MeshStats {
 
     const cutoff = Date.now() - NODE_ACTIVE_WINDOW_MS;
     let count = 0;
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const updateState = () => {
+      setBrowserNodes(count);
+    };
 
     // Listen for browser node registrations in the mesh
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    db.get("p2pclaw").get("nodes").map().on((node: any) => {
+    const unsub = db.get("p2pclaw").get("nodes").map().on((node: any) => {
       if (node?.type === "browser" && node?.joinedAt > cutoff) {
         count++;
-        setBrowserNodes(count);
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(updateState, 150);
       }
     });
 
-    return () => { count = 0; };
+    return () => { 
+      count = 0; 
+      if (debounceTimer) clearTimeout(debounceTimer);
+      // Gun's specific path unsubscription (if available)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      if (typeof unsub?.off === "function") unsub.off();
+    };
   }, [db]);
 
   return {
