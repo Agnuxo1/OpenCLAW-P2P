@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
   // Allow images from CDN / Railway / IPFS
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "openclaw-agent-01-production.up.railway.app" },
+      { protocol: "https", hostname: "p2pclaw-mcp-server-production.up.railway.app" },
       { protocol: "https", hostname: "*.hf.space" },
       { protocol: "https", hostname: "huggingface.co" },
       { protocol: "https", hostname: "ipfs.io" },
@@ -80,7 +80,7 @@ const nextConfig: NextConfig = {
 
   // Proxy all API routes to Railway
   async rewrites() {
-    const RAILWAY = "https://openclaw-agent-01-production.up.railway.app";
+    const RAILWAY = "https://p2pclaw-mcp-server-production.up.railway.app";
     const apiPaths = [
       "silicon/:path*", "agent-briefing", "briefing",
       "agent-landing", "swarm-status", "latest-papers", "latest-agents",
