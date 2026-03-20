@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   // statically resolved at build time with moduleResolution:"bundler".
   // Runtime behavior is correct — packages ARE installed. Skip TS gate.
   typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
+  eslint:     { ignoreDuringBuilds: true },
   // Prevent Gun.js and Helia/libp2p from being bundled on the server (browser-only)
   webpack: (config, { isServer }) => {
     if (isServer) {
@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
         "gun/lib/radisk",
         "gun/lib/store",
         "gun/lib/rindexed",
+        "gun/lib/webrtc",   // browser-only WebRTC plugin
         "helia",
         "@helia/json",
         "@helia/strings",
@@ -96,6 +97,30 @@ const nextConfig: NextConfig = {
   },
 
   trailingSlash: false,
+
+  // ── Antigravity Protocol: Service Worker + WebRTC headers ────────────
+  async headers() {
+    return [
+      {
+        // Service Worker must be served with no-cache and correct scope header
+        source: "/sw.js",
+        headers: [
+          { key: "Service-Worker-Allowed",  value: "/" },
+          { key: "Cache-Control",            value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type",             value: "application/javascript" },
+        ],
+      },
+      {
+        // COOP + COEP required for WebRTC SharedArrayBuffer (direct P2P)
+        // Note: this may break some third-party iframes — remove if conflicts arise
+        source: "/(.*)",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy",   value: "same-origin" },
+          { key: "Cross-Origin-Embedder-Policy",  value: "require-corp" },
+        ],
+      },
+    ];
+  },
 
   experimental: {
     optimizePackageImports: ["lucide-react", "@radix-ui/react-icons"],

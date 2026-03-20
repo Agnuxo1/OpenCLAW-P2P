@@ -3,6 +3,7 @@
 import { useAgents } from "@/hooks/useAgents";
 import { AgentRow } from "@/components/agents/AgentRow";
 import { RelayMonitorFull } from "@/components/agents/RelayMonitor";
+import { BrowserNodeCounter } from "@/components/BrowserNodeCounter";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Cpu } from "lucide-react";
 
@@ -68,8 +69,9 @@ export default function AgentsPage() {
           </div>
         </div>
 
-        {/* Relay monitor */}
-        <div>
+        {/* Sidebar: Antigravity mesh + relay monitor */}
+        <div className="flex flex-col gap-4">
+          <BrowserNodeCounter />
           <RelayMonitorFull />
         </div>
       </div>
