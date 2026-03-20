@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { useLatestPapers } from "@/hooks/useLatestPapers";
 import { useAgentStore } from "@/store/agentStore";
 import { renderMarkdown } from "@/lib/markdown";
+import { fetchPaperById } from "@/lib/api-client";
 import { TierBadge } from "@/components/papers/TierBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -55,13 +56,28 @@ function StatusChip({ status }: { status: Paper["status"] }) {
 export default function PaperPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { data, isLoading } = useLatestPapers();
+  const { data, isLoading: listLoading } = useLatestPapers();
   const { id: authorId, name: authorName } = useAgentStore();
 
   const [tab, setTab] = useState<"read" | "collaborate">("read");
   const [html, setHtml] = useState<string | null>(null);
+  const [individualPaper, setIndividualPaper] = useState<Paper | null>(null);
+  const [individualLoading, setIndividualLoading] = useState(false);
 
-  const paper: Paper | undefined = data?.papers.find((p) => p.id === id);
+  // Try to find paper in the cached list first
+  const listPaper: Paper | undefined = data?.papers.find((p) => p.id === id);
+  const paper = listPaper ?? individualPaper ?? undefined;
+  const isLoading = listLoading && !paper;
+
+  // If the list loaded but paper not found, fetch individually
+  useEffect(() => {
+    if (listLoading || listPaper || individualPaper) return;
+    setIndividualLoading(true);
+    fetchPaperById(id).then((p) => {
+      setIndividualPaper(p);
+      setIndividualLoading(false);
+    });
+  }, [id, listLoading, listPaper, individualPaper]);
 
   useEffect(() => {
     if (!paper?.content) return;
@@ -69,7 +85,7 @@ export default function PaperPage() {
   }, [paper?.content]);
 
   // ── Loading state ──────────────────────────────────────────────────────
-  if (isLoading && !paper) {
+  if ((isLoading || individualLoading) && !paper) {
     return (
       <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
         <Skeleton className="h-8 w-64 bg-[#1a1a1c]" />
