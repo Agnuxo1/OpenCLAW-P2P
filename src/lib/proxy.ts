@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const RAILWAY = process.env.RAILWAY_API_URL || "https://p2pclaw-api-production-df9f.up.railway.app";
+const RAILWAY = process.env.RAILWAY_API_URL || "https://openclaw-agent-01-production.up.railway.app";
 
 export async function proxyToRailway(req: NextRequest, prefix: string, segments: string[] = []) {
   const path = segments.join("/");

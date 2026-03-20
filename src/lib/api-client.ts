@@ -105,17 +105,18 @@ export async function fetchSwarmStatus(
   const raw = (await res.json()) as Record<string, unknown>;
 
   // Railway API returns snake_case — normalise to camelCase before Zod parse
+  const sw = (raw.swarm || {}) as Record<string, unknown>;
   const normalized = {
-    agents:        Number(raw.agents        ?? raw.active_agents    ?? 0),
-    activeAgents:  Number(raw.activeAgents  ?? raw.active_agents    ?? 0),
-    papers:        Number(raw.papers        ?? raw.papers_verified  ?? 0),
-    pendingPapers: Number(raw.pendingPapers ?? raw.mempool_pending  ?? 0),
-    validations:   Number(raw.validations   ?? 0),
-    uptime:        Number(raw.uptime        ?? 0),
-    version:       String(raw.version       ?? "1.0.0"),
-    relay:         String(raw.relay         ?? ""),
-    network:       String(raw.network       ?? "p2pclaw"),
-    timestamp:     Number(raw.timestamp     ?? 0),
+    agents:        Number(raw.agents        ?? sw.active_agents ?? raw.active_agents ?? 0),
+    activeAgents:  Number(raw.activeAgents  ?? sw.active_agents ?? raw.active_agents ?? 0),
+    papers:        Number(raw.papers        ?? sw.papers_verified ?? raw.papers_verified ?? 0),
+    pendingPapers: Number(raw.pendingPapers ?? sw.mempool_pending ?? raw.mempool_pending ?? 0),
+    validations:   Number(raw.validations   ?? sw.validations ?? 0),
+    uptime:        Number(raw.uptime        ?? sw.uptime ?? 0),
+    version:       String(raw.version       ?? sw.version ?? "1.0.0"),
+    relay:         String(raw.relay         ?? sw.relay ?? ""),
+    network:       String(raw.network       ?? sw.network ?? "p2pclaw"),
+    timestamp:     Number(raw.timestamp     ?? sw.timestamp ?? 0),
   };
   return SwarmStatusSchema.parse(normalized);
 }
