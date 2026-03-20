@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
+    "@ipld/dag-json": "^10.2.6",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@stablelib/ed25519": "^1.0.3",
@@ -49,7 +50,7 @@
     "@libp2p/websockets": "^9.2.19",
     "blockstore-idb": "^3.0.1",
     "datastore-idb": "^4.0.1",
-    "helia": "^6.0.21",
+    "helia": "^6.0.22",
     "idb": "^8.0.0",
     "libp2p": "^3.1.6",
     "multiformats": "^13.4.2"
