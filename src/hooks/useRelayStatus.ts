@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PEERS } from "@/lib/gun-client";
+import { RELAY_HTTP_URLS } from "@/lib/peers";
 
 export type PeerStatus = "online" | "offline" | "checking";
 
@@ -11,29 +11,34 @@ export interface RelayPeer {
   latency: number | null;
 }
 
+/**
+ * Pings a relay node via HTTP HEAD request.
+ * RELAY_HTTP_URLS are already https:// — no wss→https conversion needed.
+ * mode: no-cors means we get an opaque response (status 0) but no CORS error.
+ * Any response (even opaque) means the server is alive.
+ */
 async function pingPeer(url: string): Promise<{ online: boolean; latency: number }> {
   const start = Date.now();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5_000);
   try {
-    // Use AbortSignal with 4s timeout
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4_000);
-    // Convert gun URL to HTTP health check
-    const healthUrl = url.replace(/\/gun$/, "").replace(/^wss?:\/\//, "https://");
-    const res = await fetch(healthUrl, {
+    await fetch(url, {
       method: "HEAD",
       signal: controller.signal,
       mode: "no-cors",
+      cache: "no-store",
     });
     clearTimeout(timer);
     return { online: true, latency: Date.now() - start };
   } catch {
+    clearTimeout(timer);
     return { online: false, latency: Date.now() - start };
   }
 }
 
 export function useRelayStatus(refreshInterval = 30_000) {
   const [peers, setPeers] = useState<RelayPeer[]>(() =>
-    PEERS.map((url) => ({ url, status: "checking" as PeerStatus, latency: null })),
+    RELAY_HTTP_URLS.map((url) => ({ url, status: "checking" as PeerStatus, latency: null })),
   );
 
   useEffect(() => {
@@ -41,7 +46,7 @@ export function useRelayStatus(refreshInterval = 30_000) {
 
     async function checkAll() {
       const results = await Promise.all(
-        PEERS.map(async (url) => {
+        RELAY_HTTP_URLS.map(async (url) => {
           const { online, latency } = await pingPeer(url);
           return {
             url,

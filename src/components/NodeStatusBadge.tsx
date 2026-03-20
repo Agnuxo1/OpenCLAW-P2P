@@ -3,7 +3,7 @@
 import { useGunContext } from "@/providers/GunProvider";
 
 /**
- * Compact badge showing this browser's live P2P mesh status.
+ * Compact badge showing this browser's live P2P WEB MESH status.
  * Displayed in the app header/sidebar — shows peer count and relay state.
  * Designed to match the P2PCLAW dark aesthetic (flame orange + charcoal).
  */
@@ -47,7 +47,7 @@ export function NodeStatusBadge() {
       />
 
       <span style={{ color: isConnecting ? "#52504e" : "#00ff88", letterSpacing: "0.05em" }}>
-        {isConnecting ? "connecting..." : isRelaying ? "⬡ NODE ACTIVE" : "○ JOINING"}
+        {isConnecting ? "connecting..." : isRelaying ? "⬡ P2P NODE ACTIVE" : "○ JOINING MESH"}
       </span>
 
       {!isConnecting && (

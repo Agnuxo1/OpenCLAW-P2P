@@ -21,7 +21,7 @@ export function BrowserNodeCounter() {
       }}
     >
       <div style={{ color: "#00ff8880", fontSize: "11px", marginBottom: "8px", letterSpacing: "0.1em" }}>
-        ⬡ ANTIGRAVITY MESH
+        ⬡ P2P WEB MESH
       </div>
       <div style={{ color: "white", fontSize: "32px", fontWeight: "bold", lineHeight: 1 }}>
         {browserNodes}

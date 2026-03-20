@@ -98,7 +98,7 @@ const nextConfig: NextConfig = {
 
   trailingSlash: false,
 
-  // ── Antigravity Protocol: Service Worker + WebRTC headers ────────────
+  // ── P2P Web Mesh: Service Worker header ──────────────────────────────────
   async headers() {
     return [
       {
@@ -110,15 +110,9 @@ const nextConfig: NextConfig = {
           { key: "Content-Type",             value: "application/javascript" },
         ],
       },
-      {
-        // COOP + COEP required for WebRTC SharedArrayBuffer (direct P2P)
-        // Note: this may break some third-party iframes — remove if conflicts arise
-        source: "/(.*)",
-        headers: [
-          { key: "Cross-Origin-Opener-Policy",   value: "same-origin" },
-          { key: "Cross-Origin-Embedder-Policy",  value: "require-corp" },
-        ],
-      },
+      // NOTE: COOP + COEP headers intentionally NOT applied to /(.*) —
+      // they would block all cross-origin WebSocket connections (Gun.js relay nodes).
+      // WebRTC (gun/lib/webrtc) works fine without SharedArrayBuffer.
     ];
   },
 
