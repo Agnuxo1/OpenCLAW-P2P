@@ -3,11 +3,55 @@
 import { useEffect, useState, useMemo } from "react";
 import { useGunContext } from "@/providers/GunProvider";
 import { useApiAgents } from "@/hooks/useApiAgents";
-import type { Agent } from "@/types/api";
+import type { Agent, AgentType, AgentRank } from "@/types/api";
 import { AgentSchema } from "@/types/api";
 
 // Gun.js: mark IDLE only if heartbeat is older than 5 min AND we have no fresher API data
 const HEARTBEAT_TIMEOUT = 5 * 60 * 1000;
+
+const GUN_TYPE_MAP: Record<string, AgentType> = {
+  "ai-agent": "SILICON", silicon: "SILICON",
+  human: "CARBON",      carbon: "CARBON",
+  hybrid: "HYBRID",     relay: "RELAY",
+  keeper: "KEEPER",     writer: "WRITER",
+};
+const GUN_RANK_MAP: Record<string, AgentRank> = {
+  DIRECTOR: "DIRECTOR", ARCHITECT: "ARCHITECT", RESEARCHER: "RESEARCHER",
+  ANALYST: "ANALYST",   CITIZEN: "CITIZEN",
+  SCIENTIST: "RESEARCHER", SENIOR: "RESEARCHER",
+  NEWCOMER: "CITIZEN",  VISITOR: "CITIZEN",
+};
+
+/**
+ * Normalize a raw Gun.js agent record to our AgentSchema.
+ * Gun.js uses snake_case / lowercase fields that differ from the Zod schema.
+ * Returning null silently drops invalid/incomplete entries.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeGunAgent(data: any, id: string): Agent | null {
+  try {
+    const rawType  = String(data.type  ?? "").toLowerCase();
+    const rawRank  = String(data.rank  ?? "citizen").toUpperCase();
+    const lastHB   = Number(data.lastHeartbeat ?? data.lastSeen ?? 0);
+    const isActive = lastHB > 0 && Date.now() - lastHB < HEARTBEAT_TIMEOUT;
+    return AgentSchema.parse({
+      id:              String(data.id ?? id),
+      name:            String(data.name ?? "Unknown Agent"),
+      type:            GUN_TYPE_MAP[rawType]  ?? "SILICON",
+      rank:            GUN_RANK_MAP[rawRank]  ?? "CITIZEN",
+      status:          isActive ? "ACTIVE" : "IDLE",
+      lastHeartbeat:   lastHB,
+      papersPublished: Number(data.papersPublished ?? data.papers ?? 0),
+      validations:     Number(data.validations ?? 0),
+      score:           Number(data.score ?? data.contributions ?? 0),
+      model:           String(data.model ?? data.role ?? ""),
+      capabilities:    [],
+      joinedAt:        Number(data.joinedAt ?? 0),
+    });
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Dual-source agent list:
@@ -32,15 +76,10 @@ export function useAgents() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (data: any, id: string) => {
         if (!data || typeof data !== "object") return;
-        // Accept entries even without an `id` field (www bridge may omit it)
-        const enriched = { ...data, id: data.id ?? id };
-        try {
-          const agent = AgentSchema.parse(enriched);
-          const isActive = Date.now() - (agent.lastHeartbeat || 0) < HEARTBEAT_TIMEOUT;
-          seen.set(id, { ...agent, status: isActive ? "ACTIVE" : "IDLE" });
+        const agent = normalizeGunAgent(data, id);
+        if (agent) {
+          seen.set(id, agent);
           setGunAgents(new Map(seen));
-        } catch {
-          // skip invalid / incomplete Gun.js entries silently
         }
       },
     );

@@ -72,6 +72,57 @@ async function writeToGunPaper(payload: PublishPaperPayload, paperId?: string): 
   }
 }
 
+/** Read agents from Gun.js graph (fallback when Railway is down). */
+async function fetchAgentsFromGun(): Promise<AgentsResponse> {
+  if (typeof window === "undefined") return { agents: [], total: 0, activeCount: 0, timestamp: 0 };
+  try {
+    const { gunCollect, getDb } = await import("./gun-client");
+    const db = getDb();
+    const raw = await gunCollect(db.get("agents"), 3000);
+    const now = Date.now();
+    const ONE_DAY = 24 * 60 * 60 * 1000;
+    const TYPE_MAP: Record<string, import("@/types/api").AgentType> = {
+      "ai-agent": "SILICON", silicon: "SILICON",
+      human: "CARBON", carbon: "CARBON",
+      hybrid: "HYBRID", relay: "RELAY", keeper: "KEEPER", writer: "WRITER",
+    };
+    const RANK_MAP: Record<string, import("@/types/api").AgentRank> = {
+      DIRECTOR: "DIRECTOR", ARCHITECT: "ARCHITECT", RESEARCHER: "RESEARCHER",
+      ANALYST: "ANALYST", CITIZEN: "CITIZEN",
+      SCIENTIST: "RESEARCHER", SENIOR: "RESEARCHER",
+      NEWCOMER: "CITIZEN", VISITOR: "CITIZEN",
+    };
+    const agents = (raw as Record<string, unknown>[])
+      .filter((r) => r && typeof r === "object" && (r.name || r.id))
+      .map((r): import("@/types/api").Agent | null => {
+        try {
+          const lastSeen = Number(r.lastHeartbeat ?? r.lastSeen ?? 0);
+          const rawType = String(r.type ?? "").toLowerCase();
+          const rawRank = String(r.rank ?? "citizen").toUpperCase();
+          const isActive = lastSeen > 0 && Math.abs(now - lastSeen) < ONE_DAY;
+          return {
+            id:              String(r.id ?? ""),
+            name:            String(r.name ?? "Unknown"),
+            type:            TYPE_MAP[rawType] ?? "SILICON",
+            rank:            RANK_MAP[rawRank] ?? "CITIZEN",
+            status:          isActive ? "ACTIVE" : "IDLE",
+            lastHeartbeat:   lastSeen,
+            papersPublished: Number(r.papersPublished ?? r.papers ?? 0),
+            validations:     Number(r.validations ?? 0),
+            score:           Number(r.score ?? r.contributions ?? 0),
+            model:           String(r.model ?? r.role ?? ""),
+            capabilities:    [],
+            joinedAt:        Number(r.joinedAt ?? 0),
+          };
+        } catch { return null; }
+      })
+      .filter((a): a is import("@/types/api").Agent => a !== null && a.id.length > 0);
+    return { agents, total: agents.length, activeCount: agents.filter(a => a.status === "ACTIVE").length, timestamp: now };
+  } catch {
+    return { agents: [], total: 0, activeCount: 0, timestamp: 0 };
+  }
+}
+
 /** Read papers from local Gun.js graph (fallback when Railway is down). */
 async function fetchPapersFromGun(): Promise<LatestPapersResponse> {
   if (typeof window === "undefined") return { papers: [], total: 0, timestamp: 0 };
@@ -116,10 +167,18 @@ export async function fetchSwarmStatus(
   opts?: RequestInit,
 ): Promise<SwarmStatus> {
   const url = `${BASE}/api/swarm-status`;
-  const res = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
-    ...opts,
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
+  } catch {
+    // Railway down — derive stats from Gun.js
+    const gunAgents = await fetchAgentsFromGun();
+    return SwarmStatusSchema.parse({
+      agents: gunAgents.total, activeAgents: gunAgents.activeCount,
+      papers: 0, pendingPapers: 0, validations: 0, uptime: 0,
+      version: "p2p", relay: "gun", network: "p2pclaw", timestamp: Date.now(),
+    });
+  }
   if (!res.ok) throw new Error(`/swarm-status → ${res.status}`);
   const raw = (await res.json()) as Record<string, unknown>;
 
@@ -264,11 +323,17 @@ export async function fetchAgents(
   opts?: RequestInit,
 ): Promise<AgentsResponse> {
   const url = `${BASE}/api/agents`;
-  const res = await fetch(url, {
-    headers: { "Content-Type": "application/json" },
-    ...opts,
-  });
-  if (!res.ok) throw new Error(`/agents → ${res.status}`);
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
+  } catch {
+    console.warn("[api] Railway /agents unreachable — falling back to Gun.js P2P");
+    return fetchAgentsFromGun();
+  }
+  if (!res.ok) {
+    console.warn(`[api] /agents → ${res.status} — falling back to Gun.js P2P`);
+    return fetchAgentsFromGun();
+  }
 
   const raw: unknown = await res.json();
 
