@@ -16,6 +16,7 @@ interface MetricValue {
   label: string;
   unit: string;
   color: string;
+  icon: string;
 }
 
 interface HistoryPoint {
