@@ -19,6 +19,8 @@ export const BOOTSTRAP_PEERS: string[] = [
 
   // ── LAYER 2: Dedicated Auto-Scaling (Railway) ───────────────────
   'wss://p2pclaw-mcp-server-production.up.railway.app/gun',
+  'wss://openclaw-agent-01-production.up.railway.app/gun',
+  'wss://p2pclaw-relay-production.up.railway.app/gun',
 
   // ── LAYER 3: Dedicated Static IPs (Docker/Oracle/GCP) ───────────
   // Un-comment and point to your persistent VM or home server
@@ -26,7 +28,6 @@ export const BOOTSTRAP_PEERS: string[] = [
   // 'ws://p2pclaw-home.duckdns.org:8765/gun',
 
   // ── LAYER 4: Free-Tier PaaS (HuggingFace + Render) ──────────────
-  // These may sleep, but the standalone pinger keeps them awake
   'wss://agnuxo-p2pclaw-node-a.hf.space/gun',
   'wss://nautiluskit-p2pclaw-node-b.hf.space/gun',
   'wss://frank-agnuxo-p2pclaw-node-c.hf.space/gun',
@@ -35,13 +36,14 @@ export const BOOTSTRAP_PEERS: string[] = [
 ];
 
 /**
- * HTTPS URLs for relay health monitoring pings.
- * These correspond 1:1 with BOOTSTRAP_PEERS (same hosts, http scheme, no /gun).
- * The relay monitor uses HEAD requests to check if nodes are responsive.
+ * Array of relay HTTP endpoints (used for pinging / monitoring).
+ * Note: Convert wss:// to https:// and remove /gun path.
  */
 export const RELAY_HTTP_URLS: string[] = [
   // 'https://p2pclaw-gun-relay.YOUR-SUBDOMAIN.workers.dev',
   'https://p2pclaw-mcp-server-production.up.railway.app',
+  'https://openclaw-agent-01-production.up.railway.app',
+  'https://p2pclaw-relay-production.up.railway.app',
   // 'http://YOUR_ORACLE_IP:8765',
   // 'http://p2pclaw-home.duckdns.org:8765',
   'https://agnuxo-p2pclaw-node-a.hf.space',
