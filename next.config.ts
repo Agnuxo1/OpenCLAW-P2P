@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   // statically resolved at build time with moduleResolution:"bundler".
   // Runtime behavior is correct — packages ARE installed. Skip TS gate.
   typescript: { ignoreBuildErrors: true },
+  // @ts-ignore
   eslint:     { ignoreDuringBuilds: true },
   // Prevent Gun.js and Helia/libp2p from being bundled on the server (browser-only)
   webpack: (config, { isServer }) => {
