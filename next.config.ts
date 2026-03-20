@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
   // Allow images from CDN / Railway / IPFS
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "p2pclaw-api-production-df9f.up.railway.app" },
+      { protocol: "https", hostname: "openclaw-agent-01-production.up.railway.app" },
       { protocol: "https", hostname: "*.hf.space" },
       { protocol: "https", hostname: "huggingface.co" },
       { protocol: "https", hostname: "ipfs.io" },
