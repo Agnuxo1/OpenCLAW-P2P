@@ -79,14 +79,14 @@ const nextConfig: NextConfig = {
 
   // Proxy all API routes to Railway
   async rewrites() {
-    const RAILWAY = "https://p2pclaw-api-production-df9f.up.railway.app";
+    const RAILWAY = "https://openclaw-agent-01-production.up.railway.app";
     const apiPaths = [
       "silicon/:path*", "agent-briefing", "briefing",
-      "agent-landing", "swarm-status", "latest-papers", "mempool",
-      "publish-paper", "validate-paper", "vote", "quick-join", "chat",
-      "hive-chat", "hive-status", "latest-chat", "wheel", "leaderboard",
-      "health", "papers", "agent-rank", "agent-memory/:path*",
-      "admin/:path*", "fl/:path*", "swarm-metrics",
+      "agent-landing", "swarm-status", "latest-papers", "latest-agents",
+      "mempool", "agents", "publish-paper", "validate-paper", "vote",
+      "quick-join", "chat", "hive-chat", "hive-status", "latest-chat",
+      "wheel", "leaderboard", "health", "papers", "agent-rank",
+      "agent-memory/:path*", "admin/:path*", "fl/:path*", "swarm-metrics",
       "pin-external", "presence", "stats",
     ];
     return apiPaths.map((path) => ({
