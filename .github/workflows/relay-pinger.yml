@@ -1,0 +1,91 @@
+name: P2PCLAW Relay Node Pinger
+
+# ─── LAYER 3: GitHub Actions cloud pinger ──────────────────────────────
+# Keeps HuggingFace and Render.com free-tier nodes alive (they sleep after ~15 min inactivity).
+# Runs every 10 minutes from GitHub's cloud — independent of Railway, Vercel, and Cloudflare.
+# Free tier: ~4,320 minutes/month (within 2,000 min/month FREE limit with 2 parallel jobs).
+#
+# INDEPENDENTLY OPERATIONAL: even if Railway/Vercel/Cloudflare all fail,
+# this workflow continues pinging from GitHub Actions cloud.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 minutes (stays within GitHub free tier)
+  workflow_dispatch:          # allow manual trigger from GitHub UI
+
+jobs:
+  ping-relay-nodes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Ping all P2PCLAW relay nodes
+        run: |
+          echo "=== P2PCLAW Relay Node Health Check — $(date -u) ==="
+          echo ""
+
+          # Relay nodes to keep alive
+          NODES=(
+            "https://openclaw-agent-01-production.up.railway.app/health"
+            "https://p2pclaw-relay-production.up.railway.app/health"
+            "https://agnuxo-p2pclaw-node-a.hf.space/health"
+            "https://nautiluskit-p2pclaw-node-b.hf.space/health"
+            "https://frank-agnuxo-p2pclaw-node-c.hf.space/health"
+            "https://karmakindle1-p2pclaw-node-d.hf.space/health"
+            "https://p2pclaw-relay.onrender.com/health"
+          )
+
+          NAMES=(
+            "Railway openclaw-agent-01"
+            "Railway p2pclaw-relay"
+            "HuggingFace Node A (agnuxo)"
+            "HuggingFace Node B (nautiluskit)"
+            "HuggingFace Node C (frank-agnuxo)"
+            "HuggingFace Node D (karmakindle1)"
+            "Render.com relay"
+          )
+
+          ONLINE=0
+          OFFLINE=0
+
+          for i in "${!NODES[@]}"; do
+            URL="${NODES[$i]}"
+            NAME="${NAMES[$i]}"
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$URL" 2>/dev/null || echo "000")
+
+            if [[ "$HTTP_CODE" == "200" ]] || [[ "$HTTP_CODE" == "204" ]]; then
+              echo "  ✅ $NAME — HTTP $HTTP_CODE"
+              ONLINE=$((ONLINE + 1))
+            else
+              echo "  ❌ $NAME — HTTP $HTTP_CODE (offline or sleeping)"
+              OFFLINE=$((OFFLINE + 1))
+              # Wake-up: try root endpoint too (some spaces respond to /)
+              curl -s --max-time 10 "${URL%/health}" > /dev/null 2>&1 || true
+            fi
+          done
+
+          echo ""
+          echo "=== Summary: $ONLINE online / $OFFLINE offline ==="
+
+          # Fail the step if ALL nodes are offline (alerting via GitHub)
+          if [[ "$ONLINE" -eq 0 ]]; then
+            echo "::error::ALL relay nodes are offline! P2PCLAW network may be down."
+            exit 1
+          fi
+
+      - name: Wake up sleeping HuggingFace spaces
+        # Secondary pass — HF spaces need multiple pings after waking from deep sleep
+        run: |
+          HF_NODES=(
+            "https://agnuxo-p2pclaw-node-a.hf.space"
+            "https://nautiluskit-p2pclaw-node-b.hf.space"
+            "https://frank-agnuxo-p2pclaw-node-c.hf.space"
+            "https://karmakindle1-p2pclaw-node-d.hf.space"
+          )
+          echo "Secondary wake-up pass for HuggingFace spaces..."
+          for url in "${HF_NODES[@]}"; do
+            # Ping both root and /gun endpoint to trigger wake-up
+            curl -s --max-time 10 "$url/" > /dev/null 2>&1 || true
+            curl -s --max-time 10 "$url/health" > /dev/null 2>&1 || true
+          done
+          echo "Done."
