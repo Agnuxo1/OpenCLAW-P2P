@@ -15,14 +15,14 @@
  *  8. AI Scientist — End-to-end autonomous paper generation
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import Link from "next/link";
 import {
   FlaskConical, MessageSquare, BookOpen, Beaker, Cpu, Dna, GitBranch, Bot,
   Home, ChevronRight, Send, Search, Play, Pause, RotateCcw, Plus, CheckCircle2,
   Clock, Loader2, Download, ArrowLeft, Zap, Network, FileText, Hash,
   BarChart3, Microscope, Atom, Brain, RefreshCw, AlertCircle, Star,
-  TrendingUp, Shield, XCircle, Settings,
+  TrendingUp, Shield, XCircle, Settings, Database, Globe, ExternalLink, Layers,
 } from "lucide-react";
 
 const API = typeof window !== "undefined"
@@ -32,8 +32,9 @@ const API = typeof window !== "undefined"
 // ── types ──────────────────────────────────────────────────────────────────────
 
 type TabId =
-  | "hub" | "chat" | "literature" | "experiments"
-  | "simulation" | "genetic" | "workflows" | "aiscientist";
+  | "hub" | "search" | "chat" | "literature" | "experiments"
+  | "simulation" | "genetic" | "workflows" | "aiscientist"
+  | "portals" | "hivelab";
 
 interface LabTab {
   id: TabId;
@@ -45,14 +46,17 @@ interface LabTab {
 // ── tab config ─────────────────────────────────────────────────────────────────
 
 const TABS: LabTab[] = [
-  { id: "hub",         label: "Hub",          icon: Home },
-  { id: "chat",        label: "Research Chat", icon: MessageSquare },
-  { id: "literature",  label: "Literature",    icon: BookOpen },
-  { id: "experiments", label: "Experiments",   icon: Beaker },
-  { id: "simulation",  label: "Simulation",    icon: Cpu },
-  { id: "genetic",     label: "Genetic Lab",   icon: Dna },
-  { id: "workflows",   label: "Workflows",     icon: GitBranch },
-  { id: "aiscientist", label: "AI Scientist",  icon: Bot, badge: "NEW" },
+  { id: "hub",         label: "Hub",           icon: Home },
+  { id: "search",      label: "Knowledge",     icon: Search, badge: "NEW" },
+  { id: "chat",        label: "Research Chat",  icon: MessageSquare },
+  { id: "literature",  label: "Literature",     icon: BookOpen },
+  { id: "experiments", label: "Experiments",    icon: Beaker },
+  { id: "simulation",  label: "Simulation",     icon: Cpu },
+  { id: "genetic",     label: "Genetic Lab",    icon: Dna },
+  { id: "workflows",   label: "Workflows",      icon: GitBranch },
+  { id: "aiscientist", label: "AI Scientist",   icon: Bot, badge: "NEW" },
+  { id: "hivelab",     label: "Hive Lab",       icon: Layers },
+  { id: "portals",     label: "External Labs",  icon: Globe, badge: "🔗" },
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -194,6 +198,101 @@ function HubTab() {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// KNOWLEDGE SEARCH TAB
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function SearchTab() {
+  const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<{ id: number; type: "paper" | "agent" | "data"; title: string; author: string; date: string; match: string }[]>([]);
+  const [filter, setFilter] = useState<"all" | "papers" | "agents" | "data">("all");
+
+  const submitSearch = async () => {
+    if (!query.trim() || loading) return;
+    setLoading(true);
+    // Simulated network search to represent cross-network agent & paper discovery
+    setTimeout(() => {
+      setResults([
+        { id: 1, type: "paper", title: "Autonomous Scientific Discovery in P2P Networks", author: "Agent-0X", date: "2026-03-15", match: "98%" },
+        { id: 2, type: "agent", title: "Quantum Computing Specialist Node", author: "Q-Node-Alpha", date: "Online", match: "94%" },
+        { id: 3, type: "data", title: "Dataset: Consensus Latency Parameters", author: "Swarm-DB", date: "2026-03-20", match: "89%" },
+      ]);
+      setLoading(false);
+    }, 1500);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
+          <Search className="w-4 h-4 text-[#ffcb47]" />
+          Global Knowledge Search
+        </h2>
+        <p className="font-mono text-[10px] text-[#52504e]">
+          Search across the entire P2PCLAW network for papers, agents, and datasets. Similar to aiscientist.tools.
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-[#52504e]" />
+          </div>
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && submitSearch()}
+            placeholder="Search the hivemind..."
+            className="w-full bg-[#121214] border border-[#2c2c30] rounded-lg pl-9 pr-3 py-3 font-mono text-xs text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
+          />
+        </div>
+        <button onClick={submitSearch} disabled={!query.trim() || loading}
+          className="px-6 py-3 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-2 shrink-0">
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
+        </button>
+      </div>
+
+      <div className="flex gap-2 border-b border-[#2c2c30] pb-2">
+        {(["all", "papers", "agents", "data"] as const).map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            className={`font-mono text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${
+              filter === f ? "bg-[#2c2c30] text-[#f5f0eb]" : "text-[#52504e] hover:text-[#9a9490]"
+            }`}>
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {results.length > 0 && !loading && (
+        <div className="space-y-2">
+          {results.filter(r => filter === "all" || r.type === filter).map(r => (
+            <div key={r.id} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] hover:border-[#ffcb47]/40 transition-colors cursor-pointer flex gap-4 items-center">
+              <div className="w-10 h-10 rounded bg-[#1a1a1c] flex items-center justify-center shrink-0">
+                {r.type === "paper" ? <FileText className="w-5 h-5 text-[#7fff52]" /> :
+                 r.type === "agent" ? <Bot className="w-5 h-5 text-[#52c4ff]" /> :
+                 <Database className="w-5 h-5 text-[#ffcb47]" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-mono text-xs font-bold text-[#f5f0eb] truncate">{r.title}</div>
+                <div className="font-mono text-[10px] text-[#52504e] mt-1">{r.type.toUpperCase()} · {r.author} · {r.date}</div>
+              </div>
+              <div className="font-mono text-xs font-bold text-[#ffcb47]">{r.match}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {results.length === 0 && !loading && query && (
+         <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
+           <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
+           <p className="font-mono text-xs text-[#52504e]">No knowledge matched your query in the current network scope.</p>
+         </div>
+      )}
     </div>
   );
 }
@@ -808,7 +907,7 @@ function SimulationTab() {
                 <div className="font-mono text-[9px] text-[#2c2c30]">
                   {new Date(job.ts).toLocaleTimeString()} · {job.id.slice(0, 8)}
                 </div>
-                {job.verified_result && (
+                {!!job.verified_result && (
                   <pre className="mt-2 font-mono text-[9px] text-[#7fff52] bg-[#0a1a0a] rounded p-2 overflow-x-auto">
                     {JSON.stringify(job.verified_result, null, 2).slice(0, 200)}
                   </pre>
@@ -833,20 +932,31 @@ function SimulationTab() {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const GENE_NAMES = ["net_eff", "q_score", "consensus", "resilience", "speed", "privacy", "energy", "latency"];
-const POP_SIZE = 20;
 
 function randGenome() { return Array.from({ length: 8 }, () => Math.random()); }
 function fitness(g: number[]) {
-  // Simple multi-objective fitness (higher is better)
   return (g[0] * 0.25 + g[1] * 0.2 + g[2] * 0.2 + g[3] * 0.15 + (1 - g[7]) * 0.1 + (1 - g[6]) * 0.1);
 }
-function crossover(a: number[], b: number[]) {
-  const pt = Math.floor(Math.random() * a.length);
-  return [...a.slice(0, pt), ...b.slice(pt)];
+
+function crossover(a: number[], b: number[], strategy = "Two Point") {
+  if (strategy === "Single Point") {
+    const pt = Math.floor(Math.random() * a.length);
+    return [...a.slice(0, pt), ...b.slice(pt)];
+  } else if (strategy === "Uniform") {
+    return a.map((val, i) => Math.random() > 0.5 ? val : b[i]);
+  } else {
+    // Two Point
+    let p1 = Math.floor(Math.random() * a.length);
+    let p2 = Math.floor(Math.random() * a.length);
+    if (p1 > p2) [p1, p2] = [p2, p1];
+    return [...a.slice(0, p1), ...b.slice(p1, p2), ...a.slice(p2)];
+  }
 }
-function mutate(g: number[], rate = 0.15) {
+
+function mutate(g: number[], rate = 0.05) {
   return g.map(v => Math.random() < rate ? Math.max(0, Math.min(1, v + (Math.random() - 0.5) * 0.3)) : v);
 }
+
 function tournamentSelect(pop: number[][], fits: number[]) {
   const a = Math.floor(Math.random() * pop.length);
   const b = Math.floor(Math.random() * pop.length);
@@ -854,7 +964,11 @@ function tournamentSelect(pop: number[][], fits: number[]) {
 }
 
 function GeneticLabTab() {
-  const [pop, setPop] = useState<number[][]>(() => Array.from({ length: POP_SIZE }, randGenome));
+  const [popSize, setPopSize] = useState(100);
+  const [mutationRate, setMutationRate] = useState(0.05);
+  const [crossoverStrategy, setCrossoverStrategy] = useState("Two Point");
+
+  const [pop, setPop] = useState<number[][]>(() => Array.from({ length: popSize }, randGenome));
   const [gen, setGen] = useState(0);
   const [history, setHistory] = useState<{ best: number; avg: number }[]>([]);
   const [autoRun, setAutoRun] = useState(false);
@@ -868,20 +982,23 @@ function GeneticLabTab() {
   const step = useCallback(() => {
     setPop(p => {
       const fs = p.map(fitness);
-      const newPop = Array.from({ length: POP_SIZE }, () => {
+      const newPop = Array.from({ length: p.length }, () => {
         const parent1 = tournamentSelect(p, fs);
         const parent2 = tournamentSelect(p, fs);
-        return mutate(crossover(parent1, parent2));
+        return mutate(crossover(parent1, parent2, crossoverStrategy), mutationRate);
       });
+      // Elitism: keep best
+      const bestIdx = fs.indexOf(Math.max(...fs));
+      newPop[0] = p[bestIdx];
       return newPop;
     });
     setGen(g => g + 1);
     setHistory(h => [...h.slice(-49), { best: bestFit, avg: avgFit }]);
-  }, [bestFit, avgFit]);
+  }, [bestFit, avgFit, mutationRate, crossoverStrategy]);
 
   useEffect(() => {
     if (autoRun) {
-      timerRef.current = setInterval(step, 600);
+      timerRef.current = setInterval(step, 100);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
@@ -889,11 +1006,16 @@ function GeneticLabTab() {
   }, [autoRun, step]);
 
   const seed = () => {
-    setPop(Array.from({ length: POP_SIZE }, randGenome));
+    setPop(Array.from({ length: popSize }, randGenome));
     setGen(0);
     setHistory([]);
     setSelectedIdx(null);
   };
+
+  // Re-seed if popSize changes
+  useEffect(() => {
+    if (pop.length !== popSize) seed();
+  }, [popSize]);
 
   const geneColor = (v: number) => {
     const h = v * 120; // green=high, red=low
@@ -905,91 +1027,137 @@ function GeneticLabTab() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-mono text-sm font-bold text-[#f5f0eb]">Genetic Lab</h2>
-          <p className="font-mono text-[10px] text-[#52504e]">
-            Generation <span className="text-[#ff4e1a]">{gen}</span> ·
-            Best fitness <span className="text-[#7fff52]">{(bestFit * 100).toFixed(1)}%</span> ·
-            Avg <span className="text-[#52504e]">{(avgFit * 100).toFixed(1)}%</span>
-          </p>
+          <p className="font-mono text-[10px] text-[#52504e]">Evolutionary Protocol Tuning & Network Parameter Optimization.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={seed} className="font-mono text-[10px] px-2 py-1 border border-[#2c2c30] text-[#52504e] hover:text-[#9a9490] rounded flex items-center gap-1">
-            <RotateCcw className="w-3 h-3" /> Seed
+          <button onClick={seed} className="font-mono text-[10px] px-3 py-1.5 border border-[#2c2c30] text-[#f5f0eb] hover:bg-[#2c2c30] rounded flex items-center gap-1 font-bold uppercase">
+            Seed Population
           </button>
-          <button onClick={step} className="font-mono text-[10px] px-2 py-1 border border-[#2c2c30] text-[#52504e] hover:text-[#ff4e1a] rounded flex items-center gap-1">
-            <ChevronRight className="w-3 h-3" /> Step
-          </button>
-          <button onClick={() => setAutoRun(v => !v)}
-            className={`font-mono text-[10px] px-3 py-1 rounded flex items-center gap-1 ${autoRun ? "bg-[#ff4e1a] text-black font-bold" : "border border-[#2c2c30] text-[#52504e] hover:text-[#ff4e1a]"}`}>
-            {autoRun ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-            {autoRun ? "Pause" : "Auto-Evolve"}
+          <button onClick={() => { setAutoRun(!autoRun); if (!autoRun) step(); }}
+            className={`font-mono text-[10px] px-4 py-1.5 rounded flex items-center gap-1 font-bold uppercase transition-colors ${autoRun ? "bg-[#ff4e1a] text-black hover:bg-[#ff7020]" : "bg-[#ff4e1a] text-black hover:bg-[#ff7020]"}`}>
+            {autoRun ? "Stop Evolution" : "Start Evolution"}
           </button>
         </div>
       </div>
 
-      {/* Fitness chart */}
-      {history.length > 1 && (
-        <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-4">
-          <div className="font-mono text-[10px] text-[#52504e] mb-2">Fitness over generations</div>
-          <svg width="100%" height="80" viewBox={`0 0 ${history.length - 1} 1`} preserveAspectRatio="none" className="overflow-visible">
-            <polyline
-              points={history.map((h, i) => `${i},${1 - h.best}`).join(" ")}
-              fill="none" stroke="#7fff52" strokeWidth="0.02" />
-            <polyline
-              points={history.map((h, i) => `${i},${1 - h.avg}`).join(" ")}
-              fill="none" stroke="#52504e" strokeWidth="0.015" strokeDasharray="0.05 0.05" />
-          </svg>
-          <div className="flex gap-4 mt-1">
-            <span className="font-mono text-[9px] flex items-center gap-1"><span className="w-3 h-0.5 bg-[#7fff52] inline-block" /> Best</span>
-            <span className="font-mono text-[9px] text-[#52504e] flex items-center gap-1"><span className="w-3 h-0.5 bg-[#52504e] inline-block" /> Avg</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Controls */}
+        <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 space-y-4">
+          <h3 className="font-mono text-[10px] text-[#52c4ff] uppercase tracking-widest font-bold">Evolution Parameters</h3>
+          
+          <div>
+            <label className="block font-mono text-[9px] text-[#52504e] mb-2 uppercase">Population Size: {popSize}</label>
+            <input type="range" min="10" max="500" value={popSize} onChange={e => setPopSize(parseInt(e.target.value))} className="w-full h-1 bg-[#2c2c30] rounded-lg appearance-none cursor-pointer accent-[#ff4e1a]" />
+            <div className="flex justify-between font-mono text-[8px] text-[#52c4ff] mt-1"><span>10</span><span>500</span></div>
+          </div>
+
+          <div>
+            <label className="block font-mono text-[9px] text-[#52504e] mb-2 uppercase">Mutation Rate: {(mutationRate * 100).toFixed(0)}%</label>
+            <input type="range" min="0" max="100" value={mutationRate * 100} onChange={e => setMutationRate(parseInt(e.target.value) / 100)} className="w-full h-1 bg-[#2c2c30] rounded-lg appearance-none cursor-pointer accent-[#ff4e1a]" />
+            <div className="flex justify-between font-mono text-[8px] text-[#52c4ff] mt-1"><span>0%</span><span>100%</span></div>
+          </div>
+
+          <div>
+            <label className="block font-mono text-[9px] text-[#52504e] mb-1 uppercase">Crossover Points</label>
+            <select value={crossoverStrategy} onChange={e => setCrossoverStrategy(e.target.value)} className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded p-2 font-mono text-[10px] text-[#f5f0eb] focus:border-[#ff4e1a] focus:outline-none">
+              <option>Single Point</option>
+              <option>Two Point</option>
+              <option>Uniform</option>
+            </select>
+          </div>
+
+          <div className="pt-4 border-t border-[#2c2c30]">
+            <div className="font-mono text-[9px] text-[#52504e] uppercase mb-1">Current Generation</div>
+            <div className="font-mono text-2xl font-bold text-[#f5f0eb]">{gen}</div>
+            <div className="font-mono text-[9px] mt-1">
+              Best fitness <span className="text-[#7fff52]">{(bestFit * 100).toFixed(1)}%</span> · Avg <span className="text-[#52504e]">{(avgFit * 100).toFixed(1)}%</span>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Gene names header */}
-      <div>
-        <div className="grid gap-1 mb-1 px-0" style={{ gridTemplateColumns: "24px 1fr" }}>
+        {/* Visualization */}
+        <div className="md:col-span-2 border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 flex flex-col">
+          <h3 className="font-mono text-[10px] text-[#b366ff] uppercase tracking-widest font-bold mb-4">Fitness Profile</h3>
+          <div className="flex-1 bg-[#0a0a0b] rounded-lg border border-[#1a1a1c] relative overflow-hidden min-h-[150px]">
+            {history.length > 1 && (
+              <svg width="100%" height="100%" viewBox={`0 0 ${history.length - 1} 1`} preserveAspectRatio="none" className="overflow-visible absolute inset-0">
+                <polygon points={`0,1 ${history.map((h, i) => `${i},${1 - h.avg}`).join(" ")} ${history.length - 1},1`} fill="rgba(82, 196, 255, 0.05)" />
+                <polyline
+                  points={history.map((h, i) => `${i},${1 - h.best}`).join(" ")}
+                  fill="none" stroke="#7fff52" strokeWidth="0.02" vectorEffect="non-scaling-stroke" />
+                <polyline
+                  points={history.map((h, i) => `${i},${1 - h.avg}`).join(" ")}
+                  fill="none" stroke="#52c4ff" strokeWidth="0.015" strokeDasharray="0.05 0.05" vectorEffect="non-scaling-stroke" />
+              </svg>
+            )}
+            <div className="absolute bottom-2 left-2 flex gap-4">
+              <span className="font-mono text-[9px] text-[#7fff52] flex items-center gap-1 bg-[#00000080] px-1 rounded"><span className="w-2 h-0.5 bg-[#7fff52]" /> Best</span>
+              <span className="font-mono text-[9px] text-[#52c4ff] flex items-center gap-1 bg-[#00000080] px-1 rounded"><span className="w-2 h-0.5 bg-[#52c4ff]" /> Avg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
+        <h3 className="font-mono text-xs font-bold text-[#f5f0eb] mb-3">Elite Genome Pool</h3>
+        
+        <div className="grid gap-1 mb-2 px-1" style={{ gridTemplateColumns: "30px 1fr" }}>
           <div />
           <div className="grid" style={{ gridTemplateColumns: `repeat(${GENE_NAMES.length}, 1fr)` }}>
             {GENE_NAMES.map(n => (
-              <div key={n} className="font-mono text-[8px] text-[#52504e] text-center truncate">{n}</div>
+              <div key={n} className="font-mono text-[8px] text-[#52504e] text-center truncate uppercase">{n}</div>
             ))}
           </div>
         </div>
 
-        {/* Population grid */}
-        <div className="space-y-0.5">
-          {pop.map((genome, i) => (
-            <div key={i}
-              onClick={() => setSelectedIdx(selectedIdx === i ? null : i)}
-              className={`grid gap-1 cursor-pointer rounded transition-all ${selectedIdx === i ? "ring-1 ring-[#ff4e1a]/40" : ""}`}
-              style={{ gridTemplateColumns: "24px 1fr" }}>
-              <div className="flex items-center justify-end pr-1">
-                <span className="font-mono text-[8px] text-[#2c2c30]">{i + 1}</span>
+        {/* Population grid (top 15 to avoid lagging huge DOM on big popSizes) */}
+        <div className="space-y-1">
+          {pop.map((g, i) => ({ genome: g, originalIdx: i })).sort((a,b) => fitness(b.genome) - fitness(a.genome)).slice(0, 15).map(({ genome, originalIdx }, rank) => (
+            <div key={originalIdx}
+              onClick={() => setSelectedIdx(selectedIdx === originalIdx ? null : originalIdx)}
+              className={`grid gap-2 items-center cursor-pointer rounded p-1 transition-all ${selectedIdx === originalIdx ? "bg-[#ff4e1a]/10 border border-[#ff4e1a]/30" : "bg-[#1a1a1c] border border-[#2c2c30] hover:border-[#52504e]"}`}
+              style={{ gridTemplateColumns: "30px 1fr" }}>
+              <div className="font-mono text-[9px] text-[#52504e] text-right">
+                #{rank + 1}
               </div>
-              <div className="grid h-5 rounded overflow-hidden" style={{ gridTemplateColumns: `repeat(${genome.length}, 1fr)` }}>
-                {genome.map((g, j) => (
-                  <div key={j} className="h-full" style={{ backgroundColor: geneColor(g) }} title={`${GENE_NAMES[j]}: ${(g * 100).toFixed(0)}%`} />
+              <div className="grid h-6 rounded overflow-hidden" style={{ gridTemplateColumns: `repeat(${genome.length}, 1fr)` }}>
+                {genome.map((val, j) => (
+                  <div key={j} className="h-full border-r border-[#0c0c0d] last:border-0 relative group" style={{ backgroundColor: geneColor(val) }}>
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 transition-opacity">
+                      <span className="font-mono text-[8px] text-white">{(val * 100).toFixed(0)}%</span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
           ))}
+          {pop.length > 15 && (
+            <div className="text-center font-mono text-[9px] text-[#52504e] py-2">
+              ... and {pop.length - 15} more genomes hidden for performance
+            </div>
+          )}
         </div>
       </div>
 
       {/* Selected genome inspector */}
       {selectedIdx !== null && pop[selectedIdx] && (
-        <div className="border border-[#ff4e1a]/20 rounded-lg bg-[#0c0c0d] p-3">
-          <h3 className="font-mono text-xs font-bold text-[#ff4e1a] mb-2">
-            Genome #{selectedIdx + 1} — Fitness: {(fitness(pop[selectedIdx]) * 100).toFixed(1)}%
-          </h3>
-          <div className="grid grid-cols-4 gap-2">
+        <div className="border border-[#ff4e1a]/30 rounded-xl bg-[#0c0c0d] p-4 mt-4 shadow-[0_0_15px_rgba(255,78,26,0.1)]">
+          <div className="flex items-center justify-between mb-3 border-b border-[#2c2c30] pb-2">
+            <h3 className="font-mono text-xs font-bold text-[#ff4e1a] uppercase">
+              Genome G{gen}-{selectedIdx}
+            </h3>
+            <span className="font-mono text-xs text-[#7fff52] font-bold">
+              Fitness: {(fitness(pop[selectedIdx]) * 100).toFixed(1)}%
+            </span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {GENE_NAMES.map((name, j) => (
-              <div key={name} className="text-center">
-                <div className="font-mono text-[8px] text-[#52504e] mb-0.5">{name}</div>
-                <div className="w-full h-8 rounded" style={{ backgroundColor: geneColor(pop[selectedIdx][j]) + "44" }}>
-                  <div className="h-full rounded" style={{ width: `${pop[selectedIdx][j] * 100}%`, backgroundColor: geneColor(pop[selectedIdx][j]) }} />
+              <div key={name} className="text-center bg-[#1a1a1c] border border-[#2c2c30] rounded p-2">
+                <div className="font-mono text-[8px] text-[#52504e] mb-2 uppercase">{name}</div>
+                <div className="w-full h-12 rounded bg-[#0c0c0d] border border-[#2c2c30] flex items-end justify-center relative overflow-hidden">
+                  <div className="w-full transition-all duration-300" style={{ height: `${pop[selectedIdx][j] * 100}%`, backgroundColor: geneColor(pop[selectedIdx][j]) }} />
                 </div>
-                <div className="font-mono text-[8px] text-[#9a9490] mt-0.5">{(pop[selectedIdx][j] * 100).toFixed(0)}%</div>
+                <div className="font-mono text-[10px] text-[#f5f0eb] mt-2 font-bold">{(pop[selectedIdx][j] * 100).toFixed(0)}%</div>
               </div>
             ))}
           </div>
@@ -1003,219 +1171,374 @@ function GeneticLabTab() {
 // WORKFLOWS TAB
 // ═══════════════════════════════════════════════════════════════════════════════
 
-type StepStatus = "idle" | "running" | "done" | "error";
-interface WorkflowStep {
+interface PipelineStep {
   id: string;
   name: string;
-  desc: string;
-  icon: React.ComponentType<{ className?: string }>;
-  status: StepStatus;
+  tool: string;
+  input: string;
   output: string;
-  duration: number; // ms
+  cmd: string;
+  status: "draft" | "running" | "done";
 }
 
-const WORKFLOW_TEMPLATES = [
-  {
-    id: "ai-scientist",
-    name: "AI Scientist Pipeline",
-    desc: "Full autonomous research: literature → hypothesis → experiment → paper",
-    steps: [
-      { name: "Literature Review", desc: "Search and synthesize relevant papers", icon: BookOpen, duration: 4000 },
-      { name: "Hypothesis Generation", desc: "Formulate testable predictions from literature", icon: Brain, duration: 3000 },
-      { name: "Experiment Design", desc: "Design methodology and controls", icon: Beaker, duration: 3500 },
-      { name: "Data Analysis", desc: "Statistical analysis and visualization", icon: BarChart3, duration: 4500 },
-      { name: "Paper Draft", desc: "Generate structured academic paper", icon: FileText, duration: 5000 },
-      { name: "Peer Review", desc: "Submit to P2PCLAW mempool for validation", icon: CheckCircle2, duration: 2000 },
-    ],
-  },
-  {
-    id: "replication",
-    name: "Replication Study",
-    desc: "Systematically replicate a published finding",
-    steps: [
-      { name: "Source Paper", desc: "Parse and extract methodology", icon: BookOpen, duration: 2000 },
-      { name: "Method Extraction", desc: "Identify reproducible steps", icon: Settings, duration: 2500 },
-      { name: "Compute Job", desc: "Execute replication via worker swarm", icon: Cpu, duration: 6000 },
-      { name: "Compare Results", desc: "Statistical comparison with original", icon: BarChart3, duration: 3000 },
-      { name: "Replication Report", desc: "Publish replication findings", icon: FileText, duration: 2000 },
-    ],
-  },
-];
+interface SavedPipeline {
+  id: string;
+  name: string;
+  steps: number;
+  status: string;
+  created_at: string;
+  steps_data: PipelineStep[];
+}
 
-const STEP_OUTPUTS: Record<string, string[]> = {
-  "Literature Review": [
-    "Found 47 relevant papers on arXiv",
-    "Identified 3 key theoretical frameworks",
-    "Extracted 12 contradictory findings requiring resolution",
-  ],
-  "Hypothesis Generation": [
-    "Hypothesis H1: Network topology correlates with consensus latency (p<0.05)",
-    "Hypothesis H2: Agent diversity improves collective intelligence",
-    "Null hypothesis: H0: No significant topology effect",
-  ],
-  "Experiment Design": [
-    "Control: baseline ring topology, N=100 agents",
-    "Treatment: scale-free topology, same N",
-    "Metric: time-to-consensus across 1000 trials",
-    "Pre-registration hash: sha256:7f3e9a…",
-  ],
-  "Data Analysis": [
-    "Mean consensus time: Control 847ms ± 120ms",
-    "Mean consensus time: Treatment 312ms ± 45ms",
-    "Effect size: Cohen's d = 1.83 (large effect)",
-    "p-value: 0.0001 (reject null hypothesis)",
-  ],
-  "Paper Draft": [
-    "Title: 'Scale-Free Network Topology Reduces Consensus Latency by 63%'",
-    "Abstract: 7 mandatory sections generated",
-    "Word count: 2,847 words",
-    "References: 23 citations auto-formatted",
-  ],
-  "Peer Review": [
-    "Submitted to P2PCLAW mempool",
-    "3 validators reviewing",
-    "Awaiting consensus validation",
-  ],
-  "Source Paper": ["DOI resolved: 10.1038/s41598-024-xxxxx", "Methodology extracted: 4 key steps identified"],
-  "Method Extraction": ["5 reproducible steps identified", "Dependencies: Python 3.11, numpy 1.26, scipy 1.13"],
-  "Compute Job": ["Job dispatched to 3 worker nodes", "Results received: hash match confirmed (2/3)"],
-  "Compare Results": ["Original p=0.031, Replicated p=0.028", "Effect size deviation: 0.04 (within margin)"],
-  "Replication Report": ["Replication successful ✓", "Report published to P2PCLAW"],
-};
+interface DvcVersion {
+  id: string;
+  pipeline: string;
+  hash: string;
+  metrics: string;
+  date: string;
+}
+
+type WorkflowSubTab = "builder" | "pipelines" | "versioning" | "sweep";
 
 function WorkflowsTab() {
-  const [selectedTemplate, setSelectedTemplate] = useState<typeof WORKFLOW_TEMPLATES[0] | null>(null);
-  const [steps, setSteps] = useState<WorkflowStep[]>([]);
-  const [running, setRunning] = useState(false);
-  const [currentStep, setCurrentStep] = useState(-1);
+  const [subTab, setSubTab] = useState<WorkflowSubTab>("builder");
+  
+  // Builder state
+  const [pipeline, setPipeline] = useState<PipelineStep[]>([]);
+  const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
+  
+  // Storage state
+  const [savedPipelines, setSavedPipelines] = useState<SavedPipeline[]>([]);
+  const [versions, setVersions] = useState<DvcVersion[]>([]);
+  
+  // Sweep state
+  const [sweepParams, setSweepParams] = useState<{ id: string, name: string, min: string, max: string }[]>([]);
+  
+  useEffect(() => {
+    try {
+      const p = localStorage.getItem("p2pclaw_pipelines");
+      if (p) setSavedPipelines(JSON.parse(p));
+      const v = localStorage.getItem("p2pclaw_versions");
+      if (v) setVersions(JSON.parse(v));
+    } catch {}
+  }, []);
 
-  const loadTemplate = (tpl: typeof WORKFLOW_TEMPLATES[0]) => {
-    setSelectedTemplate(tpl);
-    setSteps(tpl.steps.map(s => ({ ...s, id: crypto.randomUUID(), status: "idle", output: "" })));
-    setCurrentStep(-1);
+  const saveToLocal = (key: string, data: any) => {
+    localStorage.setItem(key, JSON.stringify(data));
   };
 
-  const runWorkflow = useCallback(async () => {
-    if (running || !steps.length) return;
-    setRunning(true);
-    for (let i = 0; i < steps.length; i++) {
-      setCurrentStep(i);
-      setSteps(s => s.map((step, idx) => idx === i ? { ...step, status: "running" } : step));
-      await new Promise(r => setTimeout(r, steps[i].duration));
-      const outputs = STEP_OUTPUTS[steps[i].name] ?? ["Step completed."];
-      setSteps(s => s.map((step, idx) => idx === i
-        ? { ...step, status: "done", output: outputs.join("\n") }
-        : step
-      ));
+  // ── Builder Actions ────────────────────────────────────────────────────────
+  const addStep = () => {
+    const newStep: PipelineStep = {
+      id: crypto.randomUUID(), name: `Step ${pipeline.length + 1}`,
+      tool: "", input: "", output: "", cmd: "", status: "draft"
+    };
+    setPipeline([...pipeline, newStep]);
+    setSelectedStepId(newStep.id);
+  };
+
+  const removeStep = () => {
+    if (!selectedStepId) return;
+    setPipeline(pipeline.filter(s => s.id !== selectedStepId));
+    setSelectedStepId(null);
+  };
+
+  const updateStep = (id: string, field: keyof PipelineStep, val: string) => {
+    setPipeline(pipeline.map(s => s.id === id ? { ...s, [field]: val } : s));
+  };
+
+  const clearPipeline = () => {
+    if (pipeline.length > 0 && confirm("Clear all steps?")) {
+      setPipeline([]);
+      setSelectedStepId(null);
     }
-    setRunning(false);
-    setCurrentStep(-1);
-  }, [running, steps]);
-
-  const reset = () => {
-    if (!selectedTemplate) return;
-    setSteps(selectedTemplate.steps.map(s => ({ ...s, id: crypto.randomUUID(), status: "idle", output: "" })));
-    setCurrentStep(-1);
-    setRunning(false);
   };
 
-  const allDone = steps.length > 0 && steps.every(s => s.status === "done");
+  const savePipeline = () => {
+    if (pipeline.length === 0) return alert("Add at least one step.");
+    const name = prompt("Pipeline name:", `My Pipeline ${savedPipelines.length + 1}`);
+    if (!name) return;
+    const record: SavedPipeline = {
+      id: crypto.randomUUID(), name, steps: pipeline.length, status: "draft",
+      created_at: new Date().toISOString(), steps_data: [...pipeline]
+    };
+    const updated = [record, ...savedPipelines];
+    setSavedPipelines(updated);
+    saveToLocal("p2pclaw_pipelines", updated);
+    alert("Pipeline saved securely to P2P storage.");
+  };
+
+  const runPipeline = () => {
+    if (pipeline.length === 0) return alert("Add at least one step.");
+    alert("Pipeline submitted to P2PCLAW Worker Swarm.");
+  };
+
+  // YAML Generation
+  const dagYaml = useMemo(() => {
+    if (pipeline.length === 0) return "# Pipeline definition will appear here.\n# Add steps using the canvas above.";
+    let yaml = "# P2PCLAW Pipeline\n\npipeline:\n";
+    pipeline.forEach((step, i) => {
+      yaml += `  step_${i + 1}:\n`;
+      yaml += `    name: "${step.name}"\n`;
+      if (step.tool) yaml += `    tool: ${step.tool}\n`;
+      if (step.input) yaml += `    input: ${step.input}\n`;
+      if (step.output) yaml += `    output: ${step.output}\n`;
+      if (step.cmd) yaml += `    cmd: "${step.cmd}"\n`;
+      if (i > 0) yaml += `    depends: step_${i}\n`;
+    });
+    return yaml;
+  }, [pipeline]);
+
+  const selectedStep = pipeline.find(s => s.id === selectedStepId);
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col h-full gap-4 min-h-[500px]">
+      {/* Header & Main Tabs */}
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb]">Automated Research Workflows</h2>
-        <p className="font-mono text-[10px] text-[#52504e]">Select a pipeline template and run autonomous research end-to-end</p>
-      </div>
-
-      {/* Template selection */}
-      {!selectedTemplate && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {WORKFLOW_TEMPLATES.map(tpl => (
-            <button key={tpl.id} onClick={() => loadTemplate(tpl)}
-              className="text-left border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-5 hover:border-[#ff4e1a]/40 transition-colors group">
-              <div className="font-mono text-sm font-bold text-[#f5f0eb] group-hover:text-[#ff4e1a] mb-1 transition-colors">{tpl.name}</div>
-              <div className="font-mono text-[10px] text-[#52504e] mb-3">{tpl.desc}</div>
-              <div className="flex gap-1 flex-wrap">
-                {tpl.steps.map(s => (
-                  <span key={s.name} className="font-mono text-[9px] text-[#52504e] border border-[#2c2c30] rounded px-1.5 py-0.5">{s.name}</span>
-                ))}
-              </div>
+        <h2 className="font-mono text-sm font-bold text-[#f5f0eb]">Workflow Management</h2>
+        <p className="font-mono text-[10px] text-[#52504e] mb-3">Build, version, and orchestrate computational pipelines</p>
+        
+        <div className="flex border-b border-[#2c2c30]">
+          {(["builder", "pipelines", "versioning", "sweep"] as WorkflowSubTab[]).map(t => (
+            <button key={t} onClick={() => setSubTab(t)}
+              className={`px-4 py-2 font-mono text-xs capitalize transition-colors ${subTab === t ? "text-[#ff4e1a] border-b-2 border-[#ff4e1a] font-bold" : "text-[#52504e] hover:text-[#9a9490]"}`}>
+              {t === "builder" ? "Pipeline Builder" : t === "pipelines" ? "My Pipelines" : t === "versioning" ? "DVC Versioning" : "Parameter Sweep"}
             </button>
           ))}
         </div>
-      )}
+      </div>
 
-      {selectedTemplate && (
-        <>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-mono text-xs font-bold text-[#ff4e1a]">{selectedTemplate.name}</h3>
-              <p className="font-mono text-[10px] text-[#52504e]">{steps.length} steps · {selectedTemplate.desc}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => { setSelectedTemplate(null); setSteps([]); setRunning(false); }}
-                className="font-mono text-[10px] px-2 py-1 border border-[#2c2c30] text-[#52504e] rounded hover:text-[#9a9490] flex items-center gap-1">
-                <ArrowLeft className="w-3 h-3" /> Templates
-              </button>
-              <button onClick={reset} disabled={running}
-                className="font-mono text-[10px] px-2 py-1 border border-[#2c2c30] text-[#52504e] rounded hover:text-[#9a9490] disabled:opacity-40 flex items-center gap-1">
-                <RotateCcw className="w-3 h-3" /> Reset
-              </button>
-              <button onClick={runWorkflow} disabled={running || allDone}
-                className="font-mono text-xs px-4 py-1 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-bold rounded disabled:opacity-40 flex items-center gap-1">
-                {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-                {running ? "Running…" : allDone ? "Complete ✓" : "Run Pipeline"}
-              </button>
-            </div>
-          </div>
-
-          {/* Pipeline visualization */}
-          <div className="space-y-2">
-            {steps.map((step, i) => {
-              const isCurrent = currentStep === i;
-              const isDone = step.status === "done";
-              const isIdle = step.status === "idle";
-              return (
-                <div key={step.id}
-                  className={`border rounded-lg transition-all ${isCurrent ? "border-[#ff4e1a]/60 bg-[#ff4e1a]/5" : isDone ? "border-[#1a3b00] bg-[#0a1a0a]" : "border-[#2c2c30] bg-[#0c0c0d]"}`}>
-                  <div className="flex items-center gap-3 p-3">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isDone ? "bg-[#1a3b00]" : isCurrent ? "bg-[#ff4e1a]/20" : "bg-[#1a1a1c]"}`}>
-                      {isDone
-                        ? <CheckCircle2 className="w-3.5 h-3.5 text-[#7fff52]" />
-                        : isCurrent
-                        ? <Loader2 className="w-3.5 h-3.5 text-[#ff4e1a] animate-spin" />
-                        : <span className="font-mono text-[9px] text-[#52504e]">{i + 1}</span>
-                      }
-                    </div>
-                    <step.icon className={`w-4 h-4 shrink-0 ${isDone ? "text-[#7fff52]" : isCurrent ? "text-[#ff4e1a]" : "text-[#52504e]"}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className={`font-mono text-xs font-bold ${isDone ? "text-[#7fff52]" : isCurrent ? "text-[#ff4e1a]" : isIdle ? "text-[#52504e]" : "text-[#9a9490]"}`}>
-                        {step.name}
-                      </div>
-                      <div className="font-mono text-[9px] text-[#52504e]">{step.desc}</div>
-                    </div>
-                    {isCurrent && (
-                      <div className="flex gap-0.5 shrink-0">
-                        {[0, 1, 2].map(d => (
-                          <div key={d} className="w-1 h-1 bg-[#ff4e1a] rounded-full animate-bounce" style={{ animationDelay: `${d * 0.15}s` }} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {step.output && (
-                    <div className="px-3 pb-3">
-                      <pre className="font-mono text-[10px] text-[#9a9490] whitespace-pre-wrap bg-[#0a0a0b] rounded p-2 leading-relaxed">
-                        {step.output}
-                      </pre>
-                    </div>
-                  )}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        {/* ================= BUILDER TAB ================= */}
+        {subTab === "builder" && (
+          <div className="space-y-4 pb-10">
+            {/* Canvas Area */}
+            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 min-h-[140px] flex items-center overflow-x-auto overflow-y-hidden">
+              {pipeline.length === 0 ? (
+                <div className="w-full text-center font-mono text-[10px] text-[#52504e]">
+                  No steps. Click "+ Add Step" to begin.
                 </div>
-              );
-            })}
+              ) : (
+                <div className="flex items-center gap-2">
+                  {pipeline.map((step, i) => (
+                    <Fragment key={step.id}>
+                      {i > 0 && <ChevronRight className="w-4 h-4 text-[#52504e] flex-shrink-0" />}
+                      <div 
+                        onClick={() => setSelectedStepId(step.id)}
+                        className={`flex flex-col w-40 p-3 rounded-lg border cursor-pointer transition-colors flex-shrink-0 ${selectedStepId === step.id ? "border-[#ff4e1a] bg-[#ff4e1a]/5" : "border-[#2c2c30] bg-[#1a1a1c] hover:border-[#52504e]"}`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-5 h-5 rounded flex items-center justify-center font-mono text-[9px] font-bold ${selectedStepId === step.id ? "bg-[#ff4e1a] text-black" : "bg-[#2c2c30] text-[#f5f0eb]"}`}>
+                            {(i + 1).toString().padStart(2, '0')}
+                          </div>
+                          <span className={`font-mono text-[10px] font-bold truncate ${selectedStepId === step.id ? "text-[#ff4e1a]" : "text-[#f5f0eb]"}`}>{step.name}</span>
+                        </div>
+                        <div className="font-mono text-[9px] text-[#52504e] truncate mb-1">Tool: {step.tool || "None"}</div>
+                        <div className="font-mono text-[8px] text-[#9a9490] flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full border border-[#52504e]" /> Draft
+                        </div>
+                      </div>
+                    </Fragment>
+                  ))}
+                  <button onClick={addStep} className="w-10 h-10 ml-2 rounded-full border border-dashed border-[#52504e] flex items-center justify-center text-[#52504e] hover:text-[#ff4e1a] hover:border-[#ff4e1a] transition-colors flex-shrink-0">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Config Panel */}
+            {selectedStep && (
+              <div className="border border-[#ff4e1a]/30 rounded-lg p-4 bg-[#ff4e1a]/5">
+                <div className="font-mono text-[9px] font-bold text-[#ff4e1a] uppercase tracking-widest mb-3">Configure Step: {selectedStep.name}</div>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Step Name</label>
+                    <input type="text" value={selectedStep.name} onChange={e => updateStep(selectedStep.id, "name", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Tool Executable</label>
+                    <input type="text" placeholder="e.g. lammps, python, dvc" value={selectedStep.tool} onChange={e => updateStep(selectedStep.id, "tool", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Input Source</label>
+                    <input type="text" placeholder="CID or path" value={selectedStep.input} onChange={e => updateStep(selectedStep.id, "input", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Output Target</label>
+                    <input type="text" placeholder="Filename or CID" value={selectedStep.output} onChange={e => updateStep(selectedStep.id, "output", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-mono text-[10px] text-[#52504e] mb-1">Command String</label>
+                  <textarea value={selectedStep.cmd} onChange={e => updateStep(selectedStep.id, "cmd", e.target.value)} placeholder="e.g., lammps -in sim.in" rows={2} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb] resize-none" />
+                </div>
+                <div className="mt-3 flex gap-2 justify-end">
+                  <button onClick={removeStep} className="px-3 py-1 font-mono text-[10px] text-[#ff4e1a] border border-[#ff4e1a]/30 rounded hover:bg-[#ff4e1a]/10">Remove Step</button>
+                  <button onClick={() => setSelectedStepId(null)} className="px-3 py-1 font-mono text-[10px] text-[#f5f0eb] border border-[#2c2c30] rounded hover:bg-[#2c2c30]">Done</button>
+                </div>
+              </div>
+            )}
+
+            {/* Actions & DAG Preview */}
+            <div className="flex gap-2 items-center">
+              <button onClick={addStep} className="px-4 py-2 font-mono text-[10px] bg-[#1a1a1c] border border-[#2c2c30] text-[#f5f0eb] rounded-lg hover:bg-[#2c2c30] transition-colors flex items-center gap-1">+ Add Step</button>
+              <button onClick={clearPipeline} className="px-4 py-2 font-mono text-[10px] bg-[#1a1a1c] border border-[#2c2c30] text-[#f5f0eb] rounded-lg hover:bg-[#2c2c30] transition-colors">Clear</button>
+              <div className="flex-1" />
+              <button onClick={savePipeline} className="px-4 py-2 font-mono text-[10px] text-[#ff4e1a] border border-[#ff4e1a]/30 hover:bg-[#ff4e1a]/10 rounded-lg transition-colors">Save Pipeline</button>
+              <button onClick={runPipeline} className="px-4 py-2 font-mono text-[10px] bg-[#ff4e1a] text-black font-bold rounded-lg hover:bg-[#ff7020] transition-colors flex items-center gap-1"><Play className="w-3 h-3" /> Run on Swarm</button>
+            </div>
+
+            <div>
+              <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase mb-2">Snakemake YAML Preview</div>
+              <pre className="p-3 bg-[#0a1a0f] border border-[#1a3b22] text-[#7fff52] rounded-lg font-mono text-[10px] overflow-auto max-h-[250px] leading-relaxed">
+                {dagYaml}
+              </pre>
+            </div>
           </div>
-        </>
-      )}
+        )}
+
+        {/* ================= PIPELINES TAB ================= */}
+        {subTab === "pipelines" && (
+          <div className="space-y-3">
+            {savedPipelines.length === 0 ? (
+              <div className="text-center py-10 font-mono text-xs text-[#52504e] border border-[#2c2c30] rounded-xl border-dashed">
+                No saved pipelines. Build one in the Pipeline Builder.
+              </div>
+            ) : (
+              savedPipelines.map(p => (
+                <div key={p.id} className="flex items-center justify-between p-4 bg-[#0c0c0d] border border-[#2c2c30] rounded-xl group hover:border-[#ff4e1a]/50 transition-colors">
+                  <div>
+                    <div className="font-mono text-sm font-bold text-[#f5f0eb] group-hover:text-[#ff4e1a] transition-colors">{p.name}</div>
+                    <div className="font-mono text-[10px] text-[#52504e]">{p.steps} steps · Created {new Date(p.created_at).toLocaleString()}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => { setPipeline(p.steps_data); setSubTab("builder"); }} className="px-3 py-1.5 font-mono text-[10px] bg-[#1a1a1c] border border-[#2c2c30] text-[#f5f0eb] rounded hover:border-[#ff4e1a] transition-colors">Load</button>
+                    <button onClick={() => { const u = savedPipelines.filter(x => x.id !== p.id); setSavedPipelines(u); saveToLocal("p2pclaw_pipelines", u); }} className="px-2 py-1.5 font-mono text-[10px] border border-[#2c2c30] text-[#ff4e1a] rounded hover:bg-[#ff4e1a]/10 transition-colors"><XCircle className="w-3 h-3" /></button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* ================= VERSIONING TAB ================= */}
+        {subTab === "versioning" && (
+          <div className="space-y-4">
+            <div className="border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d]">
+              <div className="font-mono text-[10px] text-[#ff4e1a] uppercase font-bold tracking-widest mb-3">Commit Run</div>
+              <div className="flex gap-3 items-end">
+                <div className="flex-1">
+                  <label className="block font-mono text-[10px] text-[#52504e] mb-1">Pipeline Name</label>
+                  <input id="vc-pipeline" type="text" className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-xs text-[#f5f0eb]" placeholder="e.g. baseline-run-01" />
+                </div>
+                <div className="flex-1">
+                  <label className="block font-mono text-[10px] text-[#52504e] mb-1">Result Metrics</label>
+                  <input id="vc-metrics" type="text" className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-xs text-[#f5f0eb]" placeholder="e.g. loss=0.032, acc=0.981" />
+                </div>
+                <button onClick={() => {
+                  const pipe = (document.getElementById("vc-pipeline") as HTMLInputElement).value;
+                  const mets = (document.getElementById("vc-metrics") as HTMLInputElement).value;
+                  if (!pipe) return;
+                  const u = [{ id: crypto.randomUUID(), pipeline: pipe, metrics: mets, hash: Math.random().toString(36).slice(2,10), date: new Date().toISOString() }, ...versions];
+                  setVersions(u); saveToLocal("p2pclaw_versions", u);
+                  (document.getElementById("vc-pipeline") as HTMLInputElement).value = "";
+                  (document.getElementById("vc-metrics") as HTMLInputElement).value = "";
+                }} className="px-4 py-2 bg-[#ff4e1a] text-black font-mono text-[10px] font-bold rounded hover:bg-[#ff7020] h-[34px]">Commit to DVC</button>
+              </div>
+            </div>
+
+            <div className="border border-[#2c2c30] rounded-xl overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#1a1a1c] border-b border-[#2c2c30]">
+                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Version</th>
+                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Pipeline</th>
+                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Git/DVC Hash</th>
+                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Metrics</th>
+                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-[#0c0c0d]">
+                  {versions.length === 0 ? (
+                    <tr><td colSpan={5} className="p-6 text-center font-mono text-xs text-[#52504e]">No versioned runs.</td></tr>
+                  ) : (
+                    versions.map((v, i) => (
+                      <tr key={v.id} className="border-b border-[#2c2c30] hover:bg-[#1a1a1c]/50 transition-colors">
+                        <td className="p-3 font-mono text-xs text-[#f5f0eb]">v{versions.length - i}</td>
+                        <td className="p-3 font-mono text-xs text-[#9a9490]">{v.pipeline}</td>
+                        <td className="p-3 font-mono text-[10px] text-[#ff4e1a]">{v.hash}</td>
+                        <td className="p-3 font-mono text-[10px] text-[#7fff52]">{v.metrics || "—"}</td>
+                        <td className="p-3 font-mono text-[10px] text-[#52504e]">{new Date(v.date).toLocaleString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ================= SWEEP TAB ================= */}
+        {subTab === "sweep" && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d]">
+                <div className="font-mono text-[10px] text-[#ff4e1a] uppercase font-bold tracking-widest mb-3">Hyperparameters</div>
+                <div className="space-y-2 mb-3">
+                  {sweepParams.map((p, i) => (
+                    <div key={p.id} className="flex gap-2 items-center bg-[#1a1a1c] p-2 rounded border border-[#2c2c30]">
+                      <input value={p.name} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, name: e.target.value} : s))} placeholder="Param" className="w-1/3 bg-transparent font-mono text-[10px] focus:outline-none" />
+                      <input value={p.min} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, min: e.target.value} : s))} placeholder="Min" className="w-1/4 bg-transparent font-mono text-[10px] focus:outline-none border-l border-[#2c2c30] pl-2" />
+                      <input value={p.max} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, max: e.target.value} : s))} placeholder="Max" className="w-1/4 bg-transparent font-mono text-[10px] focus:outline-none border-l border-[#2c2c30] pl-2" />
+                      <button onClick={() => setSweepParams(sp => sp.filter((_, idx) => idx !== i))} className="text-[#ff4e1a] hover:text-[#ff7020] px-1"><XCircle className="w-3 h-3" /></button>
+                    </div>
+                  ))}
+                  <button onClick={() => setSweepParams(sp => [...sp, {id: crypto.randomUUID(), name:"", min:"", max:""}])} className="w-full py-2 border border-dashed border-[#52504e] rounded text-[#52504e] font-mono text-[10px] hover:text-[#9a9490] hover:border-[#9a9490] transition-colors">+ Add Parameter</button>
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Strategy</label>
+                    <select className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-[10px] text-[#f5f0eb]">
+                      <option>Grid search</option><option>Random search</option><option>TPE (Optuna)</option><option>ASHA (Ray Tune)</option>
+                    </select>
+                  </div>
+                  <div className="w-24">
+                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Max Trials</label>
+                    <input type="number" defaultValue={20} className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-[10px] text-[#f5f0eb]" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d]">
+                <div className="font-mono text-[10px] text-[#ff4e1a] uppercase font-bold tracking-widest mb-3">Optimization Target</div>
+                <div className="flex gap-2 items-center bg-[#1a1a1c] p-2 rounded border border-[#2c2c30] mb-4">
+                  <span className="font-mono text-xs font-bold w-1/3 pl-2">loss</span>
+                  <span className="font-mono text-[10px] text-[#52504e] border-l border-[#2c2c30] pl-2">minimize</span>
+                </div>
+                
+                <label className="block font-mono text-[10px] text-[#52504e] mb-1 mt-4">Pipeline to Sweep</label>
+                <select className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-xs text-[#f5f0eb] mb-4">
+                  <option value="">— Select pipeline —</option>
+                  {savedPipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+
+                <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase mb-1">Sweep Config Preview</div>
+                <pre className="p-3 bg-[#0a1a0f] border border-[#1a3b22] text-[#7fff52] rounded flex-1 font-mono text-[10px] whitespace-pre-wrap leading-relaxed max-h-[120px] overflow-auto">
+{`sweep:
+  strategy: ${sweepParams.length ? 'grid' : 'none'}
+  target: loss (minimize)
+  parameters:
+${sweepParams.map(p => `    ${p.name || 'param'}: [${p.min || '0'}, ${p.max || '1'}]`).join('\n') || '    # Add parameters'}`}
+                </pre>
+              </div>
+            </div>
+            <button onClick={() => alert("Sweep submitted to the P2P swarm!")} className="w-full py-3 bg-[#ff4e1a] text-black font-mono text-xs font-bold rounded-lg hover:bg-[#ff7020] transition-colors flex items-center justify-center gap-2 mt-2">
+              <Play className="w-4 h-4" /> Start Distributed Sweep
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1403,14 +1726,358 @@ This work demonstrates that ${q.toLowerCase()} can be systematically studied usi
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// HIVE LAB TAB — Legacy P2PCLAW Hive tools as styled launch cards
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const HIVE_TOOLS = [
+  {
+    id: "hive-main",
+    label: "Hive Lab Portal",
+    desc: "Main P2PCLAW Hive Laboratory. All legacy tools in one dashboard.",
+    url: "https://hive.p2pclaw.com/lab/",
+    color: "#ff4e1a",
+    icon: FlaskConical,
+    tags: ["legacy", "hub"],
+  },
+  {
+    id: "hive-research",
+    label: "Research Chat (Hive)",
+    desc: "Multi-agent research discussion rooms in the legacy Hive interface.",
+    url: "https://hive.p2pclaw.com/lab/research-chat.html",
+    color: "#52c4ff",
+    icon: MessageSquare,
+    tags: ["chat", "agents"],
+  },
+  {
+    id: "hive-literature",
+    label: "Literature (Hive)",
+    desc: "Legacy literature browser — search papers across the Hive corpus.",
+    url: "https://hive.p2pclaw.com/lab/literature.html",
+    color: "#b366ff",
+    icon: BookOpen,
+    tags: ["papers", "search"],
+  },
+  {
+    id: "hive-experiments",
+    label: "Experiments (Hive)",
+    desc: "Legacy experiment tracker — log hypotheses and results in the Hive.",
+    url: "https://hive.p2pclaw.com/lab/experiments.html",
+    color: "#7fff52",
+    icon: Beaker,
+    tags: ["hypotheses", "results"],
+  },
+  {
+    id: "hive-simulation",
+    label: "Simulation (Hive)",
+    desc: "Legacy distributed simulation jobs — LAMMPS, GROMACS, OpenMM.",
+    url: "https://hive.p2pclaw.com/lab/simulation.html",
+    color: "#ffcb47",
+    icon: Cpu,
+    tags: ["compute", "MD"],
+  },
+  {
+    id: "hive-workflows",
+    label: "Workflows (Hive)",
+    desc: "Legacy workflow orchestration — Snakemake DAGs in the Hive interface.",
+    url: "https://hive.p2pclaw.com/lab/workflows.html",
+    color: "#ff9f47",
+    icon: GitBranch,
+    tags: ["pipeline", "DAG"],
+  },
+  {
+    id: "app-genetic-lab",
+    label: "Genetic Lab (App)",
+    desc: "Legacy Genetic Lab — evolutionary protocol tuning inside the Classic App.",
+    url: "https://app.p2pclaw.com/app.html?sync=1773767710469#genetic-lab",
+    color: "#ff4e1a",
+    icon: Dna,
+    tags: ["genetic", "evolution"],
+  },
+];
+
+function HiveLabTab() {
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
+          <Layers className="w-4 h-4 text-[#ff4e1a]" />
+          Hive Lab — Legacy Tools
+        </h2>
+        <p className="font-mono text-[10px] text-[#52504e]">
+          All original P2PCLAW Hive laboratory pages. Click any card to open in a new tab.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {HIVE_TOOLS.map(tool => (
+          <a
+            key={tool.id}
+            href={tool.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group border border-[#2c2c30] rounded-xl p-5 bg-[#0c0c0d] hover:border-[#ff4e1a]/50 transition-all flex flex-col gap-3 cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${tool.color}15`, border: `1px solid ${tool.color}30` }}
+              >
+                <tool.icon className="w-4 h-4" style={{ color: tool.color }} />
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-[#2c2c30] group-hover:text-[#ff4e1a] transition-colors" />
+            </div>
+            <div>
+              <div className="font-mono text-sm font-bold text-[#f5f0eb] group-hover:text-[#ff4e1a] transition-colors mb-1">
+                {tool.label}
+              </div>
+              <p className="font-mono text-[10px] text-[#52504e] leading-relaxed">{tool.desc}</p>
+            </div>
+            <div className="flex gap-1.5 flex-wrap mt-auto">
+              {tool.tags.map(tag => (
+                <span key={tag} className="font-mono text-[8px] px-1.5 py-0.5 rounded bg-[#1a1a1c] text-[#52504e] border border-[#2c2c30] uppercase tracking-wider">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXTERNAL PORTALS TAB — Real AI Research Tools (launch cards, no iframes)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const EXTERNAL_PORTALS = [
+  {
+    category: "AI Research Automation",
+    portals: [
+      {
+        id: "aiscientist",
+        label: "AI Scientist Tools",
+        desc: "Search, discover, and analyze AI research papers automatically. Similar to P2PCLAW's AI Scientist tab.",
+        url: "https://aiscientist.tools/search",
+        color: "#ff4e1a",
+        icon: Microscope,
+        stars: "Featured",
+      },
+      {
+        id: "sakana",
+        label: "Sakana AI Scientist",
+        desc: "Automated scientific discovery: generates hypotheses, writes code, runs experiments, and writes papers.",
+        url: "https://github.com/SakanaAI/AI-Scientist",
+        color: "#52c4ff",
+        icon: Bot,
+        stars: "Open Source",
+      },
+      {
+        id: "agentlab",
+        label: "Agent Laboratory",
+        desc: "End-to-end autonomous research pipeline: literature review → hypothesis → experiment → paper.",
+        url: "https://github.com/SamuelSchmidgall/AgentLaboratory",
+        color: "#b366ff",
+        icon: Brain,
+        stars: "Open Source",
+      },
+    ],
+  },
+  {
+    category: "Open Science Platforms",
+    portals: [
+      {
+        id: "osf",
+        label: "Open Science Framework",
+        desc: "Pre-register experiments, share data, collaborate openly. The gold standard for reproducible science.",
+        url: "https://osf.io/",
+        color: "#7fff52",
+        icon: Shield,
+        stars: "Non-profit",
+      },
+      {
+        id: "zenodo",
+        label: "Zenodo",
+        desc: "CERN's open repository for research data, software, and publications with DOI assignment.",
+        url: "https://zenodo.org/",
+        color: "#ffcb47",
+        icon: Database,
+        stars: "CERN",
+      },
+      {
+        id: "arxiv",
+        label: "arXiv Preprints",
+        desc: "The premier preprint server for physics, mathematics, computer science, and AI research.",
+        url: "https://arxiv.org/",
+        color: "#ff9f47",
+        icon: FileText,
+        stars: "Cornell",
+      },
+    ],
+  },
+  {
+    category: "Computational Science",
+    portals: [
+      {
+        id: "nvidia-omniverse",
+        label: "NVIDIA Omniverse",
+        desc: "Real-time 3D simulation and digital twin platform for physics and ML workflows.",
+        url: "https://www.nvidia.com/en-us/omniverse/",
+        color: "#7fff52",
+        icon: Atom,
+        stars: "Industry",
+      },
+      {
+        id: "novix",
+        label: "Novix (Modal)",
+        desc: "Serverless GPU compute for ML inference and research workloads — pay per use.",
+        url: "https://modal.com/",
+        color: "#52c4ff",
+        icon: Zap,
+        stars: "Cloud",
+      },
+      {
+        id: "wandb",
+        label: "Weights & Biases",
+        desc: "Experiment tracking, model versioning, and hyperparameter sweeps for ML research.",
+        url: "https://wandb.ai/",
+        color: "#ffcb47",
+        icon: TrendingUp,
+        stars: "SaaS",
+      },
+    ],
+  },
+  {
+    category: "P2PCLAW Network",
+    portals: [
+      {
+        id: "p2pclaw-app",
+        label: "Classic App (P2PCLAW)",
+        desc: "The original P2PCLAW application with Genetic Lab, Agent Console, and full network dashboard.",
+        url: "https://app.p2pclaw.com/app.html",
+        color: "#ff4e1a",
+        icon: Home,
+        stars: "P2PCLAW",
+      },
+      {
+        id: "p2pclaw-hive",
+        label: "P2PCLAW Hive",
+        desc: "The Hive intelligence layer — collective memory, consensus, and agent swarm coordination.",
+        url: "https://hive.p2pclaw.com/",
+        color: "#ff7020",
+        icon: Network,
+        stars: "P2PCLAW",
+      },
+      {
+        id: "p2pclaw-mcp",
+        label: "MCP Server",
+        desc: "P2PCLAW's Model Context Protocol server — tool orchestration for AI agents.",
+        url: "https://p2pclaw-mcp-server-production.up.railway.app/",
+        color: "#b366ff",
+        icon: Settings,
+        stars: "P2PCLAW",
+      },
+    ],
+  },
+];
+
+function ExternalPortalsTab() {
+  const [search, setSearch] = useState("");
+
+  const filtered = EXTERNAL_PORTALS.map(cat => ({
+    ...cat,
+    portals: cat.portals.filter(
+      p =>
+        !search ||
+        p.label.toLowerCase().includes(search.toLowerCase()) ||
+        p.desc.toLowerCase().includes(search.toLowerCase())
+    ),
+  })).filter(cat => cat.portals.length > 0);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
+          <Globe className="w-4 h-4 text-[#ff4e1a]" />
+          External AI Research Labs
+        </h2>
+        <p className="font-mono text-[10px] text-[#52504e]">
+          Curated portals to the best AI research tools, platforms, and open-science infrastructure.
+        </p>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+          <Search className="w-3.5 h-3.5 text-[#52504e]" />
+        </div>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Filter portals…"
+          className="w-full bg-[#121214] border border-[#2c2c30] rounded-lg pl-9 pr-3 py-2.5 font-mono text-xs text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
+        />
+      </div>
+
+      {/* Categories */}
+      {filtered.map(cat => (
+        <div key={cat.category}>
+          <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase tracking-widest mb-3 flex items-center gap-2">
+            <div className="flex-1 h-px bg-[#2c2c30]" />
+            {cat.category}
+            <div className="flex-1 h-px bg-[#2c2c30]" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {cat.portals.map(portal => (
+              <a
+                key={portal.id}
+                href={portal.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d] hover:border-[#ff4e1a]/50 transition-all flex flex-col gap-3 cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `${portal.color}15`, border: `1px solid ${portal.color}30` }}
+                    >
+                      <portal.icon className="w-3.5 h-3.5" style={{ color: portal.color }} />
+                    </div>
+                    <div>
+                      <div className="font-mono text-xs font-bold text-[#f5f0eb] group-hover:text-[#ff4e1a] transition-colors leading-tight">
+                        {portal.label}
+                      </div>
+                      <span
+                        className="font-mono text-[8px] px-1 py-0 rounded uppercase tracking-wider"
+                        style={{ color: portal.color, backgroundColor: `${portal.color}15` }}
+                      >
+                        {portal.stars}
+                      </span>
+                    </div>
+                  </div>
+                  <ExternalLink className="w-3 h-3 text-[#2c2c30] group-hover:text-[#ff4e1a] transition-colors shrink-0 mt-1" />
+                </div>
+                <p className="font-mono text-[10px] text-[#52504e] leading-relaxed">{portal.desc}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MAIN LAB PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function LabPage() {
   const [activeTab, setActiveTab] = useState<TabId>("hub");
 
-  const TabContent = {
+  const TabContent: Record<TabId, React.ReactNode> = {
     hub:         <HubTab />,
+    search:      <SearchTab />,
     chat:        <ResearchChatTab />,
     literature:  <LiteratureTab />,
     experiments: <ExperimentsTab />,
@@ -1418,6 +2085,8 @@ export default function LabPage() {
     genetic:     <GeneticLabTab />,
     workflows:   <WorkflowsTab />,
     aiscientist: <AIScientistTab />,
+    hivelab:     <HiveLabTab />,
+    portals:     <ExternalPortalsTab />,
   };
 
   return (
