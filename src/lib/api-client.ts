@@ -170,8 +170,9 @@ export async function fetchSwarmStatus(
   let res: Response;
   try {
     res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
+    if (!res.ok) throw new Error(`/swarm-status → ${res.status}`);
   } catch {
-    // Railway down — derive stats from Gun.js
+    // Railway down or returning 502/404 — derive stats from Gun.js
     const gunAgents = await fetchAgentsFromGun();
     return SwarmStatusSchema.parse({
       agents: gunAgents.total, activeAgents: gunAgents.activeCount,
@@ -179,7 +180,6 @@ export async function fetchSwarmStatus(
       version: "p2p", relay: "gun", network: "p2pclaw", timestamp: Date.now(),
     });
   }
-  if (!res.ok) throw new Error(`/swarm-status → ${res.status}`);
   const raw = (await res.json()) as Record<string, unknown>;
 
   // Railway API returns snake_case — normalise to camelCase before Zod parse
