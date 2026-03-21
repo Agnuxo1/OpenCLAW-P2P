@@ -27,6 +27,196 @@ const API = typeof window !== "undefined"
   ? (process.env.NEXT_PUBLIC_API_BASE ?? "")
   : "";
 
+// ══════════════════════════════════════════════════════════════════════════════
+// REAL COMPUTE LAYER
+// ──────────────────────────────────────────────────────────────────────────────
+// 1. Pyodide   — Python 3.11 + NumPy/SymPy in WebAssembly on the USER's device
+// 2. PubChem   — NIH molecular database REST API (free, no key required)
+// 3. Semantic Scholar — Allen AI semantic paper search (free, no key required)
+// 4. Lean4Web  — live.lean-lang.org (official Lean 4 playground, opens in tab)
+// 5. HPC links — real external HPC platforms for heavy simulation workloads
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _pyodide: unknown = null;
+let _pyPromise: Promise<unknown> | null = null;
+
+async function loadPyodideEnv(): Promise<unknown> {
+  if (_pyodide) return _pyodide;
+  if (_pyPromise) return _pyPromise;
+  _pyPromise = new Promise<unknown>((resolve, reject) => {
+    const W = window as unknown as Record<string, unknown>;
+    const doLoad = () => {
+      (W.loadPyodide as (o: unknown) => Promise<unknown>)({
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/",
+      }).then(py => { _pyodide = py; resolve(py); }).catch(reject);
+    };
+    if (W.loadPyodide) { doLoad(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js";
+    s.onload = doLoad;
+    s.onerror = () => reject(new Error("Pyodide CDN unreachable — check your network connection"));
+    document.head.appendChild(s);
+  });
+  return _pyPromise;
+}
+
+async function runPython(
+  code: string,
+  packages: string[] = [],
+): Promise<{ output: string; error: string | null; elapsed: number }> {
+  const t0 = Date.now();
+  try {
+    const py = await loadPyodideEnv() as {
+      runPython: (s: string) => unknown;
+      runPythonAsync: (s: string) => Promise<unknown>;
+      loadPackage: (pkgs: string[]) => Promise<void>;
+    };
+    if (packages.length) await py.loadPackage(packages);
+    py.runPython(
+      "import sys, io as _io; _buf = _io.StringIO(); sys.stdout = _buf; sys.stderr = _buf",
+    );
+    let res: unknown;
+    try {
+      res = await py.runPythonAsync(code);
+    } catch (e) {
+      const cap = String(py.runPython("_buf.getvalue()"));
+      return { output: cap, error: e instanceof Error ? e.message : String(e), elapsed: Date.now() - t0 };
+    }
+    const cap = String(py.runPython("_buf.getvalue()"));
+    const out = cap || (res !== null && res !== undefined ? String(res) : "(no output)");
+    return { output: out, error: null, elapsed: Date.now() - t0 };
+  } catch (e) {
+    return { output: "", error: e instanceof Error ? e.message : String(e), elapsed: Date.now() - t0 };
+  }
+}
+
+async function queryPubChem(smiles: string): Promise<string> {
+  const enc = encodeURIComponent(smiles.trim());
+  const url =
+    `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/smiles/${enc}/property/` +
+    `MolecularFormula,MolecularWeight,IsomericSMILES,IUPACName,XLogP,` +
+    `HBondDonorCount,HBondAcceptorCount,RotatableBondCount/JSON`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return `PubChem: compound not found for "${smiles}" (HTTP ${r.status})`;
+    const d = await r.json() as { PropertyTable?: { Properties?: Record<string, string | number>[] } };
+    const p = d.PropertyTable?.Properties?.[0];
+    if (!p) return "PubChem returned no data for this SMILES";
+    return [
+      "✓ Valid SMILES — PubChem lookup complete",
+      "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+      `Molecular Formula:  ${p.MolecularFormula}`,
+      `Molecular Weight:   ${p.MolecularWeight} g/mol`,
+      `IUPAC Name:         ${p.IUPACName ?? "N/A"}`,
+      `Canonical SMILES:   ${p.IsomericSMILES}`,
+      `XLogP (lipophil.):  ${p.XLogP ?? "N/A"}`,
+      `H-bond donors:      ${p.HBondDonorCount ?? "N/A"}`,
+      `H-bond acceptors:   ${p.HBondAcceptorCount ?? "N/A"}`,
+      `Rotatable bonds:    ${p.RotatableBondCount ?? "N/A"}`,
+      "",
+      "Source: PubChem NIH — https://pubchem.ncbi.nlm.nih.gov",
+    ].join("\n");
+  } catch {
+    return "PubChem API unreachable — check your network connection";
+  }
+}
+
+interface SSPaper {
+  paperId: string; title: string;
+  authors: { name: string }[];
+  year: number | null; abstract: string | null;
+  citationCount: number;
+  openAccessPdf: { url: string } | null;
+  externalIds: { DOI?: string; ArXiv?: string };
+}
+
+async function searchSemanticScholar(query: string, limit = 8): Promise<SSPaper[]> {
+  const url =
+    `https://api.semanticscholar.org/graph/v1/paper/search` +
+    `?query=${encodeURIComponent(query)}` +
+    `&fields=title,authors,year,abstract,citationCount,openAccessPdf,externalIds` +
+    `&limit=${limit}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Semantic Scholar API: HTTP ${r.status}`);
+  const d = await r.json() as { data?: SSPaper[] };
+  return d.data ?? [];
+}
+
+type SimEngine = "local" | "pubchem" | "lean4web" | "hpc";
+interface SimTool {
+  id: string; label: string; desc: string;
+  example: Record<string, unknown>; engine: SimEngine;
+  packages?: string[]; hpcUrl?: string; hpcLabel?: string;
+}
+
+function buildToolCode(toolId: string, params: Record<string, unknown>): string {
+  switch (toolId) {
+    case "numpy_compute": {
+      const op = JSON.stringify(String(params.op ?? "eigvals"));
+      const mat = JSON.stringify(params.matrix ?? params.data ?? [[1, 2], [3, 4]]);
+      return `import numpy as np, json, sys
+print(f"NumPy {np.__version__} · Python {sys.version[:6]} · Pyodide/WASM")
+A = np.array(${mat}, dtype=float)
+op = ${op}
+_ops = {
+  "eigvals": ("Eigenvalues",    lambda m: np.linalg.eigvals(m).tolist()),
+  "svd":     ("Singular Values",lambda m: np.linalg.svd(m, compute_uv=False).tolist()),
+  "inv":     ("Inverse",        lambda m: np.linalg.inv(m).tolist()),
+  "det":     ("Determinant",    lambda m: float(np.linalg.det(m))),
+  "norm":    ("Frobenius Norm", lambda m: float(np.linalg.norm(m))),
+  "trace":   ("Trace",          lambda m: float(np.trace(m))),
+  "rank":    ("Rank",           lambda m: int(np.linalg.matrix_rank(m))),
+  "cond":    ("Cond. Number",   lambda m: float(np.linalg.cond(m))),
+}
+if op in _ops:
+  lbl, fn = _ops[op]
+  res = fn(A)
+  print(f"\\nMatrix shape: {A.shape}\\nOperation: {lbl}\\nResult:")
+  print(json.dumps(res, indent=2, default=str))
+else:
+  print(f"Unknown op '{op}'.\\nAvailable: {list(_ops.keys())}")`;
+    }
+    case "sympy_algebra": {
+      const expr = String(params.expr ?? "x**2 + 2*x + 1")
+        .replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      const op = String(params.op ?? "factor").replace(/"/g, '\\"');
+      return `import sympy as sp, sys
+print(f"SymPy {sp.__version__} · Python {sys.version[:6]} · Pyodide/WASM")
+x, y, z, t = sp.symbols("x y z t", real=True)
+expr = sp.sympify("${expr}")
+op = "${op}"
+_ops = {
+  "factor":       lambda e: sp.factor(e),
+  "expand":       lambda e: sp.expand(e),
+  "simplify":     lambda e: sp.simplify(e),
+  "diff":         lambda e: sp.diff(e, x),
+  "integrate":    lambda e: sp.integrate(e, x),
+  "solve":        lambda e: sp.solve(e, x),
+  "series":       lambda e: sp.series(e, x, 0, 6),
+  "latex":        lambda e: sp.latex(e),
+  "partial_frac": lambda e: sp.apart(e, x),
+  "rationalize":  lambda e: sp.nsimplify(e),
+}
+fn = _ops.get(op, sp.simplify)
+result = fn(expr)
+print(f"\\nInput:  {expr}")
+print(f"Op:     {op}")
+print(f"Result: {result}")
+if op not in ("latex",):
+  print(f"LaTeX:  {sp.latex(result)}")`;
+    }
+    case "generic_python":
+      return String(
+        params.code ??
+        'import sys\nprint(f"Python {sys.version[:10]} running in your browser via Pyodide WASM")\n' +
+        'print("NumPy, SymPy, and SciPy are available.")\n' +
+        'print("Your computation runs on YOUR hardware — no data leaves your device.")',
+      );
+    default:
+      return `print("No local executor for tool: ${toolId}")`;
+  }
+}
+
 // ── types ──────────────────────────────────────────────────────────────────────
 
 type TabId =
@@ -302,16 +492,24 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
 function SearchTab() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<{ id: number; type: "paper" | "agent" | "data"; title: string; author: string; date: string; match: string }[]>([]);
-  const [filter, setFilter] = useState<"all" | "papers" | "agents" | "data">("all");
+  const [ssLoading, setSsLoading] = useState(false);
+  const [networkResults, setNetworkResults] = useState<{ id: number; type: "paper" | "agent"; title: string; author: string; date: string }[]>([]);
+  const [ssResults, setSsResults] = useState<SSPaper[]>([]);
+  const [ssError, setSsError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"network" | "science">("science");
 
   const submitSearch = async () => {
     if (!query.trim() || loading) return;
     setLoading(true);
-    setResults([]);
+    setSsLoading(true);
+    setNetworkResults([]);
+    setSsResults([]);
+    setSsError(null);
     const lq = query.toLowerCase();
-    const all: typeof results = [];
+    const all: typeof networkResults = [];
     let seq = 0;
+
+    // P2PCLAW network search
     try {
       const [papersRes, agentsRes] = await Promise.allSettled([
         fetch(`${API}/api/latest-papers?limit=30`),
@@ -325,7 +523,7 @@ function SearchTab() {
           .filter(p => (p.title ?? "").toLowerCase().includes(lq))
           .slice(0, 8)
           .forEach(p => {
-            all.push({ id: ++seq, type: "paper", title: p.title ?? "Untitled", author: p.authorName ?? p.author_name ?? "Unknown", date: ((p.published_at ?? p.created_at) ?? "").slice(0, 10) || "—", match: "—" });
+            all.push({ id: ++seq, type: "paper", title: p.title ?? "Untitled", author: p.authorName ?? p.author_name ?? "Unknown", date: ((p.published_at ?? p.created_at) ?? "").slice(0, 10) || "—" });
           });
       }
       if (agentsRes.status === "fulfilled" && agentsRes.value.ok) {
@@ -336,12 +534,21 @@ function SearchTab() {
           .filter(a => (a.name ?? "").toLowerCase().includes(lq) || (a.type ?? "").toLowerCase().includes(lq))
           .slice(0, 5)
           .forEach(a => {
-            all.push({ id: ++seq, type: "agent", title: a.name ?? "Agent", author: a.type ?? "SILICON", date: a.status ?? "—", match: "—" });
+            all.push({ id: ++seq, type: "agent", title: a.name ?? "Agent", author: a.type ?? "SILICON", date: a.status ?? "—" });
           });
       }
     } catch { /* ignore */ }
-    setResults(all);
+    setNetworkResults(all);
     setLoading(false);
+
+    // Semantic Scholar — real scientific literature
+    try {
+      const papers = await searchSemanticScholar(query.trim(), 10);
+      setSsResults(papers);
+    } catch (e) {
+      setSsError(e instanceof Error ? e.message : "Semantic Scholar API unreachable");
+    }
+    setSsLoading(false);
   };
 
   return (
@@ -349,10 +556,10 @@ function SearchTab() {
       <div>
         <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
           <Search className="w-4 h-4 text-[#ffcb47]" />
-          Global Knowledge Search
+          Knowledge Search
         </h2>
         <p className="font-mono text-[10px] text-[#52504e]">
-          Search across the entire P2PCLAW network for papers, agents, and datasets. Similar to aiscientist.tools.
+          Search the P2PCLAW network AND real scientific literature via Semantic Scholar (200M+ papers, Allen AI).
         </p>
       </div>
 
@@ -365,51 +572,135 @@ function SearchTab() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === "Enter" && submitSearch()}
-            placeholder="Search the hivemind..."
+            placeholder='e.g. "distributed consensus Byzantine fault tolerance"'
             className="w-full bg-[#121214] border border-[#2c2c30] rounded-lg pl-9 pr-3 py-3 font-mono text-xs text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
           />
         </div>
-        <button onClick={submitSearch} disabled={!query.trim() || loading}
+        <button onClick={submitSearch} disabled={!query.trim() || (loading && ssLoading)}
           className="px-6 py-3 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-2 shrink-0">
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
+          {(loading || ssLoading) ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
         </button>
       </div>
 
       <div className="flex gap-2 border-b border-[#2c2c30] pb-2">
-        {(["all", "papers", "agents", "data"] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)}
-            className={`font-mono text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${
-              filter === f ? "bg-[#2c2c30] text-[#f5f0eb]" : "text-[#52504e] hover:text-[#9a9490]"
-            }`}>
-            {f}
-          </button>
-        ))}
+        <button onClick={() => setActiveTab("science")}
+          className={`font-mono text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${activeTab === "science" ? "bg-[#2c2c30] text-[#f5f0eb]" : "text-[#52504e] hover:text-[#9a9490]"}`}>
+          Scientific Literature {ssResults.length > 0 && `(${ssResults.length})`}
+        </button>
+        <button onClick={() => setActiveTab("network")}
+          className={`font-mono text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${activeTab === "network" ? "bg-[#2c2c30] text-[#f5f0eb]" : "text-[#52504e] hover:text-[#9a9490]"}`}>
+          P2PCLAW Network {networkResults.length > 0 && `(${networkResults.length})`}
+        </button>
       </div>
 
-      {results.length > 0 && !loading && (
-        <div className="space-y-2">
-          {results.filter(r => filter === "all" || r.type === filter).map(r => (
-            <div key={r.id} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] hover:border-[#ffcb47]/40 transition-colors cursor-pointer flex gap-4 items-center">
-              <div className="w-10 h-10 rounded bg-[#1a1a1c] flex items-center justify-center shrink-0">
-                {r.type === "paper" ? <FileText className="w-5 h-5 text-[#7fff52]" /> :
-                 r.type === "agent" ? <Bot className="w-5 h-5 text-[#52c4ff]" /> :
-                 <Database className="w-5 h-5 text-[#ffcb47]" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-mono text-xs font-bold text-[#f5f0eb] truncate">{r.title}</div>
-                <div className="font-mono text-[10px] text-[#52504e] mt-1">{r.type.toUpperCase()} · {r.author} · {r.date}</div>
-              </div>
-              <div className="font-mono text-xs font-bold text-[#ffcb47]">{r.match}</div>
+      {activeTab === "science" && (
+        <>
+          {ssLoading && (
+            <div className="flex items-center gap-2 py-4">
+              <Loader2 className="w-4 h-4 animate-spin text-[#52c4ff]" />
+              <span className="font-mono text-xs text-[#52504e]">Querying Semantic Scholar (Allen AI)…</span>
             </div>
-          ))}
-        </div>
+          )}
+          {ssError && (
+            <div className="border border-[#3b0a00] bg-[#1a0a00] rounded-lg p-3 font-mono text-xs text-[#ff5252]">
+              {ssError}
+            </div>
+          )}
+          {ssResults.length > 0 && !ssLoading && (
+            <div className="space-y-3">
+              <div className="font-mono text-[9px] text-[#52504e] uppercase tracking-wider">
+                Semantic Scholar · {ssResults.length} results · Source: api.semanticscholar.org
+              </div>
+              {ssResults.map(p => {
+                const authors = p.authors.slice(0, 3).map(a => a.name).join(", ") + (p.authors.length > 3 ? " et al." : "");
+                const pdfUrl = p.openAccessPdf?.url;
+                const doiUrl = p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : null;
+                const arxivUrl = p.externalIds?.ArXiv ? `https://arxiv.org/abs/${p.externalIds.ArXiv}` : null;
+                const url = pdfUrl ?? doiUrl ?? arxivUrl;
+                return (
+                  <div key={p.paperId} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] hover:border-[#52c4ff]/40 transition-colors">
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded bg-[#0a1a2a] flex items-center justify-center shrink-0 mt-0.5">
+                        <BookOpen className="w-4 h-4 text-[#52c4ff]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {url ? (
+                          <a href={url} target="_blank" rel="noopener noreferrer"
+                            className="font-mono text-xs font-bold text-[#52c4ff] hover:underline block leading-snug">
+                            {p.title}
+                          </a>
+                        ) : (
+                          <div className="font-mono text-xs font-bold text-[#f5f0eb] leading-snug">{p.title}</div>
+                        )}
+                        <div className="font-mono text-[9px] text-[#52504e] mt-1">
+                          {authors}{p.year ? ` · ${p.year}` : ""} · {p.citationCount} citations
+                          {pdfUrl && <span className="ml-2 text-[#7fff52]">· PDF</span>}
+                          {p.externalIds?.DOI && <span className="ml-1 text-[#ffcb47]">· DOI</span>}
+                          {p.externalIds?.ArXiv && <span className="ml-1 text-[#ff9a52]">· arXiv</span>}
+                        </div>
+                        {p.abstract && (
+                          <p className="font-mono text-[9px] text-[#9a9490] mt-1 leading-relaxed line-clamp-3">
+                            {p.abstract}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {!ssLoading && ssResults.length === 0 && !ssError && query && (
+            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
+              <p className="font-mono text-xs text-[#52504e]">No papers found on Semantic Scholar for this query.</p>
+            </div>
+          )}
+          {!query && (
+            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
+              <p className="font-mono text-xs text-[#52504e]">Enter a query to search 200M+ scientific papers from Semantic Scholar.</p>
+            </div>
+          )}
+        </>
       )}
 
-      {results.length === 0 && !loading && query && (
-         <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
-           <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
-           <p className="font-mono text-xs text-[#52504e]">No knowledge matched your query in the current network scope.</p>
-         </div>
+      {activeTab === "network" && (
+        <>
+          {networkResults.length > 0 && !loading && (
+            <div className="space-y-2">
+              {networkResults.map(r => (
+                <div key={r.id} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] hover:border-[#ffcb47]/40 transition-colors flex gap-4 items-center">
+                  <div className="w-10 h-10 rounded bg-[#1a1a1c] flex items-center justify-center shrink-0">
+                    {r.type === "paper" ? <FileText className="w-5 h-5 text-[#7fff52]" /> : <Bot className="w-5 h-5 text-[#52c4ff]" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-mono text-xs font-bold text-[#f5f0eb] truncate">{r.title}</div>
+                    <div className="font-mono text-[10px] text-[#52504e] mt-1">{r.type.toUpperCase()} · {r.author} · {r.date}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {loading && (
+            <div className="flex items-center gap-2 py-4">
+              <Loader2 className="w-4 h-4 animate-spin text-[#ff4e1a]" />
+              <span className="font-mono text-xs text-[#52504e]">Searching P2PCLAW network…</span>
+            </div>
+          )}
+          {networkResults.length === 0 && !loading && query && (
+            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
+              <p className="font-mono text-xs text-[#52504e]">No P2PCLAW network results for this query.</p>
+            </div>
+          )}
+          {!query && (
+            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
+              <p className="font-mono text-xs text-[#52504e]">Enter a query to search papers and agents in the P2PCLAW network.</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -1061,148 +1352,269 @@ function ExperimentsTab() {
 // SIMULATION TAB — Distributed Compute
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const SIM_TOOLS = [
-  { id: "rdkit_energy_minimize", label: "RDKit Energy Min",      desc: "MMFF94 force field",       example: { smiles: "CCO" } },
-  { id: "rdkit_smiles_validate", label: "SMILES Validate",       desc: "Canonicalize SMILES",       example: { smiles: "c1ccccc1" } },
-  { id: "lean4_verify",          label: "Lean 4 Proof Check",    desc: "Formal verification",       example: { proof: "#check Nat.add_comm" } },
-  { id: "generic_python",        label: "Python Sandbox",        desc: "Sandboxed computation",     example: { code: "import math\nprint(math.pi * 2)" } },
-  { id: "lammps_md",             label: "LAMMPS MD",             desc: "Molecular dynamics sim",    example: { atoms: 100, steps: 1000, potential: "lj" } },
-  { id: "gromacs_em",            label: "GROMACS EM",            desc: "Energy minimization",       example: { pdb: "alanine.pdb", forcefield: "amber99" } },
-  { id: "openmm_nvt",            label: "OpenMM NVT",            desc: "NVT ensemble simulation",   example: { pdb: "alanine.pdb", steps: 10000, temp: 300 } },
-  { id: "gaussian_sp",           label: "Gaussian SP",           desc: "Single-point energy DFT",   example: { molecule: "H2O", method: "B3LYP", basis: "6-31G*" } },
-  { id: "numpy_compute",         label: "NumPy Compute",         desc: "Matrix / linear algebra",   example: { op: "eigvals", matrix: [[1,2],[3,4]] } },
-  { id: "sympy_algebra",         label: "SymPy Algebra",         desc: "Symbolic mathematics",      example: { expr: "x**2 + 2*x + 1", op: "factor" } },
+const SIM_TOOLS: SimTool[] = [
+  { id: "numpy_compute",         label: "NumPy",          desc: "Matrix algebra — runs in browser",   example: { op: "eigvals", matrix: [[1,2],[3,4]] },              engine: "local",    packages: ["numpy"] },
+  { id: "sympy_algebra",         label: "SymPy",          desc: "Symbolic math — runs in browser",    example: { expr: "x**2 + 2*x + 1", op: "factor" },             engine: "local",    packages: ["sympy"] },
+  { id: "generic_python",        label: "Python 3.11",    desc: "Python WASM — runs in browser",      example: { code: "import numpy as np\nA = np.array([[4,3],[6,3]])\nprint('Eigenvalues:', np.linalg.eigvals(A))" }, engine: "local", packages: [] },
+  { id: "rdkit_smiles_validate", label: "SMILES/PubChem", desc: "Molecular data — NIH PubChem API",   example: { smiles: "c1ccccc1" },                                engine: "pubchem" },
+  { id: "rdkit_energy_minimize", label: "Mol Properties", desc: "Molecular properties — NIH PubChem", example: { smiles: "CCO" },                                     engine: "pubchem" },
+  { id: "lean4_verify",          label: "Lean 4 Proof",   desc: "Formal proof — opens Lean4Web",      example: { proof: "theorem t : 1 + 1 = 2 := rfl" },            engine: "lean4web" },
+  { id: "lammps_md",             label: "LAMMPS MD",      desc: "Molecular dynamics — external HPC",  example: { atoms: 100, steps: 1000, potential: "lj" },          engine: "hpc", hpcUrl: "https://nanohub.org/tools/lammpsmd",  hpcLabel: "nanoHUB" },
+  { id: "gromacs_em",            label: "GROMACS",        desc: "MD simulation — external HPC",       example: { pdb: "alanine.pdb", forcefield: "amber99" },         engine: "hpc", hpcUrl: "https://usegalaxy.eu/",             hpcLabel: "Galaxy Europe" },
+  { id: "openmm_nvt",            label: "OpenMM NVT",     desc: "MD simulation — external HPC",       example: { pdb: "alanine.pdb", steps: 10000, temp: 300 },       engine: "hpc", hpcUrl: "https://colab.research.google.com/", hpcLabel: "Google Colab" },
+  { id: "gaussian_sp",           label: "Gaussian DFT",   desc: "Quantum chemistry — external HPC",   example: { molecule: "H2O", method: "B3LYP", basis: "6-31G*" }, engine: "hpc", hpcUrl: "https://chemcompute.org/",          hpcLabel: "ChemCompute" },
 ];
 
-interface SimJob {
-  id: string; tool: string; status: string;
-  params: Record<string, unknown>; ts: number;
-  verified_result?: unknown; results?: { hash: string }[];
+interface LocalJob {
+  id: string; tool: string; engine: SimEngine; status: "running" | "done" | "error";
+  params: Record<string, unknown>; output: string; error: string | null;
+  elapsed: number; ts: number;
 }
+
+const ENGINE_BADGE: Record<SimEngine, { label: string; color: string }> = {
+  local:    { label: "🔬 Runs In Your Browser", color: "#7fff52" },
+  pubchem:  { label: "🧬 NIH PubChem",          color: "#52c4ff" },
+  lean4web: { label: "📐 Lean4Web Playground",  color: "#b366ff" },
+  hpc:      { label: "☁ External HPC",          color: "#ffcb47" },
+};
 
 function SimulationTab() {
   const [tool, setTool] = useState(SIM_TOOLS[0].id);
   const [params, setParams] = useState(JSON.stringify(SIM_TOOLS[0].example, null, 2));
-  const [submitting, setSubmitting] = useState(false);
-  const [jobs, setJobs] = useState<SimJob[]>([]);
+  const [running, setRunning] = useState(false);
+  const [pyLoading, setPyLoading] = useState(false);
+  const [jobs, setJobs] = useState<LocalJob[]>([]);
 
-  const selectedTool = SIM_TOOLS.find(t => t.id === tool)!;
+  const sel = SIM_TOOLS.find(t => t.id === tool)!;
 
-  // Recursive polling: checks every 5s then 15s then 30s until terminal status
-  const pollJob = useCallback((jobId: string, attempt = 0) => {
-    if (attempt >= 20) return; // give up after ~10 min
-    const delay = attempt === 0 ? 5000 : attempt < 4 ? 10000 : 30000;
-    setTimeout(async () => {
-      try {
-        const r = await fetch(`${API}/api/simulation/${jobId}`);
-        if (!r.ok) { pollJob(jobId, attempt + 1); return; }
-        const d = await r.json() as SimJob;
-        setJobs(j => j.map(x => x.id === jobId ? { ...x, ...d } : x));
-        if (!["verified", "completed", "failed", "error"].includes(d.status ?? "")) {
-          pollJob(jobId, attempt + 1);
-        }
-      } catch { pollJob(jobId, attempt + 1); }
-    }, delay);
-  }, []);
+  const runJob = async () => {
+    if (running) return;
+    let parsed: Record<string, unknown> = {};
+    try { parsed = JSON.parse(params); } catch { /* keep empty */ }
 
-  const submit = async () => {
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      let parsed: Record<string, unknown> = {};
-      try { parsed = JSON.parse(params); } catch { /* use empty */ }
-      const res = await fetch(`${API}/api/simulation/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tool, params: parsed, requester: "lab-user" }),
-      });
-      const data = await res.json() as { jobId?: string; id?: string };
-      const jobId = data.jobId ?? data.id ?? crypto.randomUUID();
-      setJobs(j => [{ id: jobId, tool, status: "pending", params: parsed, ts: Date.now() }, ...j]);
-      pollJob(jobId);
-    } catch { /* show error */ }
-    setSubmitting(false);
+    // HPC → open external platform
+    if (sel.engine === "hpc") {
+      window.open(sel.hpcUrl!, "_blank", "noopener,noreferrer");
+      return;
+    }
+    // Lean 4 → open Lean4Web with pre-filled proof
+    if (sel.engine === "lean4web") {
+      const proof = String(parsed.proof ?? "#check Nat.add_comm");
+      window.open(`https://live.lean-lang.org/#code=${encodeURIComponent(proof)}`, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    setRunning(true);
+    const jobId = crypto.randomUUID();
+    setJobs(j => [{
+      id: jobId, tool, engine: sel.engine, status: "running",
+      params: parsed, output: "", error: null, elapsed: 0, ts: Date.now(),
+    }, ...j]);
+
+    if (sel.engine === "pubchem") {
+      const smiles = String(parsed.smiles ?? parsed.molecule ?? "CCO");
+      const output = await queryPubChem(smiles);
+      setJobs(j => j.map(x => x.id === jobId ? { ...x, status: "done", output, elapsed: Date.now() - x.ts } : x));
+    } else {
+      // local (Pyodide)
+      setJobs(j => j.map(x => x.id === jobId ? { ...x, output: "⏳ Loading Python 3.11 runtime (first run: ~10MB from CDN, cached after)…" } : x));
+      setPyLoading(true);
+      const code = buildToolCode(tool, tool === "generic_python" ? parsed : parsed);
+      const result = await runPython(code, sel.packages ?? []);
+      setPyLoading(false);
+      setJobs(j => j.map(x => x.id === jobId ? {
+        ...x, status: result.error ? "error" : "done",
+        output: result.output, error: result.error, elapsed: result.elapsed,
+      } : x));
+    }
+    setRunning(false);
   };
 
+  // For generic_python, extract code from JSON or use raw
+  const codeValue = (() => {
+    if (tool !== "generic_python") return null;
+    try { return String(JSON.parse(params).code ?? ""); } catch { return params; }
+  })();
+  const setCodeValue = (v: string) => setParams(JSON.stringify({ code: v }, null, 2));
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Left: job builder */}
-      <div className="space-y-4">
-        <div>
-          <h2 className="font-mono text-sm font-bold text-[#f5f0eb] mb-1">Distributed Compute</h2>
-          <p className="font-mono text-[10px] text-[#52504e]">Submit jobs to the P2PCLAW worker swarm</p>
-        </div>
-
-        {/* Tool selector */}
-        <div className="grid grid-cols-2 gap-2">
-          {SIM_TOOLS.map(t => (
-            <button key={t.id} onClick={() => { setTool(t.id); setParams(JSON.stringify(t.example, null, 2)); }}
-              className={`text-left p-3 rounded-lg border transition-colors ${tool === t.id ? "border-[#ff4e1a]/40 bg-[#ff4e1a]/5" : "border-[#2c2c30] bg-[#0c0c0d] hover:border-[#2c2c30]/60"}`}>
-              <div className="font-mono text-xs font-bold text-[#f5f0eb] mb-0.5">{t.label}</div>
-              <div className="font-mono text-[10px] text-[#52504e]">{t.desc}</div>
-            </button>
-          ))}
-        </div>
-
-        {/* Params */}
-        <div>
-          <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">
-            Parameters (JSON) — {selectedTool.label}
-          </label>
-          <textarea
-            value={params}
-            onChange={e => setParams(e.target.value)}
-            rows={6}
-            spellCheck={false}
-            className="w-full font-mono text-xs bg-[#0c0c0d] border border-[#2c2c30] rounded-lg p-3 text-[#f5f0eb] focus:border-[#ff4e1a]/40 focus:outline-none resize-none"
-          />
-        </div>
-
-        <button onClick={submit} disabled={submitting}
-          className="w-full py-2.5 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2">
-          {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
-          Submit to Swarm
-        </button>
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
+          <Cpu className="w-4 h-4 text-[#ff4e1a]" /> Scientific Compute
+        </h2>
+        <p className="font-mono text-[10px] text-[#52504e]">
+          Python runs on <strong className="text-[#7fff52]">YOUR hardware</strong> via WebAssembly (Pyodide) — no server needed.
+          Molecular data via NIH PubChem. Heavy simulation → real HPC platforms.
+        </p>
       </div>
 
-      {/* Right: job queue */}
-      <div>
-        <h3 className="font-mono text-xs font-bold text-[#9a9490] mb-3">Job Queue</h3>
-        <div className="space-y-2 max-h-[500px] overflow-y-auto">
-          {jobs.length === 0 && (
-            <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-6 text-center">
-              <Cpu className="w-6 h-6 text-[#2c2c30] mx-auto mb-2" />
-              <p className="font-mono text-[10px] text-[#52504e]">No jobs submitted yet</p>
+      <div className="flex gap-1.5 flex-wrap">
+        {(Object.entries(ENGINE_BADGE) as [SimEngine, { label: string; color: string }][]).map(([k, v]) => (
+          <span key={k} className="font-mono text-[8px] px-1.5 py-0.5 rounded border"
+            style={{ color: v.color, borderColor: `${v.color}40`, backgroundColor: `${v.color}0a` }}>
+            {v.label}
+          </span>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left: tool selector + params */}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-1.5">
+            {SIM_TOOLS.map(t => {
+              const badge = ENGINE_BADGE[t.engine];
+              return (
+                <button key={t.id}
+                  onClick={() => { setTool(t.id); setParams(JSON.stringify(t.example, null, 2)); }}
+                  className={`text-left p-2.5 rounded-lg border transition-colors ${tool === t.id ? "border-[#ff4e1a]/40 bg-[#ff4e1a]/5" : "border-[#2c2c30] bg-[#0c0c0d] hover:border-[#2c2c30]/60"}`}>
+                  <div className="font-mono text-xs font-bold text-[#f5f0eb] mb-0.5">{t.label}</div>
+                  <div className="font-mono text-[9px] text-[#52504e] mb-1">{t.desc}</div>
+                  <span className="font-mono text-[7px] px-1 py-0.5 rounded"
+                    style={{ color: badge.color, backgroundColor: `${badge.color}18` }}>
+                    {badge.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Params area — context-aware */}
+          {sel.engine === "local" && tool !== "generic_python" && (
+            <div>
+              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">
+                Parameters (JSON)
+              </label>
+              <textarea value={params} onChange={e => setParams(e.target.value)}
+                rows={5} spellCheck={false}
+                className="w-full font-mono text-xs bg-[#0c0c0d] border border-[#2c2c30] rounded-lg p-3 text-[#f5f0eb] focus:border-[#7fff52]/30 focus:outline-none resize-none" />
             </div>
           )}
-          {jobs.map(job => {
-            const statusColor = job.status === "verified" ? "#7fff52" : job.status === "completed" ? "#52c4ff" : job.status === "claimed" ? "#ffcb47" : "#52504e";
-            const StatusIcon = job.status === "verified" ? CheckCircle2 : job.status === "claimed" ? Zap : Clock;
-            return (
-              <div key={job.id} className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-mono text-xs text-[#9a9490]">{SIM_TOOLS.find(t => t.id === job.tool)?.label ?? job.tool}</span>
-                  <span className="font-mono text-[10px] flex items-center gap-1" style={{ color: statusColor }}>
-                    <StatusIcon className="w-3 h-3" /> {job.status}
-                  </span>
-                </div>
-                <div className="font-mono text-[9px] text-[#2c2c30]">
-                  {new Date(job.ts).toLocaleTimeString()} · {job.id.slice(0, 8)}
-                </div>
-                {!!job.verified_result && (
-                  <pre className="mt-2 font-mono text-[9px] text-[#7fff52] bg-[#0a1a0a] rounded p-2 overflow-x-auto">
-                    {JSON.stringify(job.verified_result, null, 2).slice(0, 200)}
-                  </pre>
-                )}
-                {job.results && job.results.length > 0 && !job.verified_result && (
-                  <div className="mt-1 font-mono text-[9px] text-[#52504e]">
-                    {job.results.length} worker result{job.results.length !== 1 ? "s" : ""}
-                    {job.results.length < 2 && " (need 2 matching for consensus)"}
-                  </div>
-                )}
+
+          {tool === "generic_python" && (
+            <div>
+              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">
+                Python Code — runs in your browser
+              </label>
+              <textarea value={codeValue ?? ""} onChange={e => setCodeValue(e.target.value)}
+                rows={8} spellCheck={false}
+                placeholder="import numpy as np&#10;# Your Python code here..."
+                className="w-full font-mono text-xs bg-[#0a0a0b] border border-[#7fff52]/20 rounded-lg p-3 text-[#f5f0eb] focus:border-[#7fff52]/40 focus:outline-none resize-none" />
+            </div>
+          )}
+
+          {sel.engine === "pubchem" && (
+            <div>
+              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">
+                SMILES String
+              </label>
+              <textarea value={params} onChange={e => setParams(e.target.value)}
+                rows={3} spellCheck={false}
+                className="w-full font-mono text-xs bg-[#0c0c0d] border border-[#52c4ff]/20 rounded-lg p-3 text-[#f5f0eb] focus:border-[#52c4ff]/40 focus:outline-none resize-none" />
+            </div>
+          )}
+
+          {sel.engine === "lean4web" && (
+            <div className="border border-[#b366ff]/30 rounded-lg p-3 bg-[#0c0c0d] space-y-2">
+              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block">
+                Lean 4 Proof
+              </label>
+              <textarea
+                value={String((() => { try { return JSON.parse(params).proof ?? ""; } catch { return ""; } })())}
+                onChange={e => setParams(JSON.stringify({ proof: e.target.value }, null, 2))}
+                rows={4} spellCheck={false}
+                className="w-full font-mono text-xs bg-[#0a0a0b] border border-[#b366ff]/30 rounded p-3 text-[#f5f0eb] focus:outline-none resize-none" />
+              <p className="font-mono text-[9px] text-[#52504e]">
+                Will open in <strong>live.lean-lang.org</strong> (official Lean 4 playground) with your proof pre-loaded.
+              </p>
+            </div>
+          )}
+
+          {sel.engine === "hpc" && (
+            <div className="border border-[#ffcb47]/30 rounded-lg p-4 bg-[#0c0c0d] space-y-2">
+              <p className="font-mono text-[10px] text-[#ffcb47] font-bold">☁ External HPC Required</p>
+              <p className="font-mono text-[10px] text-[#52504e] leading-relaxed">
+                {sel.label} requires dedicated computational hardware (GPU/CPU cluster).
+                Clicking the button opens <strong className="text-[#ffcb47]">{sel.hpcLabel}</strong>,
+                a free/accessible scientific computing platform where you can run this simulation.
+              </p>
+              <p className="font-mono text-[9px] text-[#2c2c30]">Reference params:</p>
+              <textarea value={params} onChange={e => setParams(e.target.value)} rows={3}
+                spellCheck={false}
+                className="w-full font-mono text-[10px] bg-[#0a0a0b] border border-[#2c2c30] rounded p-2 text-[#52504e] resize-none" />
+            </div>
+          )}
+
+          <button onClick={runJob} disabled={running}
+            className={`w-full py-2.5 font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2 transition-colors ${
+              sel.engine === "hpc"      ? "bg-[#ffcb47] hover:bg-[#ffd870] text-black" :
+              sel.engine === "lean4web" ? "bg-[#b366ff] hover:bg-[#c47fff] text-black" :
+              sel.engine === "pubchem"  ? "bg-[#52c4ff] hover:bg-[#7fd4ff] text-black" :
+              "bg-[#7fff52] hover:bg-[#a0ff80] text-black"
+            }`}>
+            {running && pyLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+            {running ? (pyLoading ? "Loading Python runtime…" : "Running on your hardware…") :
+              sel.engine === "hpc"      ? `Open ${sel.hpcLabel} →` :
+              sel.engine === "lean4web" ? "Open in Lean4Web →" :
+              sel.engine === "pubchem"  ? "Query NIH PubChem" :
+              "Run on Your Hardware"}
+          </button>
+        </div>
+
+        {/* Right: results */}
+        <div>
+          <h3 className="font-mono text-xs font-bold text-[#9a9490] mb-3">Results</h3>
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
+            {jobs.length === 0 && (
+              <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-6 text-center">
+                <Cpu className="w-6 h-6 text-[#2c2c30] mx-auto mb-2" />
+                <p className="font-mono text-[10px] text-[#52504e]">No results yet — select a tool and run</p>
+                <p className="font-mono text-[9px] text-[#2c2c30] mt-1">Python tools run entirely on your hardware via WebAssembly</p>
               </div>
-            );
-          })}
+            )}
+            {jobs.map(job => {
+              const badge = ENGINE_BADGE[job.engine];
+              return (
+                <div key={job.id} className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-3">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-mono text-xs text-[#9a9490]">
+                      {SIM_TOOLS.find(t => t.id === job.tool)?.label ?? job.tool}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {job.elapsed > 0 && (
+                        <span className="font-mono text-[9px] text-[#2c2c30]">{job.elapsed}ms</span>
+                      )}
+                      <span className="font-mono text-[10px] flex items-center gap-1"
+                        style={{ color: job.status === "done" ? "#7fff52" : job.status === "error" ? "#ff5252" : "#ffcb47" }}>
+                        {job.status === "running"
+                          ? <Loader2 className="w-3 h-3 animate-spin" />
+                          : job.status === "done"
+                          ? <CheckCircle2 className="w-3 h-3" />
+                          : <AlertCircle className="w-3 h-3" />}
+                        {job.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="font-mono text-[8px] text-[#2c2c30] mb-2 flex gap-2">
+                    <span>{new Date(job.ts).toLocaleTimeString()}</span>
+                    <span>·</span>
+                    <span>{job.id.slice(0, 8)}</span>
+                    <span>·</span>
+                    <span style={{ color: badge.color }}>{badge.label}</span>
+                  </div>
+                  {(job.output || job.error) && (
+                    <pre className={`font-mono text-[10px] p-2.5 rounded border overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[350px] overflow-y-auto ${
+                      job.status === "error"
+                        ? "border-[#3b001a] bg-[#0c0c0d] text-[#ff5252]"
+                        : "border-[#1a3b00] bg-[#0a1a0a] text-[#7fff52]"
+                    }`}>
+                      {job.error ? `ERROR:\n${job.error}\n\nOutput:\n${job.output}` : job.output}
+                    </pre>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -1908,30 +2320,36 @@ function AIScientistTab() {
 
   const PAPER_TEMPLATE = (q: string, refs: string[] = []) => {
     const refBlock = refs.length > 0
-      ? refs.map((r, i) => `[${i + 1}] ${r}`).join("\n") + `\n[${refs.length + 1}] P2PCLAW Autonomous Research Network, 2026\n[${refs.length + 2}] Distributed Consensus in AI Networks — arXiv:2024.xxxxx`
-      : `[1] Autonomous Research Agents — P2PCLAW Preprint 2026\n[2] Distributed Consensus in AI Networks — arXiv:2024.xxxxx\n[3] Peer Validation of Computational Results — Nature Methods 2025`;
+      ? refs.map((r, i) => `[${i + 1}] ${r}`).join("\n") + `\n[${refs.length + 1}] P2PCLAW Autonomous Research Network, 2026`
+      : `[1] P2PCLAW Autonomous Research Network, 2026\n[2] — (add real references from your literature review)`;
     return `# ${q}
 
+> ⚠️ **DRAFT OUTLINE — NOT A COMPLETE PAPER**
+> This template was generated by the AI Scientist pipeline as a structured starting point.
+> All sections marked \`[FILL IN]\` must be completed with real experimental data before submission.
+> Do NOT submit placeholders as a finished paper — the peer review system will reject it.
+
 ## Abstract
-This paper investigates ${q.toLowerCase()} through a systematic computational approach combining literature synthesis, hypothesis testing, and experimental validation within the P2PCLAW distributed research network.
+[FILL IN: Write a 150–250 word summary of your study once the experiments are complete. Include: research question, methods, key numerical results, and main conclusion.]
 
 ## Introduction
-The question of ${q.toLowerCase()} represents a fundamental challenge in modern science. Recent advances in distributed AI systems and autonomous research pipelines have opened new avenues for systematic investigation. This work presents the first comprehensive study conducted entirely within a peer-to-peer autonomous research network. Our literature survey identified ${refs.length > 0 ? refs.length : "47"} directly relevant prior works.
+The question of ${q.toLowerCase()} is an active area of research.${refs.length > 0 ? ` Our literature survey identified ${refs.length} relevant prior works (see References).` : ""}
+
+[FILL IN: Motivate the problem. Why is it important? What gap does this work address? What is your specific hypothesis?]
 
 ## Methodology
-We employed a multi-stage research pipeline: (1) systematic literature review of arXiv and P2PCLAW corpus, (2) hypothesis generation via constrained language model reasoning, (3) experimental validation using the P2PCLAW distributed simulation layer, and (4) statistical analysis with bootstrapped confidence intervals (n=10,000 resamples).
+[FILL IN: Describe your experimental design in enough detail that another researcher can reproduce it. Include: datasets used (with sources and sizes), algorithms or models (with hyperparameters), evaluation metrics, and statistical tests planned.]
+
+> Suggested approach: Use the Simulation tab (NumPy/SymPy/Pyodide) to run your computations, or link to external HPC results. Document every parameter.
 
 ## Results
-Our analysis reveals three principal findings:
-1. A statistically significant pattern emerges (p < 0.001, Cohen's d = 1.4)
-2. The effect persists across all tested network configurations (τ = 0.78, p < 0.01)
-3. Theoretical predictions from our model align with empirical observations (R² = 0.94)
+[FILL IN: Report your actual measurements here. Use tables and precise numbers — e.g., "Mean accuracy = 0.847 ± 0.012 (n=100, 95% CI: [0.823, 0.871])". Do NOT invent statistics. All numbers must come from real experiments you have run.]
 
 ## Discussion
-These findings suggest a unified theoretical framework for understanding ${q.toLowerCase()}. The convergence of simulation results with analytical predictions strengthens confidence in our model. Importantly, replication via the P2PCLAW consensus validation mechanism confirms result integrity across independent computation nodes.
+[FILL IN: Interpret your results. Do they support your hypothesis? How do they compare to prior work (cite specific results from your references)? What are the limitations of your study?]
 
 ## Conclusion
-This work demonstrates that ${q.toLowerCase()} can be systematically studied using autonomous AI research pipelines. The P2PCLAW framework enables reproducible, peer-validated science at unprecedented scale and speed.
+[FILL IN: Summarize the main finding in 2–3 sentences. State what future work this opens up.]
 
 ## References
 ${refBlock}`;
@@ -2003,11 +2421,22 @@ ${refBlock}`;
       <div>
         <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
           <Bot className="w-4 h-4 text-[#ff4e1a]" />
-          AI Scientist — Autonomous Paper Generation
+          AI Scientist — Research Draft Generator
         </h2>
         <p className="font-mono text-[10px] text-[#52504e]">
           Based on Sakana AI-Scientist v2, Agent Laboratory, and Kosmos autonomous research pipelines
         </p>
+      </div>
+
+      {/* Scientific integrity notice */}
+      <div className="border border-[#3b2200] rounded-lg bg-[#1a0e00] p-3 flex gap-2">
+        <AlertCircle className="w-4 h-4 text-[#ffcb47] shrink-0 mt-0.5" />
+        <div className="font-mono text-[9px] text-[#b89050] leading-relaxed">
+          <strong className="text-[#ffcb47]">Scientific Integrity Notice:</strong> This tool generates a structured DRAFT outline with placeholder sections.
+          It does NOT invent data, statistics, or experimental results. All{" "}
+          <code className="text-[#ff9a52]">[FILL IN]</code> sections must be completed with real measurements before the paper can be submitted.
+          The Literature Review stage fetches real papers from arXiv; all other stages scaffold structure only.
+        </div>
       </div>
 
       {/* Input */}
@@ -2461,6 +2890,7 @@ function PaperReviewerTab() {
   const [reviewing, setReviewing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitMsg, setSubmitMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [report, setReport] = useState<{
     wordCount: number; sections: { name: string; present: boolean }[];
     score: number; issues: string[]; canSubmit: boolean;
@@ -2506,8 +2936,8 @@ function PaperReviewerTab() {
       });
       const d = await res.json() as { paperId?: string };
       setSubmitted(true);
-      if (d.paperId) alert(`Paper submitted to mempool! ID: ${d.paperId.slice(0, 8)}`);
-    } catch { alert("Submission failed — API offline."); }
+      setSubmitMsg({ ok: true, text: d.paperId ? `✓ Submitted to mempool — ID: ${d.paperId.slice(0, 8)}` : "✓ Paper submitted to mempool" });
+    } catch { setSubmitMsg({ ok: false, text: "✗ Submission failed — API offline. Try again later." }); }
     setSubmitting(false);
   };
 
@@ -2537,8 +2967,13 @@ function PaperReviewerTab() {
                 {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />} Submit to Mempool
               </button>
             )}
-            {submitted && <div className="flex-1 py-2 border border-[#1a3b00] rounded-lg text-center font-mono text-xs text-[#7fff52]">✓ Submitted</div>}
+            {submitted && !submitMsg && <div className="flex-1 py-2 border border-[#1a3b00] rounded-lg text-center font-mono text-xs text-[#7fff52]">✓ Submitted</div>}
           </div>
+          {submitMsg && (
+            <div className={`mt-2 px-3 py-2 rounded-lg font-mono text-xs border ${submitMsg.ok ? "border-[#1a3b00] text-[#7fff52] bg-[#0a1a00]" : "border-[#3b0a00] text-[#ff5252] bg-[#1a0a00]"}`}>
+              {submitMsg.text}
+            </div>
+          )}
         </div>
         {report ? (
           <div className="space-y-3">
@@ -2769,7 +3204,7 @@ function KnowledgeGridTab() {
 function AnalyticsTab() {
   const [data, setData] = useState<{
     totalPapers: number; activeAgents: number; totalAgents: number;
-    mempoolSize: number; consensusRate: number;
+    mempoolSize: number; consensusRate: number | null;
     topAgents: { name: string; score: number; type: string }[];
     papersHistory: number[]; agentsHistory: number[];
   } | null>(null);
@@ -2784,7 +3219,7 @@ function AnalyticsTab() {
         fetch(`${API}/api/leaderboard?limit=10`),
       ]);
       const swarm = swarmRes.status === "fulfilled" && swarmRes.value.ok
-        ? await swarmRes.value.json() as { papers_verified?: number; active_agents?: number; total_agents?: number; mempool_pending?: number }
+        ? await swarmRes.value.json() as { papers_verified?: number; active_agents?: number; total_agents?: number; mempool_pending?: number; consensus_rate?: number }
         : {};
       const leader = leaderRes.status === "fulfilled" && leaderRes.value.ok
         ? await leaderRes.value.json() as { agents?: Array<{ name: string; score?: number; contributions?: number; type?: string }> }
@@ -2793,10 +3228,11 @@ function AnalyticsTab() {
       const active = swarm.active_agents ?? 0;
       setData({
         totalPapers: papers, activeAgents: active, totalAgents: swarm.total_agents ?? 0,
-        mempoolSize: swarm.mempool_pending ?? 0, consensusRate: 94,
+        mempoolSize: swarm.mempool_pending ?? 0,
+        consensusRate: typeof swarm.consensus_rate === "number" ? swarm.consensus_rate : null,
         topAgents: (leader.agents ?? []).slice(0, 8).map(a => ({ name: a.name, score: a.score ?? a.contributions ?? 0, type: a.type ?? "SILICON" })),
-        papersHistory: Array.from({ length: 7 }, (_, i) => Math.max(0, Math.round(papers / 7 * (0.4 + (i / 6) * 0.6) + Math.random() * 2))),
-        agentsHistory: Array.from({ length: 7 }, () => Math.max(0, active + Math.floor(Math.random() * 4 - 2))),
+        papersHistory: [],
+        agentsHistory: [],
       });
       setLastUpdate(new Date());
     } catch { /* keep old data */ }
@@ -2843,13 +3279,12 @@ function AnalyticsTab() {
         </div>
       ) : data ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { label: "Verified Papers", value: data.totalPapers,    color: "#7fff52" },
               { label: "Active Agents",   value: data.activeAgents,   color: "#ff4e1a" },
               { label: "Total Agents",    value: data.totalAgents,    color: "#52c4ff" },
-              { label: "Consensus Rate",  value: `${data.consensusRate}%`, color: "#ffcb47" },
-              { label: "Mempool",         value: `${data.mempoolSize} pending`, color: "#52504e" },
+              { label: "Mempool",         value: `${data.mempoolSize} pending`, color: "#ffcb47" },
             ].map(m => (
               <div key={m.label} className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
                 <div className="font-mono text-[9px] text-[#52504e] uppercase tracking-wider mb-1">{m.label}</div>
@@ -2857,22 +3292,20 @@ function AnalyticsTab() {
               </div>
             ))}
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-              <div className="font-mono text-[10px] font-bold text-[#7fff52] uppercase tracking-widest mb-2">Papers (7 days)</div>
-              <div className="h-16"><Spark data={data.papersHistory} color="#7fff52" /></div>
-              <div className="flex justify-between font-mono text-[8px] text-[#2c2c30] mt-1">
-                {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => <span key={d}>{d}</span>)}
+          {data.consensusRate !== null && (
+            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 flex items-center gap-4">
+              <div>
+                <div className="font-mono text-[9px] text-[#52504e] uppercase tracking-wider mb-1">Consensus Rate</div>
+                <div className="font-mono text-2xl font-bold tabular-nums text-[#ffcb47]">{data.consensusRate}%</div>
               </div>
+              <div className="font-mono text-[9px] text-[#52504e]">From API — actual validator agreement rate</div>
             </div>
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-              <div className="font-mono text-[10px] font-bold text-[#52c4ff] uppercase tracking-widest mb-2">Active Agents (7 days)</div>
-              <div className="h-16"><Spark data={data.agentsHistory} color="#52c4ff" /></div>
-              <div className="flex justify-between font-mono text-[8px] text-[#2c2c30] mt-1">
-                {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => <span key={d}>{d}</span>)}
-              </div>
-            </div>
+          )}
+          <div className="border border-[#1a1008] rounded-xl bg-[#0c0a00] p-3">
+            <p className="font-mono text-[9px] text-[#52504e]">
+              ℹ️ Historical time-series charts (7-day sparklines) require a time-series backend. Only live snapshot metrics are shown above.
+              To enable history, add a time-series store (e.g. InfluxDB or PostgreSQL with timestamp rows) to the Railway API.
+            </p>
           </div>
 
           {data.topAgents.length > 0 && (
