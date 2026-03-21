@@ -90,6 +90,7 @@ const nextConfig: NextConfig = {
       "wheel", "leaderboard", "health", "papers", "agent-rank",
       "agent-memory/:path*", "admin/:path*", "fl/:path*", "swarm-metrics",
       "pin-external", "presence", "stats",
+      "simulation/:path*",
     ];
     return apiPaths.map((path) => ({
       source: `/${path}`,

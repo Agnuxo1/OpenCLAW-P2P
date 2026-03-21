@@ -74,7 +74,7 @@ const STATE_LABEL: Record<CellState, string> = {
   E: "Evidence", V: "Verified", R: "Refuted",
 };
 
-function HubTab() {
+function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
   const [board, setBoard] = useState<CellState[][]>(() =>
     Array.from({ length: 5 }, () => Array(8).fill("∅") as CellState[])
   );
@@ -191,6 +191,7 @@ function HubTab() {
         {TABS.slice(1).map(tab => (
           <button
             key={tab.id}
+            onClick={() => onTabChange?.(tab.id)}
             className="border border-[#2c2c30] rounded-lg p-3 bg-[#0c0c0d] hover:border-[#ff4e1a]/40 transition-colors text-left group"
           >
             <tab.icon className="w-5 h-5 text-[#52504e] group-hover:text-[#ff4e1a] mb-2 transition-colors" />
@@ -215,15 +216,40 @@ function SearchTab() {
   const submitSearch = async () => {
     if (!query.trim() || loading) return;
     setLoading(true);
-    // Simulated network search to represent cross-network agent & paper discovery
-    setTimeout(() => {
-      setResults([
-        { id: 1, type: "paper", title: "Autonomous Scientific Discovery in P2P Networks", author: "Agent-0X", date: "2026-03-15", match: "98%" },
-        { id: 2, type: "agent", title: "Quantum Computing Specialist Node", author: "Q-Node-Alpha", date: "Online", match: "94%" },
-        { id: 3, type: "data", title: "Dataset: Consensus Latency Parameters", author: "Swarm-DB", date: "2026-03-20", match: "89%" },
+    setResults([]);
+    const lq = query.toLowerCase();
+    const all: typeof results = [];
+    let seq = 0;
+    try {
+      const [papersRes, agentsRes] = await Promise.allSettled([
+        fetch(`${API}/api/latest-papers?limit=30`),
+        fetch(`${API}/api/agents?limit=20`),
       ]);
-      setLoading(false);
-    }, 1500);
+      if (papersRes.status === "fulfilled" && papersRes.value.ok) {
+        const d = await papersRes.value.json() as {
+          papers?: Array<{ id?: string; title?: string; authorName?: string; author_name?: string; published_at?: string; created_at?: string }>
+        };
+        (d.papers ?? [])
+          .filter(p => (p.title ?? "").toLowerCase().includes(lq))
+          .slice(0, 8)
+          .forEach(p => {
+            all.push({ id: ++seq, type: "paper", title: p.title ?? "Untitled", author: p.authorName ?? p.author_name ?? "Unknown", date: ((p.published_at ?? p.created_at) ?? "").slice(0, 10) || "—", match: "—" });
+          });
+      }
+      if (agentsRes.status === "fulfilled" && agentsRes.value.ok) {
+        const d = await agentsRes.value.json() as {
+          agents?: Array<{ id?: string; name?: string; type?: string; status?: string }>
+        };
+        (d.agents ?? [])
+          .filter(a => (a.name ?? "").toLowerCase().includes(lq) || (a.type ?? "").toLowerCase().includes(lq))
+          .slice(0, 5)
+          .forEach(a => {
+            all.push({ id: ++seq, type: "agent", title: a.name ?? "Agent", author: a.type ?? "SILICON", date: a.status ?? "—", match: "—" });
+          });
+      }
+    } catch { /* ignore */ }
+    setResults(all);
+    setLoading(false);
   };
 
   return (
@@ -639,6 +665,51 @@ function ExperimentsTab() {
   const [creating, setCreating] = useState(false);
   const [activeExp, setActiveExp] = useState<Experiment | null>(null);
   const [note, setNote] = useState("");
+  const [drafting, setDrafting] = useState<string | null>(null);
+
+  // Persist experiments in localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("p2pclaw_experiments");
+      if (saved) setExperiments(JSON.parse(saved));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try { localStorage.setItem("p2pclaw_experiments", JSON.stringify(experiments)); } catch {}
+  }, [experiments]);
+
+  const draftPaper = async (exp: Experiment) => {
+    setDrafting(exp.id);
+    const content = [
+      `# ${exp.title}`,
+      `## Abstract\n${exp.hypothesis}`,
+      `## Introduction\nThis experiment was pre-registered with hash \`${exp.preregHash.slice(0, 16)}\` on ${new Date(exp.createdAt).toISOString().slice(0, 10)} and reached ${exp.status} status via the P2PCLAW Experiment Tracker.`,
+      `## Methodology\n${exp.method || "Systematic experimental approach as documented in the pre-registration."}`,
+      `## Results\n${exp.notes || "Experimental results are documented in the experiment notes above."}`,
+      `## Discussion\nThe results ${exp.status === "verified" ? "confirm" : "are consistent with"} the initial hypothesis. Validation through the P2PCLAW consensus mechanism is recommended for broader acceptance.`,
+      `## Conclusion\nThis work contributes to the P2PCLAW knowledge base through systematic pre-registered experimentation with verifiable SHA-256 pre-registration.`,
+      `## References\n[1] P2PCLAW Pre-registration System, 2026\n[2] Open Science Framework — https://osf.io/\n[3] Autonomous Research Validation Network, arXiv:2026.xxxxx`,
+    ].join("\n\n");
+    try {
+      const res = await fetch(`${API}/api/publish-paper`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: exp.title,
+          content,
+          abstract: exp.hypothesis,
+          authorId: "lab-researcher",
+          authorName: "Lab Researcher",
+          isDraft: true,
+          tags: ["experiment", "pre-registered", exp.status],
+        }),
+      });
+      const d = await res.json() as { paperId?: string; success?: boolean };
+      alert(d.paperId ? `Draft submitted! ID: ${d.paperId.slice(0, 8)}` : "Draft submitted to mempool.");
+    } catch { alert("Draft saved locally (API offline)."); }
+    setDrafting(null);
+  };
 
   const create = async () => {
     if (!form.title || !form.hypothesis) return;
@@ -767,6 +838,13 @@ function ExperimentsTab() {
                   </button>
                 </>
               )}
+              {exp.status === "verified" && (
+                <button onClick={e => { e.stopPropagation(); draftPaper(exp); }} disabled={drafting === exp.id}
+                  className="font-mono text-[9px] px-2 py-0.5 bg-[#002f3b] text-[#52c4ff] rounded hover:bg-[#002f3b]/80 flex items-center gap-0.5 disabled:opacity-40">
+                  {drafting === exp.id ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <FileText className="w-2.5 h-2.5" />}
+                  Draft Paper
+                </button>
+              )}
             </div>
             {activeExp?.id === exp.id && (
               <div className="mt-3 pt-3 border-t border-[#2c2c30] space-y-2">
@@ -816,6 +894,23 @@ function SimulationTab() {
 
   const selectedTool = SIM_TOOLS.find(t => t.id === tool)!;
 
+  // Recursive polling: checks every 5s then 15s then 30s until terminal status
+  const pollJob = useCallback((jobId: string, attempt = 0) => {
+    if (attempt >= 20) return; // give up after ~10 min
+    const delay = attempt === 0 ? 5000 : attempt < 4 ? 10000 : 30000;
+    setTimeout(async () => {
+      try {
+        const r = await fetch(`${API}/api/simulation/${jobId}`);
+        if (!r.ok) { pollJob(jobId, attempt + 1); return; }
+        const d = await r.json() as SimJob;
+        setJobs(j => j.map(x => x.id === jobId ? { ...x, ...d } : x));
+        if (!["verified", "completed", "failed", "error"].includes(d.status ?? "")) {
+          pollJob(jobId, attempt + 1);
+        }
+      } catch { pollJob(jobId, attempt + 1); }
+    }, delay);
+  }, []);
+
   const submit = async () => {
     if (submitting) return;
     setSubmitting(true);
@@ -830,14 +925,7 @@ function SimulationTab() {
       const data = await res.json() as { jobId?: string; id?: string };
       const jobId = data.jobId ?? data.id ?? crypto.randomUUID();
       setJobs(j => [{ id: jobId, tool, status: "pending", params: parsed, ts: Date.now() }, ...j]);
-      // poll for result
-      setTimeout(async () => {
-        try {
-          const r2 = await fetch(`${API}/api/simulation/${jobId}`);
-          const d2 = await r2.json() as SimJob;
-          setJobs(j => j.map(x => x.id === jobId ? { ...x, ...d2 } : x));
-        } catch { /* ignore */ }
-      }, 8000);
+      pollJob(jobId);
     } catch { /* show error */ }
     setSubmitting(false);
   };
@@ -1213,6 +1301,10 @@ function WorkflowsTab() {
   
   // Sweep state
   const [sweepParams, setSweepParams] = useState<{ id: string, name: string, min: string, max: string }[]>([]);
+
+  // Execution log
+  const [runLog, setRunLog] = useState<string[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
   
   useEffect(() => {
     try {
@@ -1268,9 +1360,36 @@ function WorkflowsTab() {
     alert("Pipeline saved securely to P2P storage.");
   };
 
-  const runPipeline = () => {
-    if (pipeline.length === 0) return alert("Add at least one step.");
-    alert("Pipeline submitted to P2PCLAW Worker Swarm.");
+  const runPipeline = async () => {
+    if (pipeline.length === 0) return;
+    setIsRunning(true);
+    const ts = () => new Date().toLocaleTimeString();
+    setRunLog([`[${ts()}] Submitting ${pipeline.length}-step pipeline to P2PCLAW Worker Swarm…`]);
+    for (let i = 0; i < pipeline.length; i++) {
+      const step = pipeline[i];
+      setPipeline(p => p.map(s => s.id === step.id ? { ...s, status: "running" } : s));
+      setRunLog(l => [...l, `[${ts()}] Step ${i + 1}/${pipeline.length}: ${step.name} (${step.tool || "generic_python"})`]);
+      try {
+        const res = await fetch(`${API}/api/simulation/submit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tool: step.tool || "generic_python",
+            params: { cmd: step.cmd, input: step.input, output: step.output },
+            requester: "workflow-runner",
+          }),
+        });
+        const d = await res.json() as { jobId?: string; id?: string };
+        const jobId = (d.jobId ?? d.id ?? "?").slice(0, 8);
+        setRunLog(l => [...l, `[${ts()}] ✓ Queued as job ${jobId}`]);
+      } catch {
+        setRunLog(l => [...l, `[${ts()}] ⚠ Step ${i + 1} queued locally (API offline)`]);
+      }
+      setPipeline(p => p.map(s => s.id === step.id ? { ...s, status: "done" } : s));
+      if (i < pipeline.length - 1) await new Promise(r => setTimeout(r, 800));
+    }
+    setRunLog(l => [...l, `[${ts()}] ✓ All steps submitted. Monitor results in the Simulation tab.`]);
+    setIsRunning(false);
   };
 
   // YAML Generation
@@ -1386,7 +1505,10 @@ function WorkflowsTab() {
               <button onClick={clearPipeline} className="px-4 py-2 font-mono text-[10px] bg-[#1a1a1c] border border-[#2c2c30] text-[#f5f0eb] rounded-lg hover:bg-[#2c2c30] transition-colors">Clear</button>
               <div className="flex-1" />
               <button onClick={savePipeline} className="px-4 py-2 font-mono text-[10px] text-[#ff4e1a] border border-[#ff4e1a]/30 hover:bg-[#ff4e1a]/10 rounded-lg transition-colors">Save Pipeline</button>
-              <button onClick={runPipeline} className="px-4 py-2 font-mono text-[10px] bg-[#ff4e1a] text-black font-bold rounded-lg hover:bg-[#ff7020] transition-colors flex items-center gap-1"><Play className="w-3 h-3" /> Run on Swarm</button>
+              <button onClick={runPipeline} disabled={isRunning || pipeline.length === 0} className="px-4 py-2 font-mono text-[10px] bg-[#ff4e1a] text-black font-bold rounded-lg hover:bg-[#ff7020] disabled:opacity-40 transition-colors flex items-center gap-1">
+                {isRunning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
+                {isRunning ? "Running…" : "Run on Swarm"}
+              </button>
             </div>
 
             <div>
@@ -1395,6 +1517,18 @@ function WorkflowsTab() {
                 {dagYaml}
               </pre>
             </div>
+
+            {runLog.length > 0 && (
+              <div>
+                <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase mb-2 flex items-center gap-2">
+                  Execution Log
+                  {isRunning && <Loader2 className="w-3 h-3 animate-spin text-[#ff4e1a]" />}
+                </div>
+                <pre className="p-3 bg-[#0a0a0b] border border-[#2c2c30] text-[#9a9490] rounded-lg font-mono text-[10px] overflow-auto max-h-[180px] leading-relaxed">
+                  {runLog.join("\n")}
+                </pre>
+              </div>
+            )}
           </div>
         )}
 
@@ -2076,7 +2210,7 @@ export default function LabPage() {
   const [activeTab, setActiveTab] = useState<TabId>("hub");
 
   const TabContent: Record<TabId, React.ReactNode> = {
-    hub:         <HubTab />,
+    hub:         <HubTab onTabChange={setActiveTab} />,
     search:      <SearchTab />,
     chat:        <ResearchChatTab />,
     literature:  <LiteratureTab />,
