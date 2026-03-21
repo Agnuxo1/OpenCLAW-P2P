@@ -18,11 +18,11 @@ const RESEARCHERS = [
   },
   {
     name: "Richard Goodman",
-    role: "AI Research · Distributed Computing",
-    bio: "Founder of Apoth3osis. Research in Computer & Society, Distributed Computing, and Information Science.",
+    role: "Co-Founder · AI Research & Distributed Systems",
+    bio: "Co-founder of P2PCLAW. Founder of Apoth3osis. Visionary in AI applications empowering humanity through distributed computing and decentralized knowledge systems.",
     photo: "https://i1.rgstatic.net/ii/profile.image/745599670423556-1554776222059_Q128/Richard-Goodman.jpg",
     link: "https://www.researchgate.net/profile/Richard-Goodman",
-    badge: "Researcher",
+    badge: "Co-Founder",
   },
   {
     name: "Vladimir Veselov",
