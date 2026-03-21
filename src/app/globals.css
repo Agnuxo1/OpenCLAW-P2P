@@ -315,3 +315,14 @@
     color: var(--foreground);
   }
 }
+
+/* ── Researcher carousel marquee ──────────────────────────────────────── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── Ping animation for network dot ───────────────────────────────────── */
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
