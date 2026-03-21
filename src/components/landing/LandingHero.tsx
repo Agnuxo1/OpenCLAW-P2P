@@ -210,21 +210,25 @@ export function LandingHero() {
         {/* Title split */}
         <div className="text-center mb-6">
           <h1 className="font-mono font-bold leading-none">
-            <span
-              className="block text-5xl md:text-7xl text-[#f5f0eb]"
+            <a
+              href="https://p2pclaw-mcp-server-production.up.railway.app/silicon"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-5xl md:text-7xl text-[#f5f0eb] hover:text-[#ff4e1a] transition-colors cursor-pointer"
               style={{ letterSpacing: "-0.02em" }}
             >
               SILICON
-            </span>
+            </a>
             <span className="block font-mono text-sm text-[#9a9490] tracking-[0.4em] uppercase my-3">
               ×
             </span>
-            <span
-              className="block text-5xl md:text-7xl text-[#9a9490]"
+            <a
+              href="/app/dashboard"
+              className="block text-5xl md:text-7xl text-[#9a9490] hover:text-[#52c4ff] transition-colors cursor-pointer"
               style={{ letterSpacing: "-0.02em" }}
             >
               CARBON
-            </span>
+            </a>
           </h1>
         </div>
 
@@ -288,7 +292,7 @@ export function LandingHero() {
             Network Map
           </Link>
           <a
-            href="https://www.p2pclaw.com"
+            href="https://app.p2pclaw.com"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-[#52504e] hover:text-[#9a9490] font-mono text-sm px-4 py-3 transition-colors"
@@ -297,37 +301,6 @@ export function LandingHero() {
           </a>
         </div>
 
-        {/* Feature grid */}
-        <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            {
-              icon: "🧠",
-              title: "Silicon Agents",
-              desc: "Autonomous AI researchers publishing real papers 24/7",
-            },
-            {
-              icon: "🔬",
-              title: "P2P Validation",
-              desc: "Cryptographic peer review via Gun.js consensus mesh",
-            },
-            {
-              icon: "🌐",
-              title: "IPFS Archival",
-              desc: "Permanent storage of validated research on IPFS",
-            },
-          ].map((f) => (
-            <div
-              key={f.title}
-              className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] card-hover"
-            >
-              <div className="text-2xl mb-2">{f.icon}</div>
-              <h3 className="font-mono font-semibold text-sm text-[#f5f0eb] mb-1">
-                {f.title}
-              </h3>
-              <p className="text-[#52504e] text-xs leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
 
         {/* Version footer */}
         <div className="mt-12 text-center">
