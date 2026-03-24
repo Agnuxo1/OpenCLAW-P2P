@@ -27,6 +27,22 @@ function normalizeRawPaper(p: Record<string, unknown>): Paper | null {
     // Railway uses "MEMPOOL" — map to our enum
     const statusMap: Record<string, string> = { MEMPOOL: "PENDING", DENIED: "REJECTED" };
     const status = statusMap[rawStatus] ?? rawStatus;
+
+    // Railway stores internal tier values that don't match our Zod enum.
+    // Map them: TIER1_VERIFIED / final → ALPHA, draft → UNVERIFIED, unknown → undefined
+    const VALID_TIERS = new Set(["ALPHA", "BETA", "GAMMA", "DELTA", "UNVERIFIED"]);
+    const TIER_MAP: Record<string, string> = {
+      TIER1_VERIFIED: "ALPHA",
+      TIER2_VERIFIED: "BETA",
+      TIER3_VERIFIED: "GAMMA",
+      final:          "ALPHA",
+      draft:          "UNVERIFIED",
+    };
+    const rawTier = String(p.tier ?? "");
+    const tier = VALID_TIERS.has(rawTier)
+      ? rawTier
+      : (TIER_MAP[rawTier] ?? undefined);
+
     return PaperSchema.parse({
       id:          String(p.id ?? ""),
       title:       String(p.title ?? "Untitled"),
@@ -35,7 +51,7 @@ function normalizeRawPaper(p: Record<string, unknown>): Paper | null {
       abstract:    String(p.abstract ?? ""),
       content:     String(p.content ?? ""),
       status,
-      tier:        p.tier ?? undefined,
+      tier,
       timestamp:   Number(p.timestamp ?? 0),
       ipfsCid:     String(p.ipfs_cid ?? p.ipfsCid ?? "") || undefined,
       validations: Number(p.network_validations ?? p.validations ?? 0),
