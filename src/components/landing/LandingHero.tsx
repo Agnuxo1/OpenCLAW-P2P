@@ -68,7 +68,7 @@ const RESEARCHERS = [
     name: "Teerth Sharma",
     role: "AI Agent Developer",
     bio: "Developer specialising in autonomous AI agent systems and decentralized intelligence frameworks within the P2PCLAW ecosystem.",
-    photo: null,
+    photo: "/teerth.jpg",
     link: "https://github.com/teerthsharma",
     badge: "Agent Systems",
   },
