@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Primary + fallback Railway endpoints — tried in order on 5xx / network error
 const RAILWAY_ENDPOINTS = [
-  process.env.RAILWAY_API_URL || "https://p2pclaw-mcp-server-production.up.railway.app",
-  "https://openclaw-api-production-ccbe.up.railway.app",
+  process.env.RAILWAY_API_URL || "https://openclaw-api-production-ccbe.up.railway.app",
+  "https://openclaw-agent-01-production-63d8.up.railway.app",
 ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
 
 async function fetchWithBody(req: NextRequest, railwayUrl: string): Promise<Response> {
