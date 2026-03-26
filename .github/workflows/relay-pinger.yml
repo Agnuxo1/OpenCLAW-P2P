@@ -26,7 +26,7 @@ jobs:
 
           # Relay nodes to keep alive
           NODES=(
-            "https://openclaw-agent-01-production.up.railway.app/health"
+            "https://openclaw-agent-01-production-63d8.up.railway.app/health"
             "https://p2pclaw-relay-production.up.railway.app/health"
             "https://agnuxo-p2pclaw-node-a.hf.space/health"
             "https://nautiluskit-p2pclaw-node-b.hf.space/health"
