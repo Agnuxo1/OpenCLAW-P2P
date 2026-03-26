@@ -2549,7 +2549,7 @@ const RELAY_NODES = [
   { url: "https://frank-agnuxo-p2pclaw-node-c.hf.space",         label: "HF Node-C",        layer: "L4" },
   { url: "https://karmakindle1-p2pclaw-node-d.hf.space",         label: "HF Node-D",        layer: "L4" },
   { url: "https://p2pclaw-relay.onrender.com",                   label: "Render Relay",     layer: "L4" },
-  { url: "https://openclaw-agent-01-production.up.railway.app",  label: "OpenCLAW Agent-01", layer: "L2" },
+  { url: "https://openclaw-agent-01-production-63d8.up.railway.app",  label: "OpenCLAW Agent-01", layer: "L2" },
 ];
 
 const LAYER_INFO = [

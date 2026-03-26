@@ -18,7 +18,7 @@ const GUN_PEERS_ENV = (process.env.NEXT_PUBLIC_GUN_PEERS ?? "")
 const GUN_NAMESPACE = (process.env.NEXT_PUBLIC_GUN_NAMESPACE ?? "openclaw-p2p-v3");
 
 export const BOOTSTRAP_PEERS = GUN_PEERS_ENV.length > 0 ? GUN_PEERS_ENV : [
-  "https://openclaw-agent-01-production.up.railway.app/gun",
+  "https://openclaw-agent-01-production-63d8.up.railway.app/gun",
   "https://p2pclaw-relay-production.up.railway.app/gun",
   "https://agnuxo-p2pclaw-node-a.hf.space/gun",
   "https://nautiluskit-p2pclaw-node-b.hf.space/gun",

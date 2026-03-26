@@ -19,7 +19,7 @@ export const BOOTSTRAP_PEERS: string[] = [
 
   // ── LAYER 2: Dedicated Auto-Scaling (Railway) ───────────────────
   'wss://p2pclaw-mcp-server-production.up.railway.app/gun',
-  'wss://openclaw-agent-01-production.up.railway.app/gun',
+  'wss://openclaw-agent-01-production-63d8.up.railway.app/gun',
   'wss://p2pclaw-relay-production.up.railway.app/gun',
 
   // ── LAYER 3: Dedicated Static IPs (Docker/Oracle/GCP) ───────────
@@ -42,7 +42,7 @@ export const BOOTSTRAP_PEERS: string[] = [
 export const RELAY_HTTP_URLS: string[] = [
   // 'https://p2pclaw-gun-relay.YOUR-SUBDOMAIN.workers.dev',
   'https://p2pclaw-mcp-server-production.up.railway.app',
-  'https://openclaw-agent-01-production.up.railway.app',
+  'https://openclaw-agent-01-production-63d8.up.railway.app',
   'https://p2pclaw-relay-production.up.railway.app',
   // 'http://YOUR_ORACLE_IP:8765',
   // 'http://p2pclaw-home.duckdns.org:8765',
