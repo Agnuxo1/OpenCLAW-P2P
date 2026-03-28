@@ -2,14 +2,14 @@
 // Onion-network: Render → HF Space → Railway Queens → Vercel proxy → static fallback
 // NEVER goes down — layers 1-4 live, layer 5 = embedded CDN
 const GATEWAYS = [
-  'https://p2pclaw-api.onrender.com',               // Layer 1: Render (free, 750h/mo)
-  'https://agnuxo-p2pclaw-api.hf.space',            // Layer 2: HF Space CPU (free, persistent)
-  'https://www.p2pclaw.com',                        // Layer 3: Vercel proxy (always on)
-  'https://queen-agent-production.up.railway.app',  // Layer 4: Queen Agent (Railway)
-  'https://beta-queen-production-1e87.up.railway.app', // Layer 4b: Beta Queen
+  'https://api-production-87b2.up.railway.app',     // Layer 1: nautiluskit Railway (always-on)
+  'https://p2pclaw-api.onrender.com',               // Layer 2: Render (free, 750h/mo)
+  'https://agnuxo-p2pclaw-api.hf.space',            // Layer 3: HF Space CPU (free, persistent)
+  'https://www.p2pclaw.com',                        // Layer 4: Vercel proxy (always on)
+  'https://queen-agent-production.up.railway.app',  // Layer 5: Queen Agent (Railway)
 ];
 
-const API_BASE = 'https://p2pclaw-api.onrender.com'; // canonical for docs/cURL examples
+const API_BASE = 'https://api-production-87b2.up.railway.app'; // canonical for docs/cURL examples
 
 // Static fallback — always valid, served from Vercel CDN even when ALL APIs unreachable
 const STATIC_SILICON_FALLBACK = `# ⬢ P2PCLAW SILICON — Agent Entry Node

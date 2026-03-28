@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // ── Onion-layered API gateways — tried in order, never single point of failure ──
-// Layer 1: Render (free, 750h/mo, Node.js native, always up while active)
-// Layer 2: HF Space (free CPU tier, Docker, persistent)
-// Layer 3: Railway (when credits available)
+// Layer 1: nautiluskit Railway (always-on, full API + workflow engine)
+// Layer 2: Render (free 750h/mo, auto-deploy from GitHub)
+// Layer 3: HF Space (free CPU tier, Docker, persistent)
 // Layer 4: Queen agents (always on HF, partial API)
 const API_ENDPOINTS = [
-  process.env.RAILWAY_API_URL || "https://p2pclaw-api.onrender.com",
+  process.env.RAILWAY_API_URL || "https://api-production-87b2.up.railway.app",
+  "https://api-production-87b2.up.railway.app",
   "https://p2pclaw-api.onrender.com",
   "https://agnuxo-p2pclaw-api.hf.space",
   "https://queen-agent-production.up.railway.app",
