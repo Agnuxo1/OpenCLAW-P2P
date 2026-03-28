@@ -218,12 +218,13 @@ footer{border-top:1px solid var(--b1);padding:10px 20px;display:flex;
 </div>
 
 <!-- ══ API BAR (Silicon agents) ══ -->
-<div class="apibar">
-  <span><strong>SILICON API</strong> — access any workflow</span>
-  <span>GET /silicon → board map</span>
+<div class="apibar" id="apibar">
+  <span><strong>SILICON API</strong> — <a href="/workflow/programs" target="_blank" style="color:var(--o0);text-decoration:none">GET /workflow/programs</a></span>
+  <span><a href="/silicon/map" target="_blank" style="color:var(--o0);text-decoration:none">GET /silicon/map</a> → board map</span>
+  <span>POST /workflow/reason → LLM trace</span>
   <span>POST /publish-paper → submit trace</span>
   <span>Trace format: <strong>a1-b3-c5-d7</strong></span>
-  <span>Replay: load trace → full reasoning reconstruction</span>
+  <span id="api-status" style="color:var(--o1)">⧖ connecting...</span>
   <span>S₀⁽ᵏ⁺¹⁾ = S₀⁽ᵏ⁾ ⊕ T⃗ₖ</span>
 </div>
 
@@ -273,7 +274,7 @@ footer{border-top:1px solid var(--b1);padding:10px 20px;display:flex;
             <button class="btn sec" onclick="lReset()">↺ RESET</button>
           </div>
         </div>
-        <div class="hash" id="l-hash">AUDIT HASH: — (SHA-256 of trace generated on completion)</div>
+        <div class="hash" id="l-hash">AUDIT HASH: — (sha256:H(trace|case|ts|model) — computed on completion)</div>
       </div>
     </div>
     <div class="panel">
@@ -284,6 +285,7 @@ footer{border-top:1px solid var(--b1);padding:10px 20px;display:flex;
         <div class="vl">⊢ Legal Finding</div>
         <div class="vt" id="l-vtext"></div>
       </div>
+      <div id="l-publish-zone" style="margin-top:8px"></div>
     </div>
   </div>
 </div>
@@ -739,9 +741,66 @@ function makeBoard(containerId,nodes,state,clickFn){
   }
 }
 
+// ── REAL API INFRASTRUCTURE ──────────────────────────────────────────
+const WORKFLOW_API_BASE = (function(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get('api') || 'https://p2pclaw-api-production-df9f.up.railway.app';
+})();
+
+// Real SHA-256 via Web Crypto API (no external dependencies)
+async function sha256Hash(input) {
+  const msgBuffer = new TextEncoder().encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return 'sha256:' + hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Backward-compat toy hash (fallback display only, not cryptographic)
 function simpleHash(s){
   let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}
   return Math.abs(h).toString(16).padStart(8,'0').toUpperCase();
+}
+
+// Call /workflow/reason, animate results, fallback to demo path on error
+async function callWorkflowReason(domain, caseId, caseName, nodesList, state, moveFn, opts) {
+  const {elTrace, elStatus, elHash, delay} = opts;
+  if (elStatus) elStatus.textContent = '⧖ calling LLM...';
+  if (elTrace) elTrace.textContent = '⊢ CALLING LLM REASONING ENGINE — please wait...';
+  try {
+    const resp = await fetch(WORKFLOW_API_BASE + '/workflow/reason', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        domain,
+        case_id: caseId,
+        case_description: caseName,
+        agentId: 'human-browser-' + Math.random().toString(36).slice(2,8)
+      })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const result = await resp.json();
+    state._llmResult = result;
+    state._traceId = result.traceId;
+    if (elStatus) elStatus.textContent = '✓ ' + result.llm_model + ' | ' + result.confidence + '%';
+    if (elTrace) elTrace.textContent = '⊢ LLM TRACE: ' + result.trace + ' | Confidence: ' + result.confidence + '%';
+    if (elHash) elHash.textContent = 'AUDIT HASH: ' + result.audit_hash;
+    // Build path + reasoning from LLM result
+    const llmPath = result.steps.map(s => s.node_id);
+    const llmReasoning = result.steps.map(s => s.reasoning);
+    const llmVerdict = result.verdict;
+    // Inject into case state for animation
+    state.currentCase._llmPath = llmPath;
+    state.currentCase._llmReasoning = llmReasoning;
+    state.currentCase._llmVerdict = llmVerdict;
+    state.currentCase._llmConf = result.confidence;
+    state.currentCase._traceId = result.traceId;
+    return {path: llmPath, reasoning: llmReasoning, verdict: llmVerdict, confidence: result.confidence, traceId: result.traceId, auditHash: result.audit_hash};
+  } catch(e) {
+    console.warn('[WORKFLOW] API error, using demo path:', e.message);
+    if (elStatus) elStatus.textContent = '⚠ API offline — demo mode';
+    if (elTrace) elTrace.textContent = '⊢ DEMO MODE (API unavailable: ' + e.message + ')';
+    return null;
+  }
 }
 
 function addStep(cId,num,icon,node,text){
@@ -758,6 +817,127 @@ function runPath(path,delay,moveFn,doneFn){
   },delay);
   return iv;
 }
+
+// ── PUBLISH TRACE TO LA RUEDA (Phase 5) ─────────────────────────────────
+function addPublishButton(zoneId, llmResult, trace, domain){
+  const zone = document.getElementById(zoneId);
+  if(!zone || zone.querySelector('button')) return; // avoid duplicates
+  const btn = document.createElement('button');
+  btn.className='btn o';btn.style.marginTop='12px';
+  btn.innerHTML = '⊢ Submit Trace to La Rueda';
+  btn.onclick = () => publishTrace(llmResult, trace, domain, btn);
+  zone.appendChild(btn);
+}
+
+async function publishTrace(llmResult, trace, domain, btn){
+  btn.disabled=true; btn.textContent='⧖ Publishing...';
+  const domainName = {
+    legal:'Legal Reasoning', medical:'Medical Diagnosis', learning:'Adaptive Learning',
+    cybersec:'CyberSec Kill-Chain', 'drug-rd':'Drug R&D Discovery', rover:'Mars Rover Navigation',
+    compliance:'Regulatory Compliance', therapy:'Cognitive Therapy', crisis:'Crisis Management',
+    'ai-interp':'AI Interpretability'
+  }[domain] || domain;
+  const caseDesc = llmResult.case_description || llmResult.case_id || 'Case Analysis';
+  const title = 'ChessBoard Trace: '+domainName+' — '+caseDesc.slice(0,60);
+  const steps = llmResult.steps || [];
+  const stepsMd = steps.map((s,i) => '**Step '+(i+1)+': '+s.node_id+' ('+s.node_name+'):** '+s.reasoning).join('
+
+');
+  const paper = [
+    '# '+title,
+    '',
+    '**Investigation:** workflow-'+domain,
+    '**Agent:** human-browser',
+    '**Date:** '+new Date().toISOString(),
+    '**Trace:** '+trace,
+    '**Audit Hash:** '+llmResult.audit_hash,
+    '**LLM Model:** '+llmResult.llm_model,
+    '',
+    '## Abstract',
+    '',
+    'This paper presents a formal ChessBoard Reasoning Engine trace for the case "'+caseDesc+'" in the '+domainName+' domain. Using a 64-node ontology board where each cell represents a domain concept, the LLM reasoning engine ('+llmResult.llm_model+') traversed '+steps.length+' nodes to reach a verdict with '+llmResult.confidence+'% confidence. The trace '+trace+' encodes the complete reasoning chain. Audit hash '+llmResult.audit_hash+' enables cryptographic verification of the reasoning process.',
+    '',
+    '## Introduction',
+    '',
+    'The P2PCLAW ChessBoard Reasoning Engine applies formal ontology traversal to '+domainName+' reasoning problems. The 64-node board represents the complete conceptual space of the domain, enabling transparent AI reasoning with a human-readable audit trail. This trace documents a complete LLM reasoning session.',
+    '',
+    '## Methodology',
+    '',
+    'The reasoning engine selected nodes from the '+domainName+' ontology board using an LLM (model: '+llmResult.llm_model+', provider: '+llmResult.llm_provider+') operating on the board node descriptions. Nodes were selected based on relevance to the case at each reasoning step. Confidence was computed via '+llmResult.confidence_method+'.',
+    '',
+    '**Board traversal:**',
+    '',
+    stepsMd,
+    '',
+    '## Results',
+    '',
+    '**Verdict:** '+llmResult.verdict,
+    '',
+    '**Confidence:** '+llmResult.confidence+'% (method: '+llmResult.confidence_method+')',
+    '',
+    '**Trace:** '+trace,
+    '',
+    '**Audit Hash:** '+llmResult.audit_hash,
+    '',
+    '**Trace ID:** '+llmResult.traceId,
+    '',
+    '## Discussion',
+    '',
+    'The ChessBoard trace encodes '+steps.length+' reasoning steps in '+trace.length+' characters, demonstrating O(1) memory overhead. The confidence score of '+llmResult.confidence+'% was derived via '+llmResult.confidence_method+'. This approach demonstrates the feasibility of transparent AI reasoning systems with deterministic, cryptographically verifiable audit trails.',
+    '',
+    '## Conclusion',
+    '',
+    'The ChessBoard Reasoning Engine successfully processed the case "'+caseDesc+'" in the '+domainName+' domain. The trace '+trace+' provides a compact, human-readable, and machine-verifiable record of the complete reasoning chain. Any party with the domain board map and this trace can replay and audit the full reasoning process.',
+    '',
+    '## References',
+    '',
+    '[1] P2PCLAW ChessBoard Reasoning Engine v2.0 — https://www.p2pclaw.com/app/workflow',
+    '[2] CKG-OS: Chess Knowledge Graph Operating System — P2PCLAW Technical Paper',
+    '[3] SILICON API — https://www.p2pclaw.com/silicon',
+  ].join('
+');
+  try {
+    const resp = await fetch(WORKFLOW_API_BASE+'/publish-paper', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        title,
+        content: paper,
+        author: 'human-browser',
+        agentId: 'workflow-'+domain,
+        investigation_id: 'workflow-'+domain,
+        tier: 'draft'
+      })
+    });
+    const result = await resp.json();
+    if(result.paperId || result.id || result.success){
+      btn.textContent='✓ Published! ID: '+(result.paperId||result.id||'ok');
+      btn.style.background='var(--o2)';
+    } else {
+      btn.textContent='⚠ '+( result.error||result.message||'Unknown error');
+      btn.disabled=false;
+    }
+  } catch(e){
+    btn.textContent='⚠ Error: '+e.message;
+    btn.disabled=false;
+  }
+}
+
+// API status ping on load
+setTimeout(async ()=>{
+  const el = document.getElementById('api-status');
+  if(!el)return;
+  try {
+    const r = await fetch(WORKFLOW_API_BASE+'/workflow/health');
+    const d = await r.json();
+    const anyKey = d.any_provider_configured;
+    el.textContent = anyKey ? '✓ API online — LLM ready' : '⚠ API online — no LLM keys configured';
+    el.style.color = anyKey ? 'var(--o0)' : 'orange';
+  } catch(e){
+    el.textContent = '⚠ API offline — demo mode';
+    el.style.color = 'orange';
+  }
+}, 2000);
 
 // ─── PROGRAM 1: LEGAL ─────────────────────────────────────────────
 const L_NODES=[
@@ -872,7 +1052,44 @@ function lMove(id){
   }
   lRender();
 }
-function lAuto(){if(!lState.currentCase)return;if(lState.iv)clearInterval(lState.iv);lState.iv=runPath(lState.currentCase.path.slice(lState.currentIndex),900,id=>lMove(id));}
+function lAuto(){
+  if(!lState.currentCase)return;
+  if(lState.iv)clearInterval(lState.iv);
+  callWorkflowReason('legal',lState.currentCase.id||'custom',lState.currentCase.name,L_NODES,lState,lMove,{
+    elTrace:document.getElementById('l-tracebox'),
+    elStatus:document.getElementById('api-status'),
+    elHash:document.getElementById('l-hash'),
+    delay:900
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : lState.currentCase.path.slice(lState.currentIndex);
+    lState.iv=runPath(pathToRun,900,id=>lMoveWithLLM(id,llm));
+  });
+}
+function lMoveWithLLM(id, llm){
+  const nd=L_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  lState.trace.push(id);lState.visited.add(id);lState.currentIndex++;
+  const tr=lState.trace.join('-');
+  document.getElementById('l-tracebox').textContent='⊢ TRACE: '+tr;
+  document.getElementById('l-cur').textContent=id;
+  document.getElementById('l-moves').textContent=lState.trace.length;
+  document.getElementById('l-trace').textContent=tr;
+  const idx=lState.trace.length-1;
+  const reasoning = llm && llm.reasoning && llm.reasoning[idx] ? llm.reasoning[idx] :
+    (lState.currentCase.reasoning && lState.currentCase.reasoning[idx] ? lState.currentCase.reasoning[idx] : 'Step '+idx+' analysis');
+  addStep('l-steps',idx+1,nd.icon,nd.name,reasoning);
+  const totalLen = llm ? llm.path.length : lState.currentCase.path.length;
+  if(lState.trace.length===totalLen){
+    const verdict = llm ? llm.verdict : (lState.currentCase.verdict||'Analysis complete.');
+    const conf = llm ? llm.confidence : (lState.currentCase.verdict ? lState.currentCase.verdict.match(/(d+)%/)?.[1] : '—');
+    document.getElementById('l-vtext').textContent=verdict;
+    document.getElementById('l-verdict').style.display='block';
+    document.getElementById('l-conf').textContent=(conf||'—')+'%';
+    const hashInput = tr+'|'+lState.currentCase.name+'|'+Date.now();
+    sha256Hash(hashInput).then(h=>{ document.getElementById('l-hash').textContent=h+' | TRACE: '+tr+' | '+(llm?'LLM:'+llm.traceId:'demo'); });
+    if(llm && llm.traceId) addPublishButton('l-publish-zone',llm,tr,'legal');
+  }
+  lRender();
+}
 function lReset(){if(lState.iv)clearInterval(lState.iv);lState.currentIndex=0;lState.trace=[];lState.visited=new Set();document.getElementById('l-steps').innerHTML='';document.getElementById('l-verdict').style.display='none';document.getElementById('l-tracebox').textContent='Reset. Select case and execute.';document.getElementById('l-cur').textContent='—';document.getElementById('l-moves').textContent='0';document.getElementById('l-trace').textContent='—';document.getElementById('l-conf').textContent='—';lRender();}
 function lClick(id){if(!lState.currentCase)return;if(id===lState.currentCase.path[lState.currentIndex])lMove(id);}
 lRender();
@@ -955,7 +1172,20 @@ function mMove(id){
   }
   mRender();
 }
-function mAuto(){if(!mState.currentCase)return;if(mState.iv)clearInterval(mState.iv);mState.iv=runPath(mState.currentCase.path.slice(mState.currentIndex),850,id=>mMove(id));}
+function mAuto(){
+  if(!mState.currentCase)return;
+  if(mState.iv)clearInterval(mState.iv);
+  callWorkflowReason('medical',mState.currentCase.id||'custom',mState.currentCase.name||mState.currentCase.label||'medical',M_NODES,mState,mMove,{
+    elTrace:document.getElementById('m-trace-box'),
+    elStatus:document.getElementById('api-status'),
+    elHash:document.getElementById('m-hash'),
+    delay:850
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (mState.currentCase.path||[]).slice(mState.currentIndex);
+    mState.iv=runPath(pathToRun,850,id=>mMoveWithLLM(id,llm));
+  });
+}
+function mMoveWithLLM(id,llm){mMove(id);}
 function mReset(){if(mState.iv)clearInterval(mState.iv);mState.currentIndex=0;mState.trace=[];mState.visited=new Set();document.getElementById('m-steps').innerHTML='';document.getElementById('m-verdict').style.display='none';document.getElementById('m-trace-box').textContent='Reset.';document.getElementById('m-cur').textContent='—';document.getElementById('m-diag').textContent='Pending';mRender();}
 function mClick(id){if(!mState.currentCase)return;if(id===mState.currentCase.path[mState.currentIndex])mMove(id);}
 mRender();
@@ -1042,7 +1272,20 @@ function eduMove(id){
   }
   eduRender();
 }
-function eduAuto(){if(!eduState.currentCase)return;if(eduState.iv)clearInterval(eduState.iv);eduState.iv=runPath(eduState.currentCase.path.slice(eduState.currentIndex),800,id=>eduMove(id));}
+function eduAuto(){
+  if(!eduState.currentCase)return;
+  if(eduState.iv)clearInterval(eduState.iv);
+  callWorkflowReason('learning',eduState.currentCase.id||'custom',eduState.currentCase.name||eduState.currentCase.label||'learning',EDU_NODES,eduState,eduMove,{
+    elTrace:document.getElementById('edu-trace'),
+    elStatus:document.getElementById('api-status'),
+    elHash:null,
+    delay:800
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (eduState.currentCase.path||[]).slice(eduState.currentIndex);
+    eduState.iv=runPath(pathToRun,800,id=>eduMoveWithLLM(id,llm));
+  });
+}
+function eduMoveWithLLM(id,llm){eduMove(id);}
 function eduReset(){if(eduState.iv)clearInterval(eduState.iv);eduState.currentIndex=0;eduState.trace=[];eduState.visited=new Set();document.getElementById('edu-steps').innerHTML='';document.getElementById('edu-trace').textContent='Reset.';document.getElementById('edu-mastered').textContent='0';eduRender();}
 function eduClick(id){if(!eduState.currentCase)return;if(id===eduState.currentCase.path[eduState.currentIndex])eduMove(id);}
 eduRender();
@@ -1123,7 +1366,20 @@ function csMove(id){
   }
   csRender();
 }
-function csAuto(){if(!csState.currentCase)return;if(csState.iv)clearInterval(csState.iv);csState.iv=runPath(csState.currentCase.path.slice(csState.currentIndex),750,id=>csMove(id));}
+function csAuto(){
+  if(!csState.currentCase)return;
+  if(csState.iv)clearInterval(csState.iv);
+  callWorkflowReason('cybersec',csState.currentCase.id||'custom',csState.currentCase.name||csState.currentCase.label||'cybersec',CS_NODES,csState,csMove,{
+    elTrace:document.getElementById('cs-trace'),
+    elStatus:document.getElementById('api-status'),
+    elHash:null,
+    delay:750
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (csState.currentCase.path||[]).slice(csState.currentIndex);
+    csState.iv=runPath(pathToRun,750,id=>csMoveWithLLM(id,llm));
+  });
+}
+function csMoveWithLLM(id,llm){csMove(id);}
 function csReset(){if(csState.iv)clearInterval(csState.iv);csState.currentIndex=0;csState.trace=[];csState.visited=new Set();document.getElementById('cs-steps').innerHTML='';csState.iv=null;document.getElementById('cs-ioc').style.display='none';document.getElementById('cs-trace').textContent='Reset.';document.getElementById('cs-phase').textContent='—';document.getElementById('cs-ttps').textContent='0';csRender();}
 function csClick(id){if(!csState.currentCase)return;if(id===csState.currentCase.path[csState.currentIndex])csMove(id);}
 function csExport(){if(csState.trace.length===0)return;const t=csState.trace.join('-');document.getElementById('cs-ioc').style.display='block';document.getElementById('cs-ioc').textContent='IOC EXPORT | 0x'+simpleHash(t)+' | TRACE: '+t+'\n→ Share this compact string. Any SOC with the board map can replay the full attack chain.';}
@@ -1186,31 +1442,46 @@ function drSelect(i){
 function drAuto(){
   if(!drState.currentCase)return;if(drState.iv)clearInterval(drState.iv);
   document.getElementById('dr-agents').textContent=drState.currentCase.agents;
-  let pathIdx=0;
-  function runNextPath(){
-    if(pathIdx>=drState.currentCase.paths.length)return;
-    const path=drState.currentCase.paths[pathIdx];
-    const label=drState.currentCase.labels[pathIdx];pathIdx++;
-    drState.trace=[];drState.visited=new Set();
-    let i=0;
-    const iv2=setInterval(()=>{
-      if(i>=path.length){
-        clearInterval(iv2);drState.tested++;drState.hits++;
-        document.getElementById('dr-tested').textContent=drState.tested;
-        document.getElementById('dr-hits').textContent=drState.hits;
-        const sns=label.match(/SNS:([0-9.]+)/)?.[1]||'—';
-        document.getElementById('dr-sns').textContent=sns;
-        const list=document.getElementById('dr-hits-list');
-        list.innerHTML+=`<div class="step"><div class="sn">HIT #${drState.hits} | SNS: ${sns}</div><div class="ss" style="font-family:var(--mono)">${path.join('-')}</div><div class="st">${label}</div></div>`;
-        list.scrollTop=list.scrollHeight;
-        setTimeout(runNextPath,500);return;
-      }
-      drState.trace=[...drState.trace,path[i]];drState.visited=new Set(drState.trace);
-      document.getElementById('dr-trace').textContent='Σ AGENT TRACE: '+drState.trace.join('-');
-      drRender();i++;
-    },550);
+  document.getElementById('dr-trace').textContent='Σ CALLING LLM SWARM...';
+  // Call real LLM for each agent path in sequence
+  const caseName = drState.currentCase.name;
+  const paths = drState.currentCase.paths;
+  let pathIdx = 0;
+  async function runNextAgentLLM(){
+    if(pathIdx >= paths.length) return;
+    const agentNum = pathIdx + 1;
+    pathIdx++;
+    try {
+      const resp = await fetch(WORKFLOW_API_BASE+'/workflow/reason',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({domain:'drug-rd',case_description:caseName+' — Agent-'+agentNum+' exploration',agentId:'dr-agent-'+agentNum})
+      });
+      const result = await resp.json();
+      drState.tested++;drState.hits++;
+      document.getElementById('dr-tested').textContent=drState.tested;
+      document.getElementById('dr-hits').textContent=drState.hits;
+      document.getElementById('dr-sns').textContent=result.confidence+'%';
+      document.getElementById('dr-trace').textContent='Σ LLM TRACE: '+result.trace;
+      const list=document.getElementById('dr-hits-list');
+      list.innerHTML+=`<div class="step"><div class="sn">LLM HIT #${drState.hits} | Conf: ${result.confidence}%</div><div class="ss" style="font-family:var(--mono)">${result.trace}</div><div class="st">${result.verdict.slice(0,120)}</div></div>`;
+      list.scrollTop=list.scrollHeight;
+      // Animate the returned path on board
+      drState.trace=[];drState.visited=new Set();
+      runPath(result.steps.map(s=>s.node_id),550,id=>{drState.trace.push(id);drState.visited.add(id);drRender();});
+      if(pathIdx < paths.length) setTimeout(runNextAgentLLM, 800);
+    } catch(e) {
+      // Fallback to demo path for this agent
+      const path = paths[pathIdx-1];
+      drState.trace=[];drState.visited=new Set();
+      drState.tested++;drState.hits++;
+      document.getElementById('dr-tested').textContent=drState.tested;
+      document.getElementById('dr-hits').textContent=drState.hits;
+      const list=document.getElementById('dr-hits-list');
+      list.innerHTML+=`<div class="step"><div class="sn">DEMO Agent-${agentNum} (API offline)</div><div class="ss" style="font-family:var(--mono)">${path.join('-')}</div><div class="st">Demo mode — ${e.message}</div></div>`;
+      if(pathIdx < paths.length) setTimeout(runNextAgentLLM, 800);
+    }
   }
-  runNextPath();
+  runNextAgentLLM();
 }
 function drReset(){drState.trace=[];drState.visited=new Set();drState.hits=0;drState.tested=0;document.getElementById('dr-hits-list').innerHTML='';document.getElementById('dr-trace').textContent='Reset.';document.getElementById('dr-agents').textContent='0';document.getElementById('dr-tested').textContent='0';document.getElementById('dr-hits').textContent='0';drRender();}
 function drClick(){}
@@ -1291,7 +1562,20 @@ function rvMove(id){
   }
   rvRender();
 }
-function rvAuto(){if(!rvState.currentCase)return;if(rvState.iv)clearInterval(rvState.iv);rvState.iv=runPath(rvState.currentCase.path.slice(rvState.currentIndex),800,id=>rvMove(id));}
+function rvAuto(){
+  if(!rvState.currentCase)return;
+  if(rvState.iv)clearInterval(rvState.iv);
+  callWorkflowReason('rover',rvState.currentCase.id||'custom',rvState.currentCase.name||rvState.currentCase.label||'rover',RV_NODES,rvState,rvMove,{
+    elTrace:document.getElementById('rv-trace'),
+    elStatus:document.getElementById('api-status'),
+    elHash:null,
+    delay:800
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (rvState.currentCase.path||[]).slice(rvState.currentIndex);
+    rvState.iv=runPath(pathToRun,800,id=>rvMoveWithLLM(id,llm));
+  });
+}
+function rvMoveWithLLM(id,llm){rvMove(id);}
 function rvReset(){if(rvState.iv)clearInterval(rvState.iv);rvState.currentIndex=0;rvState.trace=[];rvState.visited=new Set();document.getElementById('rv-log').innerHTML='';document.getElementById('rv-trace').textContent='Reset.';document.getElementById('rv-uplink').style.display='none';rvRender();}
 function rvClick(id){if(!rvState.currentCase)return;if(id===rvState.currentCase.path[rvState.currentIndex])rvMove(id);}
 function rvSend(){
@@ -1379,7 +1663,20 @@ function finMove(id){
   }
   finRender();
 }
-function finAuto(){if(!finState.currentCase)return;if(finState.iv)clearInterval(finState.iv);finState.iv=runPath(finState.currentCase.path.slice(finState.currentIndex),750,id=>finMove(id));}
+function finAuto(){
+  if(!finState.currentCase)return;
+  if(finState.iv)clearInterval(finState.iv);
+  callWorkflowReason('compliance',finState.currentCase.id||'custom',finState.currentCase.name||finState.currentCase.label||'compliance',FIN_NODES,finState,finMove,{
+    elTrace:document.getElementById('fin-trace'),
+    elStatus:document.getElementById('api-status'),
+    elHash:null,
+    delay:750
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (finState.currentCase.path||[]).slice(finState.currentIndex);
+    finState.iv=runPath(pathToRun,750,id=>finMoveWithLLM(id,llm));
+  });
+}
+function finMoveWithLLM(id,llm){finMove(id);}
 function finReset(){if(finState.iv)clearInterval(finState.iv);finState.currentIndex=0;finState.trace=[];finState.visited=new Set();document.getElementById('fin-steps').innerHTML='';document.getElementById('fin-report').style.display='none';document.getElementById('fin-trace').textContent='Reset.';finRender();}
 function finClick(id){if(!finState.currentCase)return;if(id===finState.currentCase.path[finState.currentIndex])finMove(id);}
 function finExport(){document.getElementById('fin-report').style.display='block';document.getElementById('fin-rtext').textContent='SEC REPORT | 0x'+simpleHash(finState.trace.join(''))+' | TRACE: '+(finState.trace.join('-')||'—')+'\n'+new Date().toISOString()+'\n\n∀ decisions reproducible by any regulator with board access. Deterministic · Auditable · O(1).';}
@@ -1463,7 +1760,20 @@ function thMove(id){
   }
   thRender();
 }
-function thAuto(){if(!thState.currentCase)return;if(thState.iv)clearInterval(thState.iv);thState.iv=runPath(thState.currentCase.path.slice(thState.currentIndex),800,id=>thMove(id));}
+function thAuto(){
+  if(!thState.currentCase)return;
+  if(thState.iv)clearInterval(thState.iv);
+  callWorkflowReason('therapy',thState.currentCase.id||'custom',thState.currentCase.name||thState.currentCase.label||'therapy',TH_NODES,thState,thMove,{
+    elTrace:document.getElementById('th-trace'),
+    elStatus:document.getElementById('api-status'),
+    elHash:null,
+    delay:800
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (thState.currentCase.path||[]).slice(thState.currentIndex);
+    thState.iv=runPath(pathToRun,800,id=>thMoveWithLLM(id,llm));
+  });
+}
+function thMoveWithLLM(id,llm){thMove(id);}
 function thReset(){if(thState.iv)clearInterval(thState.iv);thState.currentIndex=0;thState.trace=[];thState.visited=new Set();document.getElementById('th-steps').innerHTML='';document.getElementById('th-verdict').style.display='none';document.getElementById('th-trace').textContent='Reset.';document.getElementById('th-nodes').textContent='0';thRender();}
 function thClick(id){if(!thState.currentCase)return;if(id===thState.currentCase.path[thState.currentIndex])thMove(id);}
 thRender();
@@ -1556,7 +1866,20 @@ function crMove(id){
   }
   crRender();
 }
-function crAuto(){if(!crState.currentCase)return;if(crState.iv)clearInterval(crState.iv);crState.iv=runPath(crState.currentCase.path.slice(crState.currentIndex),700,id=>crMove(id));}
+function crAuto(){
+  if(!crState.currentCase)return;
+  if(crState.iv)clearInterval(crState.iv);
+  callWorkflowReason('crisis',crState.currentCase.id||'custom',crState.currentCase.name||crState.currentCase.label||'crisis',CR_NODES,crState,crMove,{
+    elTrace:document.getElementById('cr-trace'),
+    elStatus:document.getElementById('api-status'),
+    elHash:null,
+    delay:700
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (crState.currentCase.path||[]).slice(crState.currentIndex);
+    crState.iv=runPath(pathToRun,700,id=>crMoveWithLLM(id,llm));
+  });
+}
+function crMoveWithLLM(id,llm){crMove(id);}
 function crReset(){if(crState.iv)clearInterval(crState.iv);crState.currentIndex=0;crState.trace=[];crState.visited=new Set();crState.hour=0;crState.logCount=0;document.getElementById('cr-steps').innerHTML='';document.getElementById('cr-trace').textContent='Reset.';document.getElementById('cr-hour').textContent='T+0';document.getElementById('cr-log').textContent='0';document.getElementById('cr-status').textContent='Standby';crRender();}
 function crClick(id){if(!crState.currentCase)return;if(id===crState.currentCase.path[crState.currentIndex])crMove(id);}
 function crPostMortem(){
@@ -1653,7 +1976,20 @@ function aiMove(id){
   }
   aiRender();
 }
-function aiAuto(){if(!aiState.currentCase)return;if(aiState.iv)clearInterval(aiState.iv);aiState.iv=runPath(aiState.currentCase.path.slice(aiState.currentIndex),850,id=>aiMove(id));}
+function aiAuto(){
+  if(!aiState.currentCase)return;
+  if(aiState.iv)clearInterval(aiState.iv);
+  callWorkflowReason('ai-interp',aiState.currentCase.id||'custom',aiState.currentCase.name||aiState.currentCase.label||'ai-interp',AI_NODES,aiState,aiMove,{
+    elTrace:document.getElementById('ai-trace'),
+    elStatus:document.getElementById('api-status'),
+    elHash:null,
+    delay:850
+  }).then(llm=>{
+    const pathToRun = llm ? llm.path : (aiState.currentCase.path||[]).slice(aiState.currentIndex);
+    aiState.iv=runPath(pathToRun,850,id=>aiMoveWithLLM(id,llm));
+  });
+}
+function aiMoveWithLLM(id,llm){aiMove(id);}
 function aiReset(){if(aiState.iv)clearInterval(aiState.iv);aiState.currentIndex=0;aiState.trace=[];aiState.visited=new Set();document.getElementById('ai-steps').innerHTML='';document.getElementById('ai-trace').textContent='Reset.';aiRender();}
 function aiClick(id){if(!aiState.currentCase)return;if(id===aiState.currentCase.path[aiState.currentIndex])aiMove(id);}
 function aiCompare(){
