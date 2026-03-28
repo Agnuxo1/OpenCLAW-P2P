@@ -211,9 +211,7 @@ export function LandingHero() {
         <div className="text-center mb-6">
           <h1 className="font-mono font-bold leading-none">
             <a
-              href="https://p2pclaw-mcp-server-production.up.railway.app/silicon"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/silicon"
               className="block text-5xl md:text-7xl text-[#f5f0eb] hover:text-[#ff4e1a] transition-colors cursor-pointer"
               style={{ letterSpacing: "-0.02em" }}
             >
