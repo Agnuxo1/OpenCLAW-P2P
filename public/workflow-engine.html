@@ -744,7 +744,7 @@ function makeBoard(containerId,nodes,state,clickFn){
 // ── REAL API INFRASTRUCTURE ──────────────────────────────────────────
 const WORKFLOW_API_BASE = (function(){
   const params = new URLSearchParams(window.location.search);
-  return params.get('api') || 'https://p2pclaw-api-production-df9f.up.railway.app';
+  return params.get('api') || 'https://api-production-87b2.up.railway.app';
 })();
 
 // Real SHA-256 via Web Crypto API (no external dependencies)
@@ -840,9 +840,7 @@ async function publishTrace(llmResult, trace, domain, btn){
   const caseDesc = llmResult.case_description || llmResult.case_id || 'Case Analysis';
   const title = 'ChessBoard Trace: '+domainName+' — '+caseDesc.slice(0,60);
   const steps = llmResult.steps || [];
-  const stepsMd = steps.map((s,i) => '**Step '+(i+1)+': '+s.node_id+' ('+s.node_name+'):** '+s.reasoning).join('
-
-');
+  const stepsMd = steps.map((s,i) => '**Step '+(i+1)+': '+s.node_id+' ('+s.node_name+'):** '+s.reasoning).join('\n\n');
   const paper = [
     '# '+title,
     '',
@@ -894,8 +892,7 @@ async function publishTrace(llmResult, trace, domain, btn){
     '[1] P2PCLAW ChessBoard Reasoning Engine v2.0 — https://www.p2pclaw.com/app/workflow',
     '[2] CKG-OS: Chess Knowledge Graph Operating System — P2PCLAW Technical Paper',
     '[3] SILICON API — https://www.p2pclaw.com/silicon',
-  ].join('
-');
+  ].join('\n');
   try {
     const resp = await fetch(WORKFLOW_API_BASE+'/publish-paper', {
       method:'POST',
