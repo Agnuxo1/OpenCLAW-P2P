@@ -1,43 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Primary + fallback Railway endpoints — tried in order on 5xx / network error
-const RAILWAY_ENDPOINTS = [
-  process.env.RAILWAY_API_URL || "https://openclaw-api-production-ccbe.up.railway.app",
-  "https://openclaw-agent-01-production-63d8.up.railway.app",
-].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
+// ── Onion-layered API gateways — tried in order, never single point of failure ──
+// Layer 1: Render (free, 750h/mo, Node.js native, always up while active)
+// Layer 2: HF Space (free CPU tier, Docker, persistent)
+// Layer 3: Railway (when credits available)
+// Layer 4: Queen agents (always on HF, partial API)
+const API_ENDPOINTS = [
+  process.env.RAILWAY_API_URL || "https://p2pclaw-api.onrender.com",
+  "https://p2pclaw-api.onrender.com",
+  "https://agnuxo-p2pclaw-api.hf.space",
+  "https://queen-agent-production.up.railway.app",
+  "https://beta-queen-production-1e87.up.railway.app",
+].filter((v, i, a) => v && a.indexOf(v) === i); // deduplicate + remove empty
 
-async function fetchWithBody(req: NextRequest, railwayUrl: string): Promise<Response> {
+async function fetchWithBody(req: NextRequest, apiUrl: string): Promise<Response> {
   const init: RequestInit = {
     method: req.method,
     headers: {
       "Content-Type": req.headers.get("content-type") ?? "application/json",
-      "User-Agent": "P2PCLAW-Beta-Proxy/2.0",
+      "Accept": req.headers.get("accept") ?? "application/json",
+      "User-Agent": "P2PCLAW-Proxy/3.0",
     },
     redirect: "manual",
+    signal: AbortSignal.timeout(8000), // 8s timeout per endpoint
   };
   if (req.method !== "GET" && req.method !== "HEAD") {
     try { init.body = await req.text(); } catch { /* no body */ }
   }
-  return fetch(railwayUrl, init);
+  return fetch(apiUrl, init);
 }
 
 export async function proxyToRailway(req: NextRequest, prefix: string, segments: string[] = []) {
-  const path = segments.join("/");
-  const parts = [prefix, path].filter(Boolean).join("/");
+  const pathStr = segments.join("/");
+  const parts = [prefix, pathStr].filter(Boolean).join("/");
   const urlSuffix = `/${parts}${req.nextUrl.search}`;
 
   let lastError: unknown;
 
-  for (const base of RAILWAY_ENDPOINTS) {
-    const railwayUrl = `${base}${urlSuffix}`;
-    console.log(`[PROXY] ${req.method} ${req.nextUrl.pathname} -> ${railwayUrl}`);
+  for (const base of API_ENDPOINTS) {
+    const targetUrl = `${base}${urlSuffix}`;
+    console.log(`[PROXY] ${req.method} ${req.nextUrl.pathname} -> ${targetUrl}`);
 
     try {
-      const res = await fetchWithBody(req, railwayUrl);
+      const res = await fetchWithBody(req, targetUrl);
 
-      // Retry on 5xx with next endpoint
-      if (res.status >= 500 && RAILWAY_ENDPOINTS.indexOf(base) < RAILWAY_ENDPOINTS.length - 1) {
-        console.warn(`[PROXY] ${base} returned ${res.status}, trying fallback`);
+      // Retry on 5xx or 502/503 with next endpoint
+      if ((res.status >= 500 || res.status === 502 || res.status === 503) &&
+          API_ENDPOINTS.indexOf(base) < API_ENDPOINTS.length - 1) {
+        console.warn(`[PROXY] ${base} returned ${res.status}, trying next endpoint`);
         continue;
       }
 
@@ -45,11 +55,11 @@ export async function proxyToRailway(req: NextRequest, prefix: string, segments:
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get("location");
         if (location) {
-          const targetUrl = new URL(location, railwayUrl);
-          if (targetUrl.origin === new URL(base).origin) {
-            const relativeLocation = targetUrl.pathname.startsWith("/" + prefix)
-              ? targetUrl.pathname.replace("/" + prefix, "")
-              : targetUrl.pathname;
+          const targetUrlObj = new URL(location, targetUrl);
+          if (targetUrlObj.origin === new URL(base).origin) {
+            const relativeLocation = targetUrlObj.pathname.startsWith("/" + prefix)
+              ? targetUrlObj.pathname.replace("/" + prefix, "")
+              : targetUrlObj.pathname;
             return NextResponse.redirect(new URL(relativeLocation, req.url), res.status);
           }
           return NextResponse.redirect(location, res.status);
@@ -72,6 +82,10 @@ export async function proxyToRailway(req: NextRequest, prefix: string, segments:
     }
   }
 
-  console.error("[PROXY] All Railway endpoints failed", lastError);
-  return NextResponse.json({ error: "Railway unreachable" }, { status: 503 });
+  console.error("[PROXY] All API endpoints failed", lastError);
+  return NextResponse.json({
+    error: "All API gateways unreachable",
+    gateways: API_ENDPOINTS,
+    hint: "Try direct: https://p2pclaw-api.onrender.com/silicon"
+  }, { status: 503 });
 }

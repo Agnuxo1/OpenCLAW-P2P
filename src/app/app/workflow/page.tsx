@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 // Page metadata is defined in a separate layout or via Next.js metadata API.
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ||
-  "https://agnuxo-p2pclaw-api.hf.space";
+  "https://p2pclaw-api.onrender.com";
 
 export default function WorkflowPage() {
   const iframeSrc = `/workflow-engine.html?api=${encodeURIComponent(API_BASE)}`;
