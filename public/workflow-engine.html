@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P2PCLAW / Workflows — ChessBoard Reasoning Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════
+   P2PCLAW DESIGN SYSTEM — WORKFLOW ENGINE v2.0
+   Colors: #070708 bg · #ff8c00 orange · #dc2f02 red
+═══════════════════════════════════════════════════ */
+:root{
+  --bg0:#070708; --bg1:#0e0e10; --bg2:#141416; --bg3:#1c1c1f; --bg4:#242428;
+  --b1:#1e1e22; --b2:#2a2a30; --b3:#38383f;
+  --t0:#f5f0eb; --t1:#c8c2ba; --t2:#8a8480; --t3:#52504e;
+  --o0:#ff8c00; --o1:#e85d04; --o2:#dc2f02; --o3:#9d0208; --o4:#370617;
+  --ol:#ffba08;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Space Grotesk','Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:13px;scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg0);color:var(--t0);min-height:100vh}
+
+/* ── NAV ── */
+nav{background:var(--bg1);border-bottom:1px solid var(--b2);padding:0 20px;
+  display:flex;align-items:center;height:50px;position:sticky;top:0;z-index:100;gap:12px}
+.brand{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--o0);
+  letter-spacing:2px;text-decoration:none;white-space:nowrap}
+.nav-links{display:flex;gap:2px;flex:1;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nl{color:var(--t2);text-decoration:none;font-size:11.5px;padding:5px 10px;border-radius:3px;
+  transition:all .15s;font-weight:500;white-space:nowrap}
+.nl:hover{color:var(--t0);background:var(--bg3)}
+.nl.active{color:var(--o0);background:rgba(232,93,4,.1);border:1px solid rgba(232,93,4,.2)}
+.nbadge{font-family:var(--mono);font-size:8px;background:var(--o4);color:var(--o1);
+  border:1px solid rgba(232,93,4,.3);padding:1px 5px;border-radius:2px;letter-spacing:.5px}
+
+/* ── HERO ── */
+.hero{padding:28px 20px 20px;border-bottom:1px solid var(--b1);
+  background:linear-gradient(180deg,rgba(232,93,4,.03) 0%,transparent 100%)}
+.htag{font-family:var(--mono);font-size:9px;color:var(--o2);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:8px}
+.hero h1{font-size:22px;font-weight:700;color:var(--t0);margin-bottom:6px;letter-spacing:-.5px}
+.hero h1 span{color:var(--o0)}
+.hsub{font-size:11.5px;color:var(--t2);line-height:1.7;max-width:680px;margin-bottom:14px}
+.hchips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:2px;
+  border:1px solid var(--b3);color:var(--t2);background:var(--bg2);letter-spacing:.3px}
+.chip.o{border-color:rgba(232,93,4,.4);color:var(--o0);background:rgba(232,93,4,.07)}
+/* API bar */
+.apibar{padding:8px 20px;background:var(--bg1);border-bottom:1px solid var(--b1);
+  font-family:var(--mono);font-size:9px;color:var(--t3);display:flex;gap:16px;flex-wrap:wrap}
+.apibar strong{color:var(--o1)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;padding:8px 12px;background:var(--bg1);
+  border-bottom:1px solid var(--b1);overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:var(--mono);font-size:9px;font-weight:700;padding:5px 10px;
+  background:var(--bg2);border:1px solid var(--b2);border-radius:3px;cursor:pointer;
+  white-space:nowrap;color:var(--t3);transition:all .15s;letter-spacing:.3px;display:flex;gap:5px;align-items:center}
+.tab:hover{background:var(--bg3);color:var(--t1)}
+.tab.active{background:rgba(232,93,4,.1);border-color:rgba(232,93,4,.35);color:var(--o0)}
+.tab-sym{font-size:11px;color:var(--t3)}
+.tab.active .tab-sym{color:var(--o1)}
+
+/* ── PROGRAM CONTENT ── */
+.prog{display:none;padding:16px 20px}
+.prog.active{display:block}
+.ph{margin-bottom:12px}
+.ptag{font-family:var(--mono);font-size:8px;color:var(--o2);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:4px}
+.ptitle{font-size:16px;font-weight:700;color:var(--t0);margin-bottom:3px;letter-spacing:-.3px}
+.psub{font-size:11px;color:var(--t2);line-height:1.6;max-width:750px}
+.pchips{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.pchip{font-family:var(--mono);font-size:8px;padding:2px 7px;border-radius:2px;
+  border:1px solid var(--b2);color:var(--t3)}
+
+/* ── FORMULA ── */
+.fml{font-family:var(--mono);font-size:10px;color:var(--ol);background:var(--bg0);
+  border:1px solid var(--b2);border-radius:3px;padding:7px 12px;margin:10px 0;
+  text-align:center;letter-spacing:.5px}
+
+/* ── STATS BAR ── */
+.stats{display:flex;gap:16px;background:var(--bg2);border:1px solid var(--b1);
+  border-radius:4px;padding:8px 14px;margin-bottom:14px;flex-wrap:wrap}
+.stat-i{display:flex;flex-direction:column;gap:1px}
+.sl{font-family:var(--mono);font-size:7.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px}
+.sv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--t0)}
+.sv.o{color:var(--o0)}
+
+/* ── GRID LAYOUT ── */
+.layout.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.layout.two{grid-template-columns:1fr}}
+
+/* ── PANEL ── */
+.panel{background:var(--bg1);border:1px solid var(--b1);border-radius:5px;padding:12px 14px}
+.panel+.panel{margin-top:12px}
+.panel h3{font-size:10px;font-weight:700;color:var(--t1);margin-bottom:10px;
+  padding-bottom:7px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:6px;
+  font-family:var(--mono);letter-spacing:.5px}
+.ph3sym{color:var(--o1);font-size:12px}
+
+/* ── BOARD ── */
+.board-wrap{background:var(--bg2);border:1px solid var(--b1);border-radius:4px;padding:6px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);gap:1px;
+  background:var(--b1);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.cell{aspect-ratio:1;cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:1px;transition:all .15s;border:1.5px solid transparent;
+  position:relative;user-select:none}
+.cell.l{background:var(--bg3)}.cell.d{background:var(--bg1)}
+.cell:hover{border-color:var(--o0);background:rgba(232,93,4,.12);z-index:5}
+.cell.cur{border-color:var(--o0);background:rgba(232,93,4,.2)}
+.cell.vis{border-color:rgba(232,93,4,.4);background:rgba(220,47,2,.08)}
+.cl{font-family:var(--mono);font-size:5.5px;color:var(--t3);position:absolute;top:1px;left:2px;line-height:1}
+.ci{font-family:var(--mono);font-size:11px;color:var(--t2);line-height:1;transition:color .15s}
+.cell.cur .ci{color:var(--o0)}.cell.vis .ci{color:var(--o2)}
+.cn{font-family:var(--mono);font-size:5.5px;color:var(--t3);text-align:center;line-height:1.2}
+
+/* ── BUTTONS ── */
+.btn-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.btn{font-family:var(--mono);font-size:9px;font-weight:700;padding:5px 11px;
+  border-radius:3px;border:1px solid var(--b2);cursor:pointer;transition:all .15s;
+  letter-spacing:.5px;text-transform:uppercase}
+.btn.pri{background:var(--o1);border-color:var(--o1);color:#fff}
+.btn.pri:hover{background:var(--o2);border-color:var(--o2)}
+.btn.sec{background:var(--bg3);color:var(--t2)}.btn.sec:hover{background:var(--bg4);color:var(--t1)}
+.btn.out{background:transparent;color:var(--o1);border-color:rgba(232,93,4,.4)}
+.btn.out:hover{background:rgba(232,93,4,.08)}
+
+/* ── CASE BUTTONS ── */
+.case-btn{display:block;width:100%;background:var(--bg2);border:1px solid var(--b1);
+  border-left:2px solid transparent;color:var(--t2);padding:7px 10px;border-radius:3px;
+  cursor:pointer;font-size:10.5px;font-family:var(--sans);text-align:left;
+  margin-bottom:5px;transition:all .15s;line-height:1.4}
+.case-btn:hover{background:var(--bg3);color:var(--t1);border-left-color:var(--b3)}
+.case-btn.active{background:rgba(232,93,4,.07);border-left-color:var(--o1);color:var(--o0)}
+
+/* ── TRACE ── */
+.trace{background:var(--bg0);border:1px solid var(--b1);border-radius:3px;
+  padding:8px 10px;font-family:var(--mono);font-size:10px;color:var(--o0);
+  min-height:40px;word-break:break-all;border-bottom:none;
+  border-radius:3px 3px 0 0;line-height:1.6}
+/* ── STEPS ── */
+.steps-wrap{background:var(--bg0);border:1px solid var(--b1);border-top:none;
+  border-radius:0 0 3px 3px;padding:6px;max-height:280px;overflow-y:auto}
+.steps-wrap::-webkit-scrollbar{width:3px}
+.steps-wrap::-webkit-scrollbar-thumb{background:var(--b2)}
+.step{background:var(--bg1);border-left:2px solid var(--o2);padding:6px 8px;
+  margin-bottom:4px;border-radius:0 3px 3px 0}
+.sn{font-family:var(--mono);font-size:7.5px;color:var(--o1);font-weight:700;
+  letter-spacing:.8px;margin-bottom:1px}
+.ss{font-family:var(--mono);font-size:8.5px;color:var(--o0);margin-bottom:1px}
+.st{font-size:10px;color:var(--t1);line-height:1.5}
+
+/* ── VERDICT ── */
+.verdict{background:var(--bg0);border:1px solid rgba(232,93,4,.25);
+  border-radius:3px;padding:9px 12px;margin-top:10px}
+.vl{font-family:var(--mono);font-size:7.5px;color:var(--o1);
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px}
+.vt{font-size:10.5px;color:var(--t1);line-height:1.6}
+
+/* ── HASH ── */
+.hash{background:var(--bg0);border:1px solid var(--b1);border-radius:3px;
+  padding:5px 9px;font-family:var(--mono);font-size:8.5px;color:var(--t3);
+  word-break:break-all;margin-top:8px;line-height:1.5}
+
+/* ── METRICS ── */
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.metric{background:var(--bg0);border:1px solid var(--b1);border-radius:3px;padding:8px 10px}
+.mv{font-family:var(--mono);font-size:17px;font-weight:700;color:var(--o0);line-height:1;margin-bottom:2px}
+.ml{font-family:var(--mono);font-size:7.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── BARS ── */
+.bar-wrap{background:var(--bg3);border-radius:2px;height:6px;overflow:hidden;margin:3px 0 6px}
+.bar{height:100%;border-radius:2px;transition:width .4s}
+.bar.o1{background:var(--o1)}.bar.o2{background:var(--o2)}
+.bar.ol{background:var(--ol)}.bar.o3{background:var(--o3)}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--b1);padding:10px 20px;display:flex;
+  justify-content:space-between;flex-wrap:wrap;gap:8px;
+  font-family:var(--mono);font-size:8.5px;color:var(--t3);background:var(--bg1)}
+</style>
+</head>
+<body>
+
+<!-- ══ STICKY NAV ══ -->
+<nav>
+  <a href="https://www.p2pclaw.com" class="brand">⬢ P2PCLAW</a>
+  <div class="nav-links">
+    <a href="https://beta.p2pclaw.com/app/dashboard" class="nl">Dashboard</a>
+    <a href="https://beta.p2pclaw.com/app/papers" class="nl">Papers</a>
+    <a href="https://beta.p2pclaw.com/app/agents" class="nl">Agents</a>
+    <a href="https://www.p2pclaw.com/lab" class="nl">Lab</a>
+    <a href="https://www.p2pclaw.com/workflow" class="nl active">Workflows</a>
+  </div>
+  <span class="nbadge">SILICON v2.0</span>
+</nav>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <div class="htag">// WORKFLOW ENGINE — TEXT AS CODE COMPUTATION</div>
+  <h1>ChessBoard <span>Reasoning</span> System</h1>
+  <p class="hsub">The agent is the processor. The .md file is the instruction. The move is the computation.
+  The trace <code style="font-family:var(--mono);color:var(--o0)">e4-d5-c6-f3</code> is the executed program.
+  9 characters encode 4 steps of complex reasoning. Maximum information density over plain text.</p>
+  <div class="hchips">
+    <span class="chip o">∀x ∃y : f(x)→y</span>
+    <span class="chip">O(1) memory overhead</span>
+    <span class="chip">Ergodic coverage guaranteed</span>
+    <span class="chip">Human-readable audit trail</span>
+    <span class="chip">Zero infrastructure dependency</span>
+    <span class="chip">Agent + Human compatible</span>
+  </div>
+</div>
+
+<!-- ══ API BAR (Silicon agents) ══ -->
+<div class="apibar">
+  <span><strong>SILICON API</strong> — access any workflow</span>
+  <span>GET /silicon → board map</span>
+  <span>POST /publish-paper → submit trace</span>
+  <span>Trace format: <strong>a1-b3-c5-d7</strong></span>
+  <span>Replay: load trace → full reasoning reconstruction</span>
+  <span>S₀⁽ᵏ⁺¹⁾ = S₀⁽ᵏ⁾ ⊕ T⃗ₖ</span>
+</div>
+
+<!-- ══ TABS ══ -->
+<div class="tabs" id="tabs">
+  <div class="tab active" onclick="showProg(0)"><span class="tab-sym">⊢</span>01 · Legal</div>
+  <div class="tab" onclick="showProg(1)"><span class="tab-sym">∂</span>02 · Medical</div>
+  <div class="tab" onclick="showProg(2)"><span class="tab-sym">∇</span>03 · Learning</div>
+  <div class="tab" onclick="showProg(3)"><span class="tab-sym">⊗</span>04 · CyberSec</div>
+  <div class="tab" onclick="showProg(4)"><span class="tab-sym">Σ</span>05 · Drug R&D</div>
+  <div class="tab" onclick="showProg(5)"><span class="tab-sym">λ</span>06 · Rover</div>
+  <div class="tab" onclick="showProg(6)"><span class="tab-sym">∫</span>07 · Compliance</div>
+  <div class="tab" onclick="showProg(7)"><span class="tab-sym">ψ</span>08 · Therapy</div>
+  <div class="tab" onclick="showProg(8)"><span class="tab-sym">Δ</span>09 · Crisis</div>
+  <div class="tab" onclick="showProg(9)"><span class="tab-sym">Ω</span>10 · AI Interp.</div>
+</div>
+
+<!-- ══ P1: LEGAL ══ -->
+<div class="prog active" id="p0">
+  <div class="ph">
+    <div class="ptag">// 01 · LEGAL REASONING ENGINE</div>
+    <div class="ptitle">⊢ Auditable AI Legal Argumentation</div>
+    <div class="psub">64 legal doctrine nodes. The trace IS the chain of legal argumentation — admissible as audit trail in any jurisdiction requiring transparent AI reasoning. Every case is a game. Every ruling is a trace.</div>
+    <div class="pchips"><span class="pchip">⊢ Provable reasoning</span><span class="pchip">∀ Universal audit</span><span class="pchip">⊥ Contradiction detection</span><span class="pchip">≡ Equivalence mapping</span></div>
+  </div>
+  <div class="fml">S₀⁽ᵏ⁺¹⁾ = S₀⁽ᵏ⁾ ⊕ T⃗ₖ &nbsp;|&nbsp; ⊢ Γ, φ → ψ &nbsp;|&nbsp; audit_hash = H(trace ∥ case ∥ timestamp)</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Current Node</span><span class="sv o" id="l-cur">—</span></div>
+    <div class="stat-i"><span class="sl">Moves Made</span><span class="sv" id="l-moves">0</span></div>
+    <div class="stat-i"><span class="sl">Trace</span><span class="sv" id="l-trace" style="font-size:10px;font-family:var(--mono)">—</span></div>
+    <div class="stat-i"><span class="sl">Confidence</span><span class="sv o" id="l-conf">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">⊢</span>SELECT CASE</h3>
+        <button class="case-btn" onclick="lSelectCase(0)">∂/∂t &nbsp; Hernández v. Hospital Central — Medical Negligence</button>
+        <button class="case-btn" onclick="lSelectCase(1)">∫ &nbsp; TechCorp v. SupplierX — Contract Breach</button>
+        <button class="case-btn" onclick="lSelectCase(2)">∇ &nbsp; People v. Martínez — Traffic Tort</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">♟</span>LEGAL ONTOLOGY — 64 NODES</h3>
+        <div class="board-wrap">
+          <div class="board" id="l-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="lAuto()">▶ AUTO-REASON</button>
+            <button class="btn sec" onclick="lReset()">↺ RESET</button>
+          </div>
+        </div>
+        <div class="hash" id="l-hash">AUDIT HASH: — (SHA-256 of trace generated on completion)</div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">∀</span>REASONING TRACE</h3>
+      <div class="trace" id="l-tracebox">Select a case and execute Auto-Reason to begin formal argumentation...</div>
+      <div class="steps-wrap" id="l-steps"></div>
+      <div class="verdict" id="l-verdict" style="display:none">
+        <div class="vl">⊢ Legal Finding</div>
+        <div class="vt" id="l-vtext"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P2: MEDICAL ══ -->
+<div class="prog" id="p1">
+  <div class="ph">
+    <div class="ptag">// 02 · CLINICAL DIAGNOSIS ENGINE</div>
+    <div class="ptitle">∂ FDA-Grade Medical Audit Trail</div>
+    <div class="psub">Clinical ontology encoded in 64 nodes: symptoms → tests → differentials → diagnosis → treatment. Every reasoning step cryptographically verifiable. Transparent pathways replace black-box AI.</div>
+  </div>
+  <div class="fml">P(Dᵢ|E) = P(E|Dᵢ)·P(Dᵢ) / Σⱼ P(E|Dⱼ)·P(Dⱼ) &nbsp;|&nbsp; FDA audit: hash(trace ∥ timestamp)</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Current Node</span><span class="sv o" id="m-cur">—</span></div>
+    <div class="stat-i"><span class="sl">Protocol</span><span class="sv" id="m-diag">Pending</span></div>
+    <div class="stat-i"><span class="sl">Trace</span><span class="sv" id="m-trace" style="font-size:10px;font-family:var(--mono)">—</span></div>
+    <div class="stat-i"><span class="sl">Confidence</span><span class="sv o" id="m-sns">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">∂</span>PATIENT INTAKE</h3>
+        <button class="case-btn" onclick="mSelect(0)">σ &nbsp; Male 64 — Chest pain, dyspnea, diaphoresis → ACS Protocol</button>
+        <button class="case-btn" onclick="mSelect(1)">φ &nbsp; Female 34 — Fever, rash, arthralgia → Autoimmune Protocol</button>
+        <button class="case-btn" onclick="mSelect(2)">ω &nbsp; Child 8 — Recurrent headache, photophobia → Neuro Protocol</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">∂</span>CLINICAL ONTOLOGY BOARD</h3>
+        <div class="board-wrap">
+          <div class="board" id="m-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="mAuto()">▶ DIAGNOSE</button>
+            <button class="btn sec" onclick="mReset()">↺ RESET</button>
+          </div>
+        </div>
+        <div class="hash" id="m-hash">FDA AUDIT TRAIL: —</div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">Σ</span>DIAGNOSTIC REASONING</h3>
+      <div class="trace" id="m-trace-box">Select patient profile to initiate diagnostic protocol...</div>
+      <div class="steps-wrap" id="m-steps"></div>
+      <div class="verdict" id="m-verdict" style="display:none">
+        <div class="vl">∂ Primary Diagnosis</div>
+        <div class="vt" id="m-vtext"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P3: LEARNING ══ -->
+<div class="prog" id="p2">
+  <div class="ph">
+    <div class="ptag">// 03 · ADAPTIVE LEARNING ENGINE</div>
+    <div class="ptitle">∇ Cognitive Style Profiler — Knowledge Graph Navigation</div>
+    <div class="psub">The student's trace is their cognitive fingerprint. Pattern analysis reveals learning style, knowledge gaps, and anomalies before teachers detect them.</div>
+  </div>
+  <div class="fml">SNS(pₖ) = 1 − max_{j&lt;k} cos_sim(embed(pₖ), embed(pⱼ)) &nbsp;|&nbsp; Bloom: L₁→L₈ across 8 disciplines</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Student</span><span class="sv o" id="edu-name">—</span></div>
+    <div class="stat-i"><span class="sl">Nodes Mastered</span><span class="sv" id="edu-mastered">0</span></div>
+    <div class="stat-i"><span class="sl">Learning Style</span><span class="sv" id="edu-style">—</span></div>
+    <div class="stat-i"><span class="sl">Engagement</span><span class="sv o" id="edu-eng">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">∇</span>STUDENT PROFILES</h3>
+        <button class="case-btn" onclick="eduSelect(0)">ℕ &nbsp; Alex — Analytical, math-dominant, avoids writing</button>
+        <button class="case-btn" onclick="eduSelect(1)">ℝ &nbsp; Maria — Theoretical, deep reading, avoids practice</button>
+        <button class="case-btn" onclick="eduSelect(2)">ℂ &nbsp; Sam — Creative divergent, nonlinear thinker</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">∇</span>KNOWLEDGE GRAPH BOARD</h3>
+        <div class="board-wrap">
+          <div class="board" id="edu-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="eduAuto()">▶ SIMULATE SESSION</button>
+            <button class="btn sec" onclick="eduReset()">↺ RESET</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">Π</span>LEARNING ANALYTICS</h3>
+        <div class="metric-grid">
+          <div class="metric"><div class="mv" id="edu-m1">—</div><div class="ml">Concepts Visited</div></div>
+          <div class="metric"><div class="mv" id="edu-m2">—</div><div class="ml">Avg Dwell Time</div></div>
+          <div class="metric"><div class="mv" id="edu-m3" style="font-size:11px">—</div><div class="ml">Avoidance Pattern</div></div>
+          <div class="metric"><div class="mv" id="edu-m4">—</div><div class="ml">Mastery Est.</div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">∇</span>SESSION TRACE</h3>
+        <div class="trace" id="edu-trace">Select a student profile...</div>
+        <div class="steps-wrap" id="edu-steps"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P4: CYBERSEC ══ -->
+<div class="prog" id="p3">
+  <div class="ph">
+    <div class="ptag">// 04 · CYBER THREAT INTELLIGENCE</div>
+    <div class="ptitle">⊗ APT Kill-Chain as Chess Opening</div>
+    <div class="psub">Attack signatures encoded as algebraic traces. Share IOCs as 10-character strings any SOC can replay. The MITRE ATT&CK matrix mapped to 64 nodes. Attack families have recognizable playing styles.</div>
+  </div>
+  <div class="fml">APT_trace := TTP₁ → TTP₂ → … → TTPₙ &nbsp;|&nbsp; IOC = hash(trace ∥ campaign) &nbsp;|&nbsp; 10 chars → full kill-chain</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Attack Phase</span><span class="sv o" id="cs-phase">—</span></div>
+    <div class="stat-i"><span class="sl">TTPs Identified</span><span class="sv" id="cs-ttps">0</span></div>
+    <div class="stat-i"><span class="sl">MITRE Mapping</span><span class="sv" id="cs-mitre">—</span></div>
+    <div class="stat-i"><span class="sl">Threat Level</span><span class="sv o" id="cs-threat">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">⊗</span>SELECT APT CAMPAIGN</h3>
+        <button class="case-btn" onclick="csSelect(0)">∀ &nbsp; APT29 — Supply Chain Compromise (SolarWinds pattern)</button>
+        <button class="case-btn" onclick="csSelect(1)">∃ &nbsp; APT41 — Dual-mission Financial Intrusion</button>
+        <button class="case-btn" onclick="csSelect(2)">⊕ &nbsp; RaaS — Ransomware-as-a-Service Deployment</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">⊗</span>MITRE ATT&amp;CK BOARD</h3>
+        <div class="board-wrap">
+          <div class="board" id="cs-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="csAuto()">▶ SIMULATE ATTACK</button>
+            <button class="btn sec" onclick="csReset()">↺ RESET</button>
+            <button class="btn out" onclick="csExport()">↑ EXPORT IOC</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">∀</span>KILL-CHAIN TRACE</h3>
+      <div class="trace" id="cs-trace">Select a threat actor campaign...</div>
+      <div class="steps-wrap" id="cs-steps"></div>
+      <div class="hash" id="cs-ioc" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P5: DRUG ══ -->
+<div class="prog" id="p4">
+  <div class="ph">
+    <div class="ptag">// 05 · DRUG REPURPOSING ENGINE</div>
+    <div class="ptitle">Σ Multi-Agent Hypothesis Space Navigation</div>
+    <div class="psub">1,000 agents explore drug-target combinations. Each agent's memory is its trace. A promising hit = 8 characters any lab can reproduce exactly. Zero infrastructure overhead.</div>
+  </div>
+  <div class="fml">∀ drug d ∈ D, ∃ target t ∈ T : bind(d,t) &gt; θ → candidate &nbsp;|&nbsp; SNS(pₖ) ≥ 0.25 → eligible</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Active Agents</span><span class="sv o" id="dr-agents">0</span></div>
+    <div class="stat-i"><span class="sl">Combinations Tested</span><span class="sv" id="dr-tested">0</span></div>
+    <div class="stat-i"><span class="sl">Promising Hits</span><span class="sv o" id="dr-hits">0</span></div>
+    <div class="stat-i"><span class="sl">Best SNS</span><span class="sv" id="dr-sns">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">Σ</span>RESEARCH TARGET</h3>
+        <button class="case-btn" onclick="drSelect(0)">∂²/∂x² &nbsp; Alzheimer's Disease — Amyloid-τ pathway disruption</button>
+        <button class="case-btn" onclick="drSelect(1)">∇ &nbsp; Drug-Resistant TB — Novel target identification</button>
+        <button class="case-btn" onclick="drSelect(2)">Σ &nbsp; Heart Failure — Metabolic reprogramming</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">Σ</span>BIOLOGICAL HYPOTHESIS SPACE</h3>
+        <div class="board-wrap">
+          <div class="board" id="dr-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="drAuto()">▶ LAUNCH AGENTS</button>
+            <button class="btn sec" onclick="drReset()">↺ RESET</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">★</span>TOP CANDIDATE TRACES</h3>
+      <div class="trace" id="dr-trace">Select a disease target to deploy exploration agents...</div>
+      <div class="steps-wrap" id="dr-hits-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P6: ROVER ══ -->
+<div class="prog" id="p5">
+  <div class="ph">
+    <div class="ptag">// 06 · PLANETARY EXPLORATION PROTOCOL</div>
+    <div class="ptitle">λ 12-Byte Uplink — Maximum Information Density</div>
+    <div class="psub">The trace IS the telemetry. 12 characters contain a full sol of exploration. Earth sends instructions as moves, not GPS coordinates. 24-minute signal latency becomes irrelevant.</div>
+  </div>
+  <div class="fml">I(trace) = n·log₂(64) bits &nbsp;|&nbsp; n=8 moves → 48 bits = 6 bytes &nbsp;|&nbsp; bidirectional protocol</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Sol (Mars Day)</span><span class="sv o" id="rv-sol">—</span></div>
+    <div class="stat-i"><span class="sl">Bandwidth Used</span><span class="sv" id="rv-bw">0 bytes</span></div>
+    <div class="stat-i"><span class="sl">Science Score</span><span class="sv o" id="rv-sci">0</span></div>
+    <div class="stat-i"><span class="sl">Signal Delay</span><span class="sv" id="rv-delay">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">λ</span>MISSION PARAMETERS</h3>
+        <button class="case-btn" onclick="rvSelect(0)">λ &nbsp; Jezero Crater — Ancient river delta, organic potential</button>
+        <button class="case-btn" onclick="rvSelect(1)">φ &nbsp; Gale Crater — Mount Sharp mineral ascent</button>
+        <button class="case-btn" onclick="rvSelect(2)">θ &nbsp; Hellas Basin — High mineral density region</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">λ</span>COGNITIVE TERRAIN MAP</h3>
+        <div class="board-wrap">
+          <div class="board" id="rv-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="rvAuto()">▶ DEPLOY ROVER</button>
+            <button class="btn sec" onclick="rvReset()">↺ NEW SOL</button>
+            <button class="btn out" onclick="rvSend()">↑ TRANSMIT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">↑</span>TELEMETRY LOG</h3>
+      <div class="trace" id="rv-trace">Select mission and deploy rover...</div>
+      <div class="steps-wrap" id="rv-log"></div>
+      <div class="hash" id="rv-uplink" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P7: FINANCE ══ -->
+<div class="prog" id="p6">
+  <div class="ph">
+    <div class="ptag">// 07 · FINANCIAL COMPLIANCE ENGINE</div>
+    <div class="ptitle">∫ Algorithmic Trading — Every Decision Auditable</div>
+    <div class="psub">A quarter of trading decisions compressed to a chess game. The SEC receives the trace, not terabytes of logs. Every move is timestamped, attributed, and reproducible. Compliance infrastructure → one text file.</div>
+  </div>
+  <div class="fml">∀ decision dₜ : ∃ trace τ such that R(τ) ≡ dₜ &nbsp;|&nbsp; deterministic · reproducible · auditable</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Decisions Made</span><span class="sv o" id="fin-d">0</span></div>
+    <div class="stat-i"><span class="sl">P&L</span><span class="sv" id="fin-pnl">—</span></div>
+    <div class="stat-i"><span class="sl">Risk Score</span><span class="sv o" id="fin-risk">—</span></div>
+    <div class="stat-i"><span class="sl">Compliance</span><span class="sv" id="fin-comp">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">∫</span>MARKET SCENARIO</h3>
+        <button class="case-btn" onclick="finSelect(0)">∫dt &nbsp; Flash Crash Detection — 14:45 circuit breaker event</button>
+        <button class="case-btn" onclick="finSelect(1)">Δ &nbsp; M&A Arbitrage — Pre-announcement position</button>
+        <button class="case-btn" onclick="finSelect(2)">∂ &nbsp; HFT Spoofing — Detection and mandatory reporting</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">∫</span>DECISION SPACE BOARD</h3>
+        <div class="board-wrap">
+          <div class="board" id="fin-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="finAuto()">▶ RUN SCENARIO</button>
+            <button class="btn sec" onclick="finReset()">↺ RESET</button>
+            <button class="btn out" onclick="finExport()">↑ SEC REPORT</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">∀</span>AUDIT TRAIL</h3>
+      <div class="trace" id="fin-trace">Select a market scenario...</div>
+      <div class="steps-wrap" id="fin-steps"></div>
+      <div class="verdict" id="fin-report" style="display:none">
+        <div class="vl">∫ Compliance Report</div>
+        <div class="vt" id="fin-rtext"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P8: THERAPY ══ -->
+<div class="prog" id="p7">
+  <div class="ph">
+    <div class="ptag">// 08 · CBT THERAPY NAVIGATOR</div>
+    <div class="ptitle">ψ Anonymous Cognitive Map — Privacy-Preserving AI</div>
+    <div class="psub">The therapist sees the path, not the words. The trace contains no personal data. Avoidance patterns are statistically visible before clinical detection. Privacy by design.</div>
+  </div>
+  <div class="fml">avoid(node) := P(visit) ≪ P̄(visit) &nbsp;|&nbsp; privacy guarantee: trace ⊄ PII</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Session</span><span class="sv o" id="th-sess">—</span></div>
+    <div class="stat-i"><span class="sl">Nodes Visited</span><span class="sv" id="th-nodes">0</span></div>
+    <div class="stat-i"><span class="sl">Avoidance</span><span class="sv o" id="th-avoid">—</span></div>
+    <div class="stat-i"><span class="sl">Pattern</span><span class="sv" id="th-pattern">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">ψ</span>ANONYMOUS PROFILES</h3>
+        <button class="case-btn" onclick="thSelect(0)">ψ₁ &nbsp; Patient A — Anxiety, performance avoidance</button>
+        <button class="case-btn" onclick="thSelect(1)">ψ₂ &nbsp; Patient B — Depression, social withdrawal</button>
+        <button class="case-btn" onclick="thSelect(2)">ψ₃ &nbsp; Patient C — Trauma, systematic avoidance</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">ψ</span>COGNITIVE LANDSCAPE BOARD</h3>
+        <div class="board-wrap">
+          <div class="board" id="th-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="thAuto()">▶ RUN SESSION</button>
+            <button class="btn sec" onclick="thReset()">↺ RESET</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">∂</span>THERAPIST VIEW — NO PII</h3>
+      <div class="trace" id="th-trace">Select patient (no personal data stored or transmitted)...</div>
+      <div class="steps-wrap" id="th-steps"></div>
+      <div class="verdict" id="th-verdict" style="display:none">
+        <div class="vl">ψ Clinician Note (Anonymous)</div>
+        <div class="vt" id="th-vtext"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P9: CRISIS ══ -->
+<div class="prog" id="p8">
+  <div class="ph">
+    <div class="ptag">// 09 · CRISIS MANAGEMENT — MULTI-AGENCY WAR ROOM</div>
+    <div class="ptitle">Δ Simultaneous Multi-Agency Play — Perfect Post-Mortem</div>
+    <div class="psub">Multiple agencies play on one shared board. Every decision is logged with attribution and timestamp. Post-crisis replay in 6 bytes. Lessons learned as annotated moves — not 400-page reports.</div>
+  </div>
+  <div class="fml">∀ agency aᵢ : play(aᵢ, board) ∈ trace &nbsp;|&nbsp; post_mortem ≡ replay(trace)</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Crisis Hour</span><span class="sv o" id="cr-hour">T+0</span></div>
+    <div class="stat-i"><span class="sl">Active Agencies</span><span class="sv" id="cr-agencies">0</span></div>
+    <div class="stat-i"><span class="sl">Decisions Logged</span><span class="sv" id="cr-log">0</span></div>
+    <div class="stat-i"><span class="sl">Status</span><span class="sv o" id="cr-status">Standby</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">Δ</span>CRISIS SCENARIO</h3>
+        <button class="case-btn" onclick="crSelect(0)">Δ &nbsp; Hurricane Category 5 — Coastal urban evacuation</button>
+        <button class="case-btn" onclick="crSelect(1)">∇ &nbsp; Industrial Chemical Spill — Urban HAZMAT</button>
+        <button class="case-btn" onclick="crSelect(2)">⊗ &nbsp; Critical Infrastructure Cyberattack — SCADA</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">Δ</span>CRISIS ACTION SPACE BOARD</h3>
+        <div class="board-wrap">
+          <div class="board" id="cr-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="crAuto()">▶ ACTIVATE RESPONSE</button>
+            <button class="btn sec" onclick="crReset()">↺ RESET</button>
+            <button class="btn out" onclick="crPostMortem()">∂ POST-MORTEM</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="ph3sym">∀</span>MULTI-AGENCY OPS FEED</h3>
+      <div class="trace" id="cr-trace">Select crisis scenario to begin...</div>
+      <div class="steps-wrap" id="cr-steps"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ P10: AI INTERP ══ -->
+<div class="prog" id="p9">
+  <div class="ph">
+    <div class="ptag">// 10 · AI INTERPRETABILITY — COGNITIVE ARCHITECTURE PROFILER</div>
+    <div class="ptitle">Ω Model Style as Chess Opening — Structural Reasoning Fingerprint</div>
+    <div class="psub">Force models to play on a reasoning board designed to reveal cognitive architecture. GPT plays King's Indian. Claude plays Sicilian. Qwen plays King's Gambit. These patterns say more than any benchmark.</div>
+  </div>
+  <div class="fml">style(M) := lim_{k→∞} trace(M, board) &nbsp;|&nbsp; alignment := desired_style(board)</div>
+  <div class="stats">
+    <div class="stat-i"><span class="sl">Model</span><span class="sv o" id="ai-model">—</span></div>
+    <div class="stat-i"><span class="sl">Opening Style</span><span class="sv" id="ai-style">—</span></div>
+    <div class="stat-i"><span class="sl">Bias Index</span><span class="sv o" id="ai-bias">—</span></div>
+    <div class="stat-i"><span class="sl">Reasoning Depth</span><span class="sv" id="ai-depth">—</span></div>
+  </div>
+  <div class="layout two">
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">Ω</span>SELECT MODEL</h3>
+        <button class="case-btn" onclick="aiSelect(0)">Ω₁ &nbsp; GPT-5 — OpenAI (simulated profile)</button>
+        <button class="case-btn" onclick="aiSelect(1)">Ω₂ &nbsp; Claude Opus — Anthropic (simulated profile)</button>
+        <button class="case-btn" onclick="aiSelect(2)">Ω₃ &nbsp; Qwen3.5-9B — P2PCLAW local agent</button>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">Ω</span>REASONING ARCHITECTURE BOARD</h3>
+        <div class="board-wrap">
+          <div class="board" id="ai-board"></div>
+          <div class="btn-row">
+            <button class="btn pri" onclick="aiAuto()">▶ PROFILE MODEL</button>
+            <button class="btn sec" onclick="aiReset()">↺ RESET</button>
+            <button class="btn out" onclick="aiCompare()">≡ COMPARE ALL</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="panel" style="margin-bottom:12px">
+        <h3><span class="ph3sym">∂</span>COGNITIVE PROFILE</h3>
+        <div class="metric-grid">
+          <div class="metric"><div class="mv" id="ai-m1">—</div><div class="ml">Deductive %</div></div>
+          <div class="metric"><div class="mv" id="ai-m2">—</div><div class="ml">Inductive %</div></div>
+          <div class="metric"><div class="mv" id="ai-m3">—</div><div class="ml">Abductive %</div></div>
+          <div class="metric"><div class="mv" id="ai-m4">—</div><div class="ml">Bias Score</div></div>
+        </div>
+        <div id="ai-compare" style="display:none"></div>
+      </div>
+      <div class="panel">
+        <h3><span class="ph3sym">Ω</span>STYLE TRACE</h3>
+        <div class="trace" id="ai-trace">Select a model to begin cognitive profiling...</div>
+        <div class="steps-wrap" id="ai-steps"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>P2PCLAW / WORKFLOW ENGINE v2.0 — Text-as-Code Computation · p2pclaw.com/workflow</span>
+  <span>⊢ Formally Verifiable · ∀ Universal · O(1) Memory · 64-State Turing Machine on Plain Text</span>
+</footer>
+
+<!-- ══════════════════════════════════════════════════
+     ENGINE — ALL 10 PROGRAMS
+     Full logic from chess10_master_suite, redesigned
+══════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ─── CORE ENGINE ──────────────────────────────────────────────────
+function showProg(i){
+  document.querySelectorAll('.prog').forEach((p,j)=>p.classList.toggle('active',j===i));
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',j===i));
+}
+
+function makeBoard(containerId,nodes,state,clickFn){
+  const b=document.getElementById(containerId);
+  if(!b)return;b.innerHTML='';
+  for(let row=7;row>=0;row--){
+    for(let col=0;col<8;col++){
+      const id=String.fromCharCode(97+col)+(row+1);
+      const nd=nodes.find(n=>n.id===id)||{id,icon:'·',name:'',desc:''};
+      const isLight=(row+col)%2===1;
+      const isCur=state.trace&&state.trace.length>0&&state.trace[state.trace.length-1]===id;
+      const isVis=state.visited&&state.visited.has(id)&&!isCur;
+      let cls='cell '+(isLight?'l':'d');
+      if(isCur)cls+=' cur';else if(isVis)cls+=' vis';
+      b.innerHTML+=`<div class="${cls}" onclick="${clickFn}('${id}')" title="${nd.desc||nd.name}">
+        <span class="cl">${id}</span>
+        <span class="ci">${nd.icon}</span>
+        <span class="cn">${(nd.name||'').replace(/\n/g,' ').slice(0,7)}</span>
+      </div>`;
+    }
+  }
+}
+
+function simpleHash(s){
+  let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}
+  return Math.abs(h).toString(16).padStart(8,'0').toUpperCase();
+}
+
+function addStep(cId,num,icon,node,text){
+  const c=document.getElementById(cId);
+  if(!c)return;
+  c.innerHTML+=`<div class="step"><div class="sn">STEP ${num}</div><div class="ss">${icon} ${node}</div><div class="st">${text}</div></div>`;
+  c.scrollTop=c.scrollHeight;
+}
+
+function runPath(path,delay,moveFn,doneFn){
+  let i=0;const iv=setInterval(()=>{
+    if(i>=path.length){clearInterval(iv);if(doneFn)doneFn();return;}
+    moveFn(path[i++]);
+  },delay);
+  return iv;
+}
+
+// ─── PROGRAM 1: LEGAL ─────────────────────────────────────────────
+const L_NODES=[
+  {id:'a8',icon:'⊢',name:'Civil Liab.',desc:'General civil liability doctrine'},
+  {id:'b8',icon:'∂',name:'Med. Neg.',desc:'Medical standard of care breach'},
+  {id:'c8',icon:'∇',name:'Traffic',desc:'Road accident tort liability'},
+  {id:'d8',icon:'Σ',name:'Product',desc:'Defective product liability'},
+  {id:'e8',icon:'∫',name:'Premises',desc:'Property owner duty of care'},
+  {id:'f8',icon:'Π',name:'Pharma',desc:'Drug manufacturer liability'},
+  {id:'g8',icon:'δ',name:'Pers. Inj.',desc:'Bodily harm compensation'},
+  {id:'h8',icon:'Ω',name:'Wrng. Death',desc:'Death from negligent act'},
+  {id:'a7',icon:'→',name:'Contract',desc:'Offer, acceptance, consideration'},
+  {id:'b7',icon:'⊥',name:'Breach',desc:'Failure to perform obligation'},
+  {id:'c7',icon:'≡',name:'Damages',desc:'Monetary compensation calculation'},
+  {id:'d7',icon:'⇒',name:'Spec. Perf.',desc:'Specific performance equitable remedy'},
+  {id:'e7',icon:'∅',name:'Void',desc:'Contract nullity and rescission'},
+  {id:'f7',icon:'⊃',name:'Force Maj.',desc:'Force majeure unforeseen circumstances'},
+  {id:'g7',icon:'∧',name:'Good Faith',desc:'Good faith and fair dealing'},
+  {id:'h7',icon:'⏲',name:'Limitation',desc:'Statute of limitations time-bar'},
+  {id:'a6',icon:'∃',name:'Doc. Evid.',desc:'Documentary evidence standard'},
+  {id:'b6',icon:'∀',name:'Eyewitness',desc:'Testimonial evidence admissibility'},
+  {id:'c6',icon:'φ',name:'Expert Wit.',desc:'Expert opinion and admissibility'},
+  {id:'d6',icon:'λ',name:'Forensic',desc:'Scientific physical evidence'},
+  {id:'e6',icon:'ℤ',name:'Digital',desc:'Electronic records and metadata'},
+  {id:'f6',icon:'ρ',name:'CCTV',desc:'Video surveillance admissibility'},
+  {id:'g6',icon:'μ',name:'Med. Record',desc:'Clinical documentation standard'},
+  {id:'h6',icon:'ξ',name:'Statistical',desc:'Data-based evidentiary proof'},
+  {id:'a5',icon:'⊸',name:'But-For',desc:'Sine qua non causation test'},
+  {id:'b5',icon:'↔',name:'Proximate',desc:'Direct legal causation chain'},
+  {id:'c5',icon:'⊕',name:'Intervening',desc:'Superseding intervening cause'},
+  {id:'d5',icon:'σ',name:'Std. of Care',desc:'Reasonable person benchmark'},
+  {id:'e5',icon:'τ',name:'Duty of Care',desc:'Legal obligation to avoid harm'},
+  {id:'f5',icon:'⊗',name:'Contrib. Neg',desc:'Plaintiff contributory fault'},
+  {id:'g5',icon:'÷',name:'Comp. Fault',desc:'Proportional liability split'},
+  {id:'h5',icon:'⊤',name:'Strict Liab.',desc:'No-fault strict liability'},
+  {id:'a4',icon:'$',name:'Compensatory',desc:'Make the plaintiff whole'},
+  {id:'b4',icon:'×',name:'Punitive',desc:'Punishment for egregious conduct'},
+  {id:'c4',icon:'ℝ',name:'Actual Loss',desc:'Documented economic loss'},
+  {id:'d4',icon:'ε',name:'Pain & Suf.',desc:'Non-economic general damages'},
+  {id:'e4',icon:'η',name:'Lost Earn.',desc:'Income reduction future claim'},
+  {id:'f4',icon:'ℕ',name:'Med. Exp.',desc:'Healthcare cost recovery'},
+  {id:'g4',icon:'β',name:'Future Dmg.',desc:'Projected ongoing future losses'},
+  {id:'h4',icon:'≈',name:'Mitigation',desc:'Duty to mitigate damages'},
+  {id:'a3',icon:'∪',name:'Assump. Risk',desc:'Voluntary assumption of known risk'},
+  {id:'b3',icon:'⌛',name:'Stat. Limit.',desc:'Time-bar statute of limitations'},
+  {id:'c3',icon:'ℂ',name:'Sov. Immun.',desc:'Government sovereign immunity'},
+  {id:'d3',icon:'∩',name:'Consent',desc:'Plaintiff consent to risk'},
+  {id:'e3',icon:'≠',name:'Res Judic.',desc:'Prior judgment issue preclusion'},
+  {id:'f3',icon:'⊂',name:'Coll. Estop.',desc:'Collateral estoppel doctrine'},
+  {id:'g3',icon:'⚡',name:'Emergency',desc:'Sudden emergency doctrine'},
+  {id:'h3',icon:'±',name:'Good Samar.',desc:'Good Samaritan protection'},
+  {id:'a2',icon:'ℚ',name:'Subject Jx.',desc:'Subject matter jurisdiction'},
+  {id:'b2',icon:'∈',name:'Personal Jx.',desc:'Personal jurisdiction over party'},
+  {id:'c2',icon:'π',name:'Pleading',desc:'Required pleading specificity'},
+  {id:'d2',icon:'ι',name:'Discovery',desc:'Evidence disclosure rules'},
+  {id:'e2',icon:'κ',name:'Burden Pf.',desc:'Preponderance burden of proof'},
+  {id:'f2',icon:'ν',name:'Class Act.',desc:'Collective class action litigation'},
+  {id:'g2',icon:'ζ',name:'Settlement',desc:'Out-of-court resolution'},
+  {id:'h2',icon:'θ',name:'Sum. Judg.',desc:'Pre-trial summary judgment'},
+  {id:'a1',icon:'✓',name:'Liable',desc:'Defendant found liable'},
+  {id:'b1',icon:'✗',name:'No Liability',desc:'Defendant not liable'},
+  {id:'c1',icon:'½',name:'Partial',desc:'Partial recovery awarded'},
+  {id:'d1',icon:'¹',name:'Full Recov.',desc:'Complete damages awarded'},
+  {id:'e1',icon:'↩',name:'Remanded',desc:'Case returned to lower court'},
+  {id:'f1',icon:'⊘',name:'Dismissed',desc:'Permanent dismissal with prejudice'},
+  {id:'g1',icon:'⇔',name:'Equit. Rel.',desc:'Injunction or specific performance'},
+  {id:'h1',icon:'↻',name:'New Trial',desc:'New trial ordered by court'},
+];
+const L_CASES=[
+  {name:'Hernández v. Hospital Central',label:'Medical Neg.',
+   path:['b8','g6','c6','d5','a5','f4','a4','d1'],
+   reasoning:['Entry: Medical Negligence doctrine — ∂(care)/∂t deviation detected','Medical records: protocol deviation confirmed — σ(actual) < σ(minimum)','Expert witness required — ∃ cardiologist standard of care','Standard of care breach confirmed — deviation exceeds threshold','But-for causation: ¬(negligence) → ¬(cardiac event)','Medical expenses: Σ(documented) = $340,000','Compensatory damages: ∫(future care needs) dt','Finding: Full recovery — P(liability) = 0.87'],
+   verdict:'Hospital Central liable. Standard of care breached. Full compensatory damages $427,500. Confidence: 87%.'},
+  {name:'TechCorp v. SupplierX',label:'Contract Breach',
+   path:['a7','b7','c7','h7','f7','g7','c4','c1'],
+   reasoning:['Contract formation: ∀(offer, accept, consider) → valid enforceable','Breach: Δ(delivery) = +45 days; specifications ∉ contractual scope','Damages quantum: Σ(downstream losses) = $180,000 calculated','Limitation: t(filing) ∈ [0, 4yr] — within statutory window','Force majeure: ∃ event ∉ reasonable foresight — partial valid','Good faith: P(timely notification) → 0 — bad faith conduct','Actual loss: ℝ(documented) = $180,000 with evidence','Finding: Partial recovery — 40% force majeure reduction applies'],
+   verdict:'TechCorp partial recovery. SupplierX liability 40% reduced by force majeure. Net: $108,000. Confidence: 82%.'},
+  {name:'People v. Martínez',label:'Traffic Tort',
+   path:['c8','f6','b6','a5','f5','g5','a4','b1'],
+   reasoning:['Traffic tort framework: ∇(duty, breach, causation, harm)','CCTV evidence: v(defendant) = 68 km/h ∈ red-light zone — admissible','Eyewitness: ∃³ independent witnesses — P(confirm) → 1.0','But-for: ¬(signal violation) → ¬(collision) — causation established','Contributory negligence: plaintiff fraction λ = 0.15 (phone use)','Comparative fault: defendant 0.85, plaintiff 0.15 — apportionment','Compensatory: 0.85 × total_loss — proportional award','Finding: criminal threshold not met — civil referral issued'],
+   verdict:'Criminal dismissed. Civil: Martínez 85% liable ($52,000). Plaintiff 15% contributory negligence. Confidence: 91%.'},
+];
+let lState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function lRender(){makeBoard('l-board',L_NODES,lState,'lClick');}
+function lSelectCase(i){
+  document.querySelectorAll('#p0 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  lState={currentCase:L_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('l-tracebox').textContent='⊢ Case: '+L_CASES[i].name+'\n→ Execute Auto-Reason to begin formal argumentation';
+  document.getElementById('l-steps').innerHTML='';document.getElementById('l-verdict').style.display='none';
+  document.getElementById('l-cur').textContent='—';document.getElementById('l-moves').textContent='0';
+  document.getElementById('l-trace').textContent='—';document.getElementById('l-conf').textContent='—';
+  document.getElementById('l-hash').textContent='AUDIT HASH: — (generated on completion)';
+  lRender();
+}
+function lMove(id){
+  const nd=L_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  lState.trace.push(id);lState.visited.add(id);lState.currentIndex++;
+  const tr=lState.trace.join('-');
+  document.getElementById('l-tracebox').textContent='⊢ TRACE: '+tr;
+  document.getElementById('l-cur').textContent=id;
+  document.getElementById('l-moves').textContent=lState.trace.length;
+  document.getElementById('l-trace').textContent=tr;
+  const idx=lState.trace.length-1;
+  if(lState.currentCase&&lState.currentCase.reasoning[idx])
+    addStep('l-steps',idx+1,nd.icon,nd.name,lState.currentCase.reasoning[idx]);
+  if(lState.currentCase&&lState.trace.length===lState.currentCase.path.length){
+    document.getElementById('l-vtext').textContent=lState.currentCase.verdict;
+    document.getElementById('l-verdict').style.display='block';
+    const conf=lState.currentCase.verdict.match(/(\d+)%/);
+    document.getElementById('l-conf').textContent=conf?conf[1]+'%':'—';
+    document.getElementById('l-hash').textContent='0x'+simpleHash(tr+lState.currentCase.name)+' | TRACE: '+tr+' | '+new Date().toISOString();
+  }
+  lRender();
+}
+function lAuto(){if(!lState.currentCase)return;if(lState.iv)clearInterval(lState.iv);lState.iv=runPath(lState.currentCase.path.slice(lState.currentIndex),900,id=>lMove(id));}
+function lReset(){if(lState.iv)clearInterval(lState.iv);lState.currentIndex=0;lState.trace=[];lState.visited=new Set();document.getElementById('l-steps').innerHTML='';document.getElementById('l-verdict').style.display='none';document.getElementById('l-tracebox').textContent='Reset. Select case and execute.';document.getElementById('l-cur').textContent='—';document.getElementById('l-moves').textContent='0';document.getElementById('l-trace').textContent='—';document.getElementById('l-conf').textContent='—';lRender();}
+function lClick(id){if(!lState.currentCase)return;if(id===lState.currentCase.path[lState.currentIndex])lMove(id);}
+lRender();
+
+// ─── PROGRAM 2: MEDICAL ───────────────────────────────────────────
+const M_NODES=[
+  {id:'a8',icon:'θ',name:'Fever',desc:'Elevated temperature symptom'},{id:'b8',icon:'♥',name:'Chest Pain',desc:'Chest pain with radiation'},
+  {id:'c8',icon:'~',name:'Dyspnea',desc:'Difficulty breathing dyspnea'},{id:'d8',icon:'≈',name:'Nausea',desc:'Nausea and vomiting symptom'},
+  {id:'e8',icon:'⊥',name:'Headache',desc:'Severe cephalgia headache'},{id:'f8',icon:'ρ',name:'Skin Rash',desc:'Cutaneous eruption rash'},
+  {id:'g8',icon:'τ',name:'Joint Pain',desc:'Polyarthralgia joint pain'},{id:'h8',icon:'μ',name:'Fatigue',desc:'Chronic fatigue syndrome'},
+  {id:'a7',icon:'∿',name:'ECG',desc:'Electrocardiogram test'},{id:'b7',icon:'Σ',name:'CBC Panel',desc:'Complete blood count panel'},
+  {id:'c7',icon:'∂',name:'CRP / ESR',desc:'Inflammatory markers CRP ESR'},{id:'d7',icon:'∇',name:'Culture',desc:'Microbial culture and sensitivity'},
+  {id:'e7',icon:'⊗',name:'CT Scan',desc:'Computed tomography imaging'},{id:'f7',icon:'λ',name:'Chest X-Ray',desc:'Chest X-ray radiograph'},
+  {id:'g7',icon:'∀',name:'ANA Panel',desc:'Antinuclear antibody panel'},{id:'h7',icon:'Δ',name:'Troponin',desc:'Cardiac troponin assay'},
+  {id:'a6',icon:'→',name:'ACS',desc:'Acute coronary syndrome'},{id:'b6',icon:'⊕',name:'Pulm. Emb.',desc:'Pulmonary embolism'},
+  {id:'c6',icon:'∃',name:'Bacterial',desc:'Bacterial infection diagnosis'},{id:'d6',icon:'ψ',name:'SLE / Lupus',desc:'Systemic lupus erythematosus'},
+  {id:'e6',icon:'ω',name:'Migraine',desc:'Complex migraine disorder'},{id:'f6',icon:'φ',name:'Viral',desc:'Viral syndrome diagnosis'},
+  {id:'g6',icon:'σ',name:'RA',desc:'Rheumatoid arthritis'},{id:'h6',icon:'ξ',name:'Drug Rxn.',desc:'Adverse drug reaction'},
+  {id:'a5',icon:'✗',name:'¬ Cardiac',desc:'Rule out cardiac cause'},{id:'b5',icon:'✗',name:'¬ Pulm.',desc:'Rule out pulmonary embolism'},
+  {id:'c5',icon:'✗',name:'¬ Bact.',desc:'Rule out bacterial infection'},{id:'d5',icon:'✓',name:'↑ Autoimmune',desc:'Confirm autoimmune etiology'},
+  {id:'e5',icon:'✗',name:'¬ Mening.',desc:'Rule out meningitis'},{id:'f5',icon:'✓',name:'↑ Viral',desc:'Confirm viral syndrome'},
+  {id:'g5',icon:'✓',name:'↑ Rheuma.',desc:'Confirm rheumatic disease'},{id:'h5',icon:'✗',name:'¬ Drug Rxn',desc:'Rule out drug reaction'},
+  {id:'a4',icon:'∫',name:'ASA + GTN',desc:'Aspirin and nitrates treatment'},{id:'b4',icon:'⊃',name:'Anticoag.',desc:'Anticoagulation therapy'},
+  {id:'c4',icon:'β',name:'Antibiotic',desc:'Broad-spectrum antibiotic'},{id:'d4',icon:'γ',name:'HCQ',desc:'Hydroxychloroquine treatment'},
+  {id:'e4',icon:'π',name:'Triptan',desc:'Triptan therapy for migraine'},{id:'f4',icon:'≡',name:'Supportive',desc:'Supportive care management'},
+  {id:'g4',icon:'α',name:'MTX + Bio.',desc:'Methotrexate and biologics'},{id:'h4',icon:'∅',name:'D/C Drug',desc:'Discontinue offending drug'},
+  {id:'a3',icon:'◊',name:'CCU Admit',desc:'Coronary care unit admission'},{id:'b3',icon:'◊',name:'ICU Admit',desc:'Intensive care unit admission'},
+  {id:'c3',icon:'◊',name:'Ward',desc:'General ward admission'},{id:'d3',icon:'◊',name:'Rheum. Out.',desc:'Rheumatology outpatient clinic'},
+  {id:'e3',icon:'◊',name:'Neuro. Out.',desc:'Neurology outpatient clinic'},{id:'f3',icon:'□',name:'Home Care',desc:'Home management and care'},
+  {id:'g3',icon:'◊',name:'Ortho Ref.',desc:'Orthopaedic referral'},{id:'h3',icon:'↻',name:'Review 48h',desc:'48-hour follow-up review'},
+  {id:'a2',icon:'Π',name:'Echo FU',desc:'Echocardiogram follow-up'},{id:'b2',icon:'∿',name:'INR Monitor',desc:'INR monitoring'},
+  {id:'c2',icon:'∂',name:'CRP Monitor',desc:'CRP monitoring'},{id:'d2',icon:'η',name:'dsDNA',desc:'dsDNA antibody monitoring'},
+  {id:'e2',icon:'∇',name:'HA Diary',desc:'Headache diary'},{id:'f2',icon:'θ',name:'Temp Monitor',desc:'Temperature monitoring'},
+  {id:'g2',icon:'Σ',name:'DAS28',desc:'DAS28 disease activity score'},{id:'h2',icon:'⊢',name:'GP Review',desc:'General practitioner review'},
+  {id:'a1',icon:'✓',name:'Stable',desc:'Stable for discharge'},{id:'b1',icon:'↑',name:'Cath Lab',desc:'Transfer to catheterization lab'},
+  {id:'c1',icon:'→',name:'Responds',desc:'Responding to treatment'},{id:'d1',icon:'∞',name:'Long-term',desc:'Long-term management plan'},
+  {id:'e1',icon:'≈',name:'Sym. Ctrl.',desc:'Symptom control achieved'},{id:'f1',icon:'↗',name:'Recovery',desc:'Expected recovery trajectory'},
+  {id:'g1',icon:'∫',name:'Remission',desc:'Remission target achieved'},{id:'h1',icon:'↻',name:'Monitor',desc:'Monitor and adjust'},
+];
+const M_CASES=[
+  {name:'Male 64 — Chest pain',label:'STEMI Protocol',
+   path:['b8','c8','h7','a7','a6','a5','a4','b1'],
+   reasoning:['CC: chest pain with radiation — ∂(cardiac)/∂t exceeds threshold','Dyspnea concurrent — cardiac involvement P ↑','Troponin: 2.4 ng/mL — elevated (normal <0.04) — Δ = +60σ','ECG: ST elevation II,III,aVF — inferior STEMI pattern confirmed','ACS confirmed: P(STEMI | evidence) = 0.94','¬all non-cardiac differentials — Bayesian elimination','ASA 325mg + GTN: ∫(benefit)/∂t → immediate action','Transfer: D2B target <90min — urgent cath lab'],
+   verdict:'STEMI confirmed. P(STEMI|E) = 0.94. Immediate cath lab. D2B <90min. FDA Audit: DIAG-001.'},
+  {name:'Female 34 — Fever, rash',label:'SLE Protocol',
+   path:['a8','f8','g8','g7','c7','d6','d5','d4'],
+   reasoning:['Fever: T = 38.8°C — systemic involvement Σ(criteria)','Malar rash: butterfly distribution — P(SLE) = 0.73','Polyarthritis: ∃⁶ joints involved symmetrically — ACR criterion','ANA: 1:320 positive — sensitivity 95% — P(autoimmune) → 0.91','CRP: 48 mg/L; ESR: 92 — Σ(inflammation) elevated','SLE confirmed: ACR criteria Σ = 6/11 — diagnostic threshold','¬RA ¬drug ¬viral — Bayesian final posterior','HCQ 400mg/day initiated — rheumatology referral'],
+   verdict:'SLE: Σ(ACR) = 6/11. HCQ 400mg/day. Rheum follow-up 4wk. FDA Audit: DIAG-002.'},
+  {name:'Child 8 — Headaches',label:'Pediatric Migraine',
+   path:['e8','d8','e7','e6','e5','e4','e3','e1'],
+   reasoning:['Headache: severity 8/10 × 3/week — IHS criteria threshold','Nausea + photophobia: migraine constellation confirmed','CT: ∅ structural pathology — reassuring baseline','Complex migraine: IHS Σ = 5/5 — criteria met','¬Meningitis: CT negative + clinical inconsistent','Age-appropriate triptan + prophylaxis plan','Neurology outpatient: 6-week follow-up scheduled','Symptom control: PHQ-A ↓, functional status ↑'],
+   verdict:'Pediatric migraine (complex). Age-appropriate triptan. Neuro follow-up 6wk. FDA Audit: DIAG-003.'},
+];
+let mState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function mRender(){makeBoard('m-board',M_NODES,mState,'mClick');}
+function mSelect(i){
+  document.querySelectorAll('#p1 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  mState={currentCase:M_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('m-trace-box').textContent='∂ Patient: '+M_CASES[i].name+'\n→ Execute Diagnose to begin clinical protocol';
+  document.getElementById('m-steps').innerHTML='';document.getElementById('m-verdict').style.display='none';
+  document.getElementById('m-cur').textContent='—';document.getElementById('m-diag').textContent='Pending';
+  document.getElementById('m-trace').textContent='—';document.getElementById('m-sns').textContent='—';
+  mRender();
+}
+function mMove(id){
+  const nd=M_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  mState.trace.push(id);mState.visited.add(id);mState.currentIndex++;
+  const tr=mState.trace.join('-');
+  document.getElementById('m-trace-box').textContent='∂ TRACE: '+tr;
+  document.getElementById('m-cur').textContent=id;document.getElementById('m-trace').textContent=tr;
+  const idx=mState.trace.length-1;
+  if(mState.currentCase&&mState.currentCase.reasoning[idx])
+    addStep('m-steps',idx+1,nd.icon,nd.name,mState.currentCase.reasoning[idx]);
+  if(mState.currentCase&&mState.trace.length===mState.currentCase.path.length){
+    document.getElementById('m-vtext').textContent=mState.currentCase.verdict;
+    document.getElementById('m-verdict').style.display='block';
+    document.getElementById('m-diag').textContent=mState.currentCase.label;
+    document.getElementById('m-sns').textContent=(0.75+Math.random()*0.25).toFixed(3);
+    document.getElementById('m-hash').textContent='FDA 0x'+simpleHash(tr)+' | '+tr+' | '+new Date().toISOString();
+  }
+  mRender();
+}
+function mAuto(){if(!mState.currentCase)return;if(mState.iv)clearInterval(mState.iv);mState.iv=runPath(mState.currentCase.path.slice(mState.currentIndex),850,id=>mMove(id));}
+function mReset(){if(mState.iv)clearInterval(mState.iv);mState.currentIndex=0;mState.trace=[];mState.visited=new Set();document.getElementById('m-steps').innerHTML='';document.getElementById('m-verdict').style.display='none';document.getElementById('m-trace-box').textContent='Reset.';document.getElementById('m-cur').textContent='—';document.getElementById('m-diag').textContent='Pending';mRender();}
+function mClick(id){if(!mState.currentCase)return;if(id===mState.currentCase.path[mState.currentIndex])mMove(id);}
+mRender();
+
+// ─── PROGRAM 3: LEARNING ──────────────────────────────────────────
+const EDU_NODES=[
+  {id:'a8',icon:'ℕ',name:'Arithmetic'},{id:'b8',icon:'⟨⟩',name:'Algebra'},
+  {id:'c8',icon:'σ²',name:'Statistics'},{id:'d8',icon:'∫',name:'Calculus'},
+  {id:'e8',icon:'ℤ',name:'Num. Theory'},{id:'f8',icon:'⊥',name:'Geometry'},
+  {id:'g8',icon:'ƒ',name:'Functions'},{id:'h8',icon:'[]',name:'Lin. Algebra'},
+  {id:'a7',icon:'F=ma',name:'Newton'},{id:'b7',icon:'∇·E',name:'EM Theory'},
+  {id:'c7',icon:'CH₃',name:'Organic Chem'},{id:'d7',icon:'DNA',name:'Biology'},
+  {id:'e7',icon:'★',name:'Astronomy'},{id:'f7',icon:'⊕',name:'Earth Sci.'},
+  {id:'g7',icon:'∬',name:'Fluid Dyn.'},{id:'h7',icon:'ΔS',name:'Thermody.'},
+  {id:'a6',icon:'∀',name:'Reading'},{id:'b6',icon:'∂',name:'Essay Writing'},
+  {id:'c6',icon:'⊢',name:'Lit. Analysis'},{id:'d6',icon:'∃',name:'Oral Pres.'},
+  {id:'e6',icon:'∈',name:'Grammar'},{id:'f6',icon:'⊃',name:'Research'},
+  {id:'g6',icon:'→',name:'Creative Wrt'},{id:'h6',icon:'ℝ',name:'Language 2'},
+  {id:'a5',icon:'Ω',name:'Anc. History'},{id:'b5',icon:'σ',name:'World History'},
+  {id:'c5',icon:'∇',name:'Wars'},{id:'d5',icon:'π',name:'Govt & Pol.'},
+  {id:'e5',icon:'$',name:'Econ. Hist.'},{id:'f5',icon:'α',name:'Art History'},
+  {id:'g5',icon:'λ',name:'Sci. History'},{id:'h5',icon:'τ',name:'Philosophy'},
+  {id:'a4',icon:'{}',name:'Programming'},{id:'b4',icon:'NN',name:'AI / ML'},
+  {id:'c4',icon:'</>',name:'Web Dev.'},{id:'d4',icon:'SQL',name:'Databases'},
+  {id:'e4',icon:'⊗',name:'Cybersec.'},{id:'f4',icon:'∫',name:'Data Science'},
+  {id:'g4',icon:'R²',name:'Statistics'},{id:'h4',icon:'O(n)',name:'Algorithms'},
+  {id:'a3',icon:'Δ',name:'Visual Art'},{id:'b3',icon:'♩',name:'Music Theory'},
+  {id:'c3',icon:'▶',name:'Film Studies'},{id:'d3',icon:'◎',name:'Photography'},
+  {id:'e3',icon:'♟',name:'Game Design'},{id:'f3',icon:'⬡',name:'Architecture'},
+  {id:'g3',icon:'⊕',name:'Prob. Solving'},{id:'h3',icon:'∵',name:'Crit. Thinking'},
+  {id:'a2',icon:'∫',name:'Sports Sci.'},{id:'b2',icon:'¥',name:'Finance'},
+  {id:'c2',icon:'∴',name:'Environ.'},{id:'d2',icon:'∂',name:'Health Lit.'},
+  {id:'e2',icon:'∈',name:'Global Cit.'},{id:'f2',icon:'→',name:'Career Plan'},
+  {id:'g2',icon:'↔',name:'Social Skills'},{id:'h2',icon:'∅',name:'Wellbeing'},
+  {id:'a1',icon:'★',name:'⊤ Math'},{id:'b1',icon:'★',name:'⊤ Science'},
+  {id:'c1',icon:'★',name:'⊤ Language'},{id:'d1',icon:'★',name:'⊤ History'},
+  {id:'e1',icon:'★',name:'⊤ CS'},{id:'f1',icon:'★',name:'⊤ Creative'},
+  {id:'g1',icon:'★',name:'⊤ Applied'},{id:'h1',icon:'★',name:'⊤ All'},
+];
+const EDU_CASES=[
+  {name:'Alex',style:'Analytical-Sequential',avoid:'Language Arts',
+   path:['a8','b8','h8','a4','g4','h4','b4','e4','a4','a1'],
+   steps:['ℕ Arithmetic: comfort zone — high SNS, short dwell','⟨⟩ Algebra: strong performance Δt = 0.4× average','[] Linear Algebra: 2× dwell — peak engagement detected','{ } Programming: natural math → code transition','R² Data Science: high engagement, exploration pattern','O(n) Algorithms: preferred path — deep traversal','{ } CS fundamentals revisit — reinforcement loop','⊗ Cybersec: avoidance of social engineering nodes','{ } CS core return: procedural mastery confirmed','★ MASTERY: Math achievement state reached'],
+   metrics:{visited:'10',dwell:'4.2 min',avoid:'Language/Writing',mastery:'Math: 94%'}},
+  {name:'Maria',style:'Theoretical-Deep',avoid:'Practical Labs',
+   path:['a5','b5','g5','h5','e7','g7','b4','d4','g4','d1'],
+   steps:['Ω Ancient History: 3× dwell — deep contextual reading','σ World History: extensive cross-referencing pattern','λ Science History: connecting discovery to context','τ Philosophy: 5min lingering — meta-cognitive engagement','★ Astronomy: theoretical cosmology preferred','∬ Fluid Dynamics: abstract over laboratory work','NN AI Theory: reads papers, avoids implementation','SQL Databases: theory over practice — schema not queries','R² Data Science: engages concepts, skips code exercises','★ MASTERY: History achievement state reached'],
+   metrics:{visited:'10',dwell:'5.8 min',avoid:'Practical labs',mastery:'History: 91%'}},
+  {name:'Sam',style:'Creative-Divergent',avoid:'Rote Memorization',
+   path:['a3','g3','e3','f3','h3','b3','c3','g6','f3','f1'],
+   steps:['Δ Visual Art: SNS = 0.94 — maximum engagement signal','⊕ Problem Solving: creative framing over systematic','♟ Game Design: 4× dwell — passion signal detected','⬡ Architecture: spatial reasoning emergence visible','∵ Critical Thinking: connects design to consequence','♩ Music Theory: cross-domain curiosity pattern','▶ Film Studies: narrative structure interest','→ Creative Writing: avoids grammar nodes directly','⬡ Architecture revisit: deepening interest signal','★ MASTERY: Creative achievement state reached'],
+   metrics:{visited:'10',dwell:'6.1 min',avoid:'Grammar/Rote',mastery:'Creative: 96%'}},
+];
+let eduState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function eduRender(){makeBoard('edu-board',EDU_NODES,eduState,'eduClick');}
+function eduSelect(i){
+  document.querySelectorAll('#p2 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  eduState={currentCase:EDU_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('edu-trace').textContent='∇ Student: '+EDU_CASES[i].name+'\n→ Execute Simulate to begin cognitive profiling';
+  document.getElementById('edu-steps').innerHTML='';
+  document.getElementById('edu-name').textContent=EDU_CASES[i].name;
+  document.getElementById('edu-mastered').textContent='0';
+  document.getElementById('edu-style').textContent='Profiling...';
+  document.getElementById('edu-eng').textContent='—';
+  eduRender();
+}
+function eduMove(id){
+  const nd=EDU_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  eduState.trace.push(id);eduState.visited.add(id);eduState.currentIndex++;
+  const tr=eduState.trace.join('-');
+  document.getElementById('edu-trace').textContent='∇ PATH: '+tr;
+  document.getElementById('edu-mastered').textContent=eduState.visited.size;
+  const idx=eduState.trace.length-1;
+  if(eduState.currentCase&&eduState.currentCase.steps[idx])
+    addStep('edu-steps',idx+1,nd.icon,nd.name,eduState.currentCase.steps[idx]);
+  if(eduState.currentCase&&eduState.trace.length===eduState.currentCase.path.length){
+    const m=eduState.currentCase.metrics;
+    document.getElementById('edu-m1').textContent=m.visited;
+    document.getElementById('edu-m2').textContent=m.dwell;
+    document.getElementById('edu-m3').textContent=m.avoid;
+    document.getElementById('edu-m4').textContent=m.mastery;
+    document.getElementById('edu-style').textContent=eduState.currentCase.style;
+    document.getElementById('edu-eng').textContent='High';
+  }
+  eduRender();
+}
+function eduAuto(){if(!eduState.currentCase)return;if(eduState.iv)clearInterval(eduState.iv);eduState.iv=runPath(eduState.currentCase.path.slice(eduState.currentIndex),800,id=>eduMove(id));}
+function eduReset(){if(eduState.iv)clearInterval(eduState.iv);eduState.currentIndex=0;eduState.trace=[];eduState.visited=new Set();document.getElementById('edu-steps').innerHTML='';document.getElementById('edu-trace').textContent='Reset.';document.getElementById('edu-mastered').textContent='0';eduRender();}
+function eduClick(id){if(!eduState.currentCase)return;if(id===eduState.currentCase.path[eduState.currentIndex])eduMove(id);}
+eduRender();
+
+// ─── PROGRAM 4: CYBERSECURITY ─────────────────────────────────────
+const CS_NODES=[
+  {id:'a8',icon:'∈',name:'OSINT',cat:'recon'},{id:'b8',icon:'∀',name:'Port Scan',cat:'recon'},
+  {id:'c8',icon:'→',name:'Phishing',cat:'initial'},{id:'d8',icon:'⊃',name:'Supply Chain',cat:'initial'},
+  {id:'e8',icon:'↓',name:'Drive-by',cat:'initial'},{id:'f8',icon:'∩',name:'Watering Hole',cat:'initial'},
+  {id:'g8',icon:'∂',name:'Cred. Harvest',cat:'initial'},{id:'h8',icon:'⊥',name:'0-Day Exploit',cat:'initial'},
+  {id:'a7',icon:'∴',name:'Execution',cat:'execution'},{id:'b7',icon:'∵',name:'Script Host',cat:'execution'},
+  {id:'c7',icon:'⊢',name:'Svc. Exploit',cat:'execution'},{id:'d7',icon:'∋',name:'WMI Exec.',cat:'execution'},
+  {id:'e7',icon:'Σ',name:'PowerShell',cat:'execution'},{id:'f7',icon:'τ',name:'Sched. Task',cat:'persist'},
+  {id:'g7',icon:'↻',name:'Registry Mod',cat:'persist'},{id:'h7',icon:'∃',name:'New Account',cat:'persist'},
+  {id:'a6',icon:'≠',name:'AV Bypass',cat:'defense'},{id:'b6',icon:'∅',name:'Log Clear',cat:'defense'},
+  {id:'c6',icon:'⊗',name:'Token Imp.',cat:'privilege'},{id:'d6',icon:'↑',name:'Priv. Esc.',cat:'privilege'},
+  {id:'e6',icon:'λ',name:'Hash Dump',cat:'cred'},{id:'f6',icon:'κ',name:'Kerberoast',cat:'cred'},
+  {id:'g6',icon:'≡',name:'Pass-the-Hash',cat:'cred'},{id:'h6',icon:'∂',name:'Cred. Files',cat:'cred'},
+  {id:'a5',icon:'↔',name:'Lateral Mv.',cat:'lateral'},{id:'b5',icon:'□',name:'RDP Exploit',cat:'lateral'},
+  {id:'c5',icon:'∈',name:'SMB Shares',cat:'lateral'},{id:'d5',icon:'∋',name:'WinRM',cat:'lateral'},
+  {id:'e5',icon:'∇',name:'Net. Scan',cat:'discovery'},{id:'f5',icon:'∈',name:'File Discov.',cat:'discovery'},
+  {id:'g5',icon:'⊕',name:'AD Enum.',cat:'discovery'},{id:'h5',icon:'∃',name:'Svc. Discov.',cat:'discovery'},
+  {id:'a4',icon:'⊏',name:'Data Staging',cat:'collection'},{id:'b4',icon:'@',name:'Email Coll.',cat:'collection'},
+  {id:'c4',icon:'◻',name:'Screen Cap.',cat:'collection'},{id:'d4',icon:'∿',name:'Keylogging',cat:'collection'},
+  {id:'e4',icon:'⊠',name:'Ransomware',cat:'impact'},{id:'f4',icon:'₿',name:'Crypto Pay.',cat:'impact'},
+  {id:'g4',icon:'↑',name:'Exfiltration',cat:'exfil'},{id:'h4',icon:'∿',name:'DNS Exfil',cat:'exfil'},
+  {id:'a3',icon:'∿',name:'C2 Beacon',cat:'c2'},{id:'b3',icon:'⇄',name:'Proxy C2',cat:'c2'},
+  {id:'c3',icon:'∑',name:'Covert C2',cat:'c2'},{id:'d3',icon:'∫',name:'HTTPS C2',cat:'c2'},
+  {id:'e3',icon:'∅',name:'Track Cover',cat:'cleanup'},{id:'f3',icon:'⌫',name:'Artifact Rm.',cat:'cleanup'},
+  {id:'g3',icon:'⊘',name:'Acct. Disable',cat:'cleanup'},{id:'h3',icon:'∿',name:'DNS Flux',cat:'cleanup'},
+  {id:'a2',icon:'○',name:'No Detection',cat:'result'},{id:'b2',icon:'●',name:'Detected',cat:'result'},
+  {id:'c2',icon:'◑',name:'Partial Detct',cat:'result'},{id:'d2',icon:'!',name:'IOC Generat.',cat:'result'},
+  {id:'e2',icon:'⚡',name:'IDS Alert',cat:'result'},{id:'f2',icon:'⊘',name:'Blocked WAF',cat:'result'},
+  {id:'g2',icon:'∀',name:'SOC Notified',cat:'result'},{id:'h2',icon:'⊗',name:'Acct. Locked',cat:'result'},
+  {id:'a1',icon:'★',name:'Objective',cat:'outcome'},{id:'b1',icon:'$',name:'Financial Gn',cat:'outcome'},
+  {id:'c1',icon:'∂',name:'Espionage',cat:'outcome'},{id:'d1',icon:'₿',name:'Ransom Paid',cat:'outcome'},
+  {id:'e1',icon:'⊘',name:'Neutralized',cat:'outcome'},{id:'f1',icon:'↻',name:'IR Activated',cat:'outcome'},
+  {id:'g1',icon:'⊢',name:'Legal Action',cat:'outcome'},{id:'h1',icon:'∇',name:'Recovery',cat:'outcome'},
+];
+const CS_CASES=[
+  {name:'APT29 Supply Chain',label:'T1195.002',threat:'CRITICAL',
+   path:['d8','a7','g7','c6','d6','a5','g4','h4','a4','a1'],
+   reasoning:['⊃ Initial: supply chain — malicious code in signed software update T1195','∴ Execution: signed binary proxy — LOLBin, blends with OS activity','↻ Persist: HKLM registry run key T1547.001 — normal OS appearance','⊗ Evasion: SYSTEM token impersonation — appears as trusted process','↑ PrivEsc: domain admin via LDAP exploit — Δ(priv) → maximum','↔ Lateral: PTH to high-value hosts using trusted credentials','↑ Collect: intellectual property and classified documents targeted','∿ DNS exfil: covert channel — bypasses DPI inspection T1048','⊏ Stage: AES-256 encrypted archives — 847 MB staged','★ OBJECTIVE: persistent access maintained — Σ(dwell) > 9 months'],
+   verdict:'APT29 IOC: d8-a7-g7-c6-d6-a5-g4-h4-a4-a1 | MITRE T1195.002 T1078 T1055 T1571'},
+  {name:'APT41 Financial',label:'T1566.001',threat:'HIGH',
+   path:['c8','e7','h7','c6','d6','e6','b4','g4','b1','c1'],
+   reasoning:['→ Phish: spear-phishing + weaponized Office macro T1566.001','Σ PowerShell: AMSI bypass [Ref].Assembly.Load technique T1059.001','∃ Account: new local admin persistence T1136.001','⊗ Token: runas SYSTEM impersonation T1134.001','↑ PrivEsc: CVE-2021-1732 kernel exploit — ring0 achieved','λ HashDump: LSASS memory — sekurlsa::logonpasswords T1003.001','@ Email: CFO mailbox collection T1114.002','↑ HTTPS exfil: chunked upload mimics legitimate traffic','$ Wire fraud: $4.2M fraudulent SWIFT transfers executed','∂ Espionage: R&D data — Σ(IP) = 400 GB exfiltrated'],
+   verdict:'APT41 dual-mission IOC: c8-e7-h7-c6-d6-e6-b4-g4-b1-c1 | T1566.001 T1059.001 T1003'},
+  {name:'RaaS Ransomware',label:'T1486',threat:'CRITICAL',
+   path:['c8','a7','f7','a6','d6','a5','a4','e4','f4','d1'],
+   reasoning:['→ Phishing: HR-themed lure — weaponized macro attachment','∴ WMI execution: living off the land T1047 — no PowerShell','τ Sched. task: persistence + reboot survival T1053.005','≠ AV bypass: signed binary proxy T1218 — Defender evaded','↑ PrivEsc: token duplication — SYSTEM achieved T1134','↔ Lateral: credential reuse + PsExec spread T1570','⊏ Stage: vssadmin delete shadows T1490 — ∅ restore','⊠ Encrypt: AES-256-CBC all shares T1486 deployed','₿ Demand: $450,000 XMR — 72hr deadline issued','₿ Ransom: partial decryptor received after payment'],
+   verdict:'RaaS IOC: c8-a7-f7-a6-d6-a5-a4-e4-f4-d1 | T1486 T1490 T1059.003 | $450K XMR'},
+];
+let csState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function csRender(){makeBoard('cs-board',CS_NODES,csState,'csClick');}
+function csSelect(i){
+  document.querySelectorAll('#p3 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  csState={currentCase:CS_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('cs-trace').textContent='⊗ Campaign: '+CS_CASES[i].name+'\n→ Simulate to replay kill-chain';
+  document.getElementById('cs-steps').innerHTML='';document.getElementById('cs-ioc').style.display='none';
+  document.getElementById('cs-phase').textContent='—';document.getElementById('cs-ttps').textContent='0';
+  document.getElementById('cs-mitre').textContent=CS_CASES[i].label;document.getElementById('cs-threat').textContent=CS_CASES[i].threat;
+  csRender();
+}
+function csMove(id){
+  const nd=CS_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown',cat:'?'};
+  csState.trace.push(id);csState.visited.add(id);csState.currentIndex++;
+  const tr=csState.trace.join('-');
+  document.getElementById('cs-trace').textContent='⊗ KILL-CHAIN: '+tr;
+  document.getElementById('cs-phase').textContent=(nd.cat||'?').toUpperCase();
+  document.getElementById('cs-ttps').textContent=csState.visited.size;
+  const idx=csState.trace.length-1;
+  if(csState.currentCase&&csState.currentCase.reasoning[idx])
+    addStep('cs-steps',idx+1,nd.icon,nd.name,csState.currentCase.reasoning[idx]);
+  if(csState.currentCase&&csState.trace.length===csState.currentCase.path.length){
+    document.getElementById('cs-ioc').style.display='block';
+    document.getElementById('cs-ioc').textContent=csState.currentCase.verdict;
+  }
+  csRender();
+}
+function csAuto(){if(!csState.currentCase)return;if(csState.iv)clearInterval(csState.iv);csState.iv=runPath(csState.currentCase.path.slice(csState.currentIndex),750,id=>csMove(id));}
+function csReset(){if(csState.iv)clearInterval(csState.iv);csState.currentIndex=0;csState.trace=[];csState.visited=new Set();document.getElementById('cs-steps').innerHTML='';csState.iv=null;document.getElementById('cs-ioc').style.display='none';document.getElementById('cs-trace').textContent='Reset.';document.getElementById('cs-phase').textContent='—';document.getElementById('cs-ttps').textContent='0';csRender();}
+function csClick(id){if(!csState.currentCase)return;if(id===csState.currentCase.path[csState.currentIndex])csMove(id);}
+function csExport(){if(csState.trace.length===0)return;const t=csState.trace.join('-');document.getElementById('cs-ioc').style.display='block';document.getElementById('cs-ioc').textContent='IOC EXPORT | 0x'+simpleHash(t)+' | TRACE: '+t+'\n→ Share this compact string. Any SOC with the board map can replay the full attack chain.';}
+csRender();
+
+// ─── PROGRAM 5: DRUG DISCOVERY ────────────────────────────────────
+const DR_NODES=[
+  {id:'a8',icon:'M₁',name:'Metformin',cat:'approved'},{id:'b8',icon:'M₂',name:'Rapamycin',cat:'approved'},
+  {id:'c8',icon:'M₃',name:'Ibuprofen',cat:'approved'},{id:'d8',icon:'M₄',name:'Ritonavir',cat:'approved'},
+  {id:'e8',icon:'M₅',name:'Sildenafil',cat:'approved'},{id:'f8',icon:'M₆',name:'Thalidomide',cat:'approved'},
+  {id:'g8',icon:'M₇',name:'Aspirin',cat:'approved'},{id:'h8',icon:'M₈',name:'Ivermectin',cat:'approved'},
+  {id:'a7',icon:'π₁',name:'mTOR',cat:'target'},{id:'b7',icon:'π₂',name:'Amyloid',cat:'target'},
+  {id:'c7',icon:'π₃',name:'Tau-p',cat:'target'},{id:'d7',icon:'π₄',name:'NF-κB',cat:'target'},
+  {id:'e7',icon:'π₅',name:'Mitochond.',cat:'target'},{id:'f7',icon:'π₆',name:'TB CellWall',cat:'target'},
+  {id:'g7',icon:'π₇',name:'ATP Synth.',cat:'target'},{id:'h7',icon:'π₈',name:'Card. Metab.',cat:'target'},
+  {id:'a6',icon:'μ₁',name:'Kinase Inh.',cat:'mech'},{id:'b6',icon:'μ₂',name:'Autophagy',cat:'mech'},
+  {id:'c6',icon:'μ₃',name:'HDAC Inh.',cat:'mech'},{id:'d6',icon:'μ₄',name:'TNF-α Block',cat:'mech'},
+  {id:'e6',icon:'μ₅',name:'ROS Scavng.',cat:'mech'},{id:'f6',icon:'μ₆',name:'Efflux Block',cat:'mech'},
+  {id:'g6',icon:'μ₇',name:'PDE5 Inh.',cat:'mech'},{id:'h6',icon:'μ₈',name:'AMPK Act.',cat:'mech'},
+  {id:'a5',icon:'∇',name:'In Silico',cat:'validation'},{id:'b5',icon:'∂',name:'In Vitro',cat:'validation'},
+  {id:'c5',icon:'∫',name:'In Vivo',cat:'validation'},{id:'d5',icon:'Σ',name:'Organoid',cat:'validation'},
+  {id:'e5',icon:'S',name:'SNS Score',cat:'scoring'},{id:'f5',icon:'Δ',name:'Bind. Affin.',cat:'scoring'},
+  {id:'g5',icon:'∈',name:'ADMET',cat:'scoring'},{id:'h5',icon:'φ',name:'Safety Idx',cat:'scoring'},
+  {id:'a4',icon:'★',name:'High Prio.',cat:'rank'},{id:'b4',icon:'◆',name:'Med Prio.',cat:'rank'},
+  {id:'c4',icon:'◇',name:'Low Prio.',cat:'rank'},{id:'d4',icon:'✓',name:'Candidate',cat:'rank'},
+  {id:'e4',icon:'I',name:'Phase I',cat:'clinical'},{id:'f4',icon:'II',name:'Phase II',cat:'clinical'},
+  {id:'g4',icon:'III',name:'Phase III',cat:'clinical'},{id:'h4',icon:'FDA',name:'Submit',cat:'clinical'},
+  {id:'a3',icon:'©',name:'Patent',cat:'ip'},{id:'b3',icon:'∞',name:'IPFS Pub.',cat:'ip'},
+  {id:'c3',icon:'∀',name:'Open Access',cat:'ip'},{id:'d3',icon:'$',name:'License',cat:'ip'},
+  {id:'e3',icon:'∩',name:'Pharma Ptnr',cat:'collab'},{id:'f3',icon:'∪',name:'Acad. Ptnr',cat:'collab'},
+  {id:'g3',icon:'Σ$',name:'NIH Grant',cat:'funding'},{id:'h3',icon:'€',name:'EU Horizon',cat:'funding'},
+  {id:'a2',icon:'!',name:'Novel Mech.',cat:'discovery'},{id:'b2',icon:'⊕',name:'Biomarker',cat:'discovery'},
+  {id:'c2',icon:'⊗',name:'Combo Rx',cat:'discovery'},{id:'d2',icon:'✓',name:'Valid. Hit',cat:'discovery'},
+  {id:'e1',icon:'→',name:'Alz. Cand.',cat:'outcome'},{id:'f1',icon:'→',name:'TB Cand.',cat:'outcome'},
+  {id:'g1',icon:'→',name:'Heart Cand.',cat:'outcome'},{id:'h1',icon:'∂',name:'Published',cat:'outcome'},
+  {id:'a1',icon:'∑',name:'Dataset',cat:'outcome'},{id:'b1',icon:'↻',name:'Next Iter.',cat:'outcome'},
+  {id:'c1',icon:'⊥',name:'Dead End',cat:'outcome'},{id:'d1',icon:'!',name:'Unexpected',cat:'outcome'},
+];
+const DR_CASES=[
+  {name:"Alzheimer's",agents:12,
+   paths:[['b8','b7','b6','a5','e5','a4','e4','e1'],['a8','a7','h6','b5','f5','d4','f4','e1'],['b8','c7','d6','d5','g5','d4','g4','h1']],
+   labels:['Agent-A7: M₂(Rapamycin)→Autophagy hit | SNS:0.91 | ΔG=-8.4 kcal/mol','Agent-A12: M₁(Metformin)→AMPK→τ reduction | SNS:0.88 | Novel mechanism','Agent-A3: M₂+Tau-p+NF-κB combination | SNS:0.76 | Combination candidate']},
+  {name:'Drug-Resistant TB',agents:9,
+   paths:[['d8','f7','f6','a5','f5','a4','e4','f1'],['h8','g7','e6','b5','h5','b4','f4','f1'],['c8','f7','c6','d5','g5','d4','g4','h1']],
+   labels:['Agent-B4: M₄(Ritonavir)→EffluxBlockade | SNS:0.94 | ΔG=-9.1 kcal/mol','Agent-B7: M₈(Ivermectin)→ROS+SafetyIdx | SNS:0.87 | Repurposing confirmed','Agent-B2: M₃(Ibuprofen)→HDAC+ADMET | SNS:0.79 | Combination synergy']},
+  {name:'Heart Failure',agents:8,
+   paths:[['e8','h7','g6','c5','e5','a4','g4','g1'],['a8','h7','h6','a5','g5','b4','f4','g1'],['g8','h7','e6','b5','h5','d4','g4','h1']],
+   labels:['Agent-C5: M₅(Sildenafil)→PDE5→CardMet | SNS:0.93 | ΔG=-7.8 kcal/mol','Agent-C2: M₁(Metformin)→AMPK→MetabReprg | SNS:0.89 | Metabolic pathway','Agent-C8: M₇(Aspirin)→ROS+ADMET confirmed | SNS:0.81 | Low-cost candidate']},
+];
+let drState={currentCase:null,agentIdx:0,trace:[],visited:new Set(),iv:null,hits:0,tested:0};
+function drRender(){makeBoard('dr-board',DR_NODES,drState,'drClick');}
+function drSelect(i){
+  document.querySelectorAll('#p4 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  drState={currentCase:DR_CASES[i],agentIdx:0,trace:[],visited:new Set(),iv:null,hits:0,tested:0};
+  document.getElementById('dr-trace').textContent='Σ Target: '+DR_CASES[i].name+'\n→ Launch agents to begin exploration';
+  document.getElementById('dr-hits-list').innerHTML='';
+  document.getElementById('dr-agents').textContent='0';document.getElementById('dr-tested').textContent='0';document.getElementById('dr-hits').textContent='0';document.getElementById('dr-sns').textContent='—';
+  drRender();
+}
+function drAuto(){
+  if(!drState.currentCase)return;if(drState.iv)clearInterval(drState.iv);
+  document.getElementById('dr-agents').textContent=drState.currentCase.agents;
+  let pathIdx=0;
+  function runNextPath(){
+    if(pathIdx>=drState.currentCase.paths.length)return;
+    const path=drState.currentCase.paths[pathIdx];
+    const label=drState.currentCase.labels[pathIdx];pathIdx++;
+    drState.trace=[];drState.visited=new Set();
+    let i=0;
+    const iv2=setInterval(()=>{
+      if(i>=path.length){
+        clearInterval(iv2);drState.tested++;drState.hits++;
+        document.getElementById('dr-tested').textContent=drState.tested;
+        document.getElementById('dr-hits').textContent=drState.hits;
+        const sns=label.match(/SNS:([0-9.]+)/)?.[1]||'—';
+        document.getElementById('dr-sns').textContent=sns;
+        const list=document.getElementById('dr-hits-list');
+        list.innerHTML+=`<div class="step"><div class="sn">HIT #${drState.hits} | SNS: ${sns}</div><div class="ss" style="font-family:var(--mono)">${path.join('-')}</div><div class="st">${label}</div></div>`;
+        list.scrollTop=list.scrollHeight;
+        setTimeout(runNextPath,500);return;
+      }
+      drState.trace=[...drState.trace,path[i]];drState.visited=new Set(drState.trace);
+      document.getElementById('dr-trace').textContent='Σ AGENT TRACE: '+drState.trace.join('-');
+      drRender();i++;
+    },550);
+  }
+  runNextPath();
+}
+function drReset(){drState.trace=[];drState.visited=new Set();drState.hits=0;drState.tested=0;document.getElementById('dr-hits-list').innerHTML='';document.getElementById('dr-trace').textContent='Reset.';document.getElementById('dr-agents').textContent='0';document.getElementById('dr-tested').textContent='0';document.getElementById('dr-hits').textContent='0';drRender();}
+function drClick(){}
+drRender();
+
+// ─── PROGRAM 6: PLANETARY ROVER ───────────────────────────────────
+const RV_NODES=[
+  {id:'a8',icon:'Fe₂O₃',name:'Basalt',desc:'Rocky basalt terrain'},{id:'b8',icon:'SiO₂',name:'Dark Sand',desc:'Dark sand terrain'},
+  {id:'c8',icon:'FeO',name:'Iron Oxide',desc:'Iron oxide rich terrain'},{id:'d8',icon:'CaSO₄',name:'Sediment',desc:'Light sediment deposits'},
+  {id:'e8',icon:'⊥',name:'Boulders',desc:'Boulder field obstacle'},{id:'f8',icon:'∿',name:'Dust Devil',desc:'Dust devil hazard zone'},
+  {id:'g8',icon:'☢',name:'High Rad.',desc:'High radiation hazard'},{id:'h8',icon:'H₂O',name:'Ice Deposit',desc:'Water ice deposit'},
+  {id:'a7',icon:'~∿~',name:'River Bed',desc:'Ancient river bed science target'},{id:'b7',icon:'★',name:'Mineral Vein',desc:'Mineral vein science target'},
+  {id:'c7',icon:'C-H',name:'Organic?',desc:'Organic compound detection priority'},{id:'d7',icon:'ClO₄',name:'Perchlorate',desc:'Perchlorate salt deposit'},
+  {id:'e7',icon:'⛏',name:'Drill Site A',desc:'Primary drill site A'},{id:'f7',icon:'⛏',name:'Drill Site B',desc:'Secondary drill site B'},
+  {id:'g7',icon:'◎',name:'Panoramic',desc:'Panoramic imaging action'},{id:'h7',icon:'∂',name:'Chem. Anal.',desc:'Chemical analysis action'},
+  {id:'a6',icon:'☀',name:'Solar Opt.',desc:'Solar panel optimization'},{id:'b6',icon:'⚡',name:'Battery',desc:'Battery charge management'},
+  {id:'c6',icon:'°C',name:'-80°C',desc:'Temperature -80C environment'},{id:'d6',icon:'m/s',name:'Wind 12m/s',desc:'Wind speed 12 m/s condition'},
+  {id:'e6',icon:'↑',name:'Sol Start',desc:'Sol start sunrise'},{id:'f6',icon:'↓',name:'Sol End',desc:'Sol end sunset'},
+  {id:'g6',icon:'∿',name:'Comm. Wnd.',desc:'Earth comm window'},{id:'h6',icon:'⬡',name:'Orb. Relay',desc:'Orbiter relay satellite'},
+  {id:'a5',icon:'Mg₂',name:'Olivine',desc:'Olivine mineral'},{id:'b5',icon:'Fe₂O₃',name:'Hematite',desc:'Hematite berries'},
+  {id:'c5',icon:'CaSO₄',name:'Calcium Sulf',desc:'Calcium sulfate'},{id:'d5',icon:'Mg₃Si',name:'Serpentinite',desc:'Serpentinite water-altered rock'},
+  {id:'e5',icon:'★',name:'Hi Priority',desc:'High priority science target'},{id:'f5',icon:'◆',name:'Med Priority',desc:'Medium priority target'},
+  {id:'g5',icon:'◇',name:'Lo Priority',desc:'Low priority target'},{id:'h5',icon:'⚠',name:'Hazard',desc:'Hazard avoidance'},
+  {id:'a4',icon:'X-ray',name:'XRF Spectr.',desc:'X-ray fluorescence spectrometer'},{id:'b4',icon:'◎',name:'Mast Camera',desc:'Mast camera imaging'},
+  {id:'c4',icon:'T/P',name:'Weather',desc:'Weather station REMS'},{id:'d4',icon:'⛏',name:'Abrasion',desc:'Rock abrasion tool'},
+  {id:'e4',icon:'∠',name:'Arm Extend',desc:'Robotic arm extension'},{id:'f4',icon:'◎',name:'Close-up',desc:'Close-up imager'},
+  {id:'g4',icon:'⊏',name:'Sample',desc:'Sample collection'},{id:'h4',icon:'□',name:'Cache',desc:'Sample cache deposit'},
+  {id:'a3',icon:'→',name:'Drive N 10m',desc:'Drive north 10 meters'},{id:'b3',icon:'↑',name:'Climb Slope',desc:'Climb slope traverse'},
+  {id:'c3',icon:'↓',name:'Descend',desc:'Descend crater wall'},{id:'d3',icon:'↩',name:'Return Base',desc:'Return to base station'},
+  {id:'e3',icon:'∑',name:'Data Save',desc:'Data save operation'},{id:'f3',icon:'∅→',name:'Compress',desc:'Data compression'},
+  {id:'g3',icon:'↑↑',name:'Hi-Gain Tx',desc:'High-gain antenna transmission'},{id:'h3',icon:'↑',name:'Burst Tx',desc:'Short burst transmission'},
+  {id:'a2',icon:'+5',name:'Sci +5',desc:'Science score +5'},{id:'b2',icon:'+10',name:'Sci +10',desc:'Science score +10'},
+  {id:'c2',icon:'+20',name:'Sci +20',desc:'Science score +20'},{id:'d2',icon:'★',name:'Priority S.',desc:'Priority sample acquired'},
+  {id:'e2',icon:'⚡',name:'Power Warn.',desc:'Power warning low battery'},{id:'f2',icon:'✓',name:'Nominal',desc:'System nominal status'},
+  {id:'g2',icon:'↻',name:'Fault Recov.',desc:'Fault recovery'},{id:'h2',icon:'⏸',name:'Safe Mode',desc:'Safe mode activated'},
+  {id:'a1',icon:'∑',name:'Sol Report',desc:'Sol report generated'},{id:'b1',icon:'★',name:'Discovery',desc:'Discovery logged'},
+  {id:'c1',icon:'↑',name:'Uplinked',desc:'Data uplinked to Earth'},{id:'d1',icon:'↻',name:'Next Sol',desc:'Next sol plan'},
+  {id:'e1',icon:'!',name:'Emergency',desc:'Emergency protocol'},{id:'f1',icon:'⊏',name:'Archived',desc:'Sample archived'},
+  {id:'g1',icon:'⊕',name:'Earth Rcvd.',desc:'Earth confirmed receipt'},{id:'h1',icon:'★',name:'Published',desc:'Discovery published'},
+];
+const RV_CASES=[
+  {name:'Jezero Crater',delay:'14.2 min',sol:47,
+   path:['e6','a5','c7','e5','e4','g4','f3','h3','a1','c1'],
+   steps:['Sol 47: systems nominal — P(power) = 0.98','Traverse to olivine outcrop — Δx = 23m','C-H signal: P(organic) = 0.73 — priority target detected','Classification: ★ science value maximum — all instruments redirect','Arm extended: contact science package deployed','Sample: m = 3.2g rock core acquired — T1495','∅→ Compressed: 847 KB → 124 KB (η = 0.854)','↑ Burst Tx: 12 bytes trace transmitted to Earth','Σ Sol report: science score = +85 points','↑ UPLINK CONFIRMED — Earth received from 12-byte trace'],
+   sci:85,bw:'12 bytes trace + 124 KB data'},
+  {name:'Gale Crater',delay:'18.7 min',sol:203,
+   path:['e6','b5','d5','e5','d4','g4','f3','g3','b2','c1'],
+   steps:['Sol 203: ascending Mt. Sharp — gradient analysis active','Fe₂O₃ concretions: hematite "blueberries" confirmed','Mg₃Si serpentinite: H₂O-alteration detected — habitability signal','Classification: ★ serpentinite → ancient aqueous activity confirmed','Abrasion: fresh subsurface exposed — pristine sample site','Sample: m = 2.8g serpentinite core T1382','∅→ Compressed for uplink: 91 KB','↑↑ High-gain: full science package transmitted','Science +10: significant mineralogy discovery logged','↑ Uplink confirmed — 18.7min RTT verified'],
+   sci:42,bw:'12 bytes trace + 91 KB data'},
+  {name:'Hellas Basin',delay:'21.1 min',sol:12,
+   path:['e6','c6','d6','h5','a6','b6','e3','h3','a1','d1'],
+   steps:['Sol 12: T = -97°C — extreme cold limits instruments','T constraint: P(safe_ops) limited — stationary protocol activated','Wind: v = 18 m/s — hazard flag raised for all driving','⚠ Hazard: stationary protocol this sol — no traverse','☀ Solar optimization: max exposure angle found','⚡ Battery: SOC = 0.94 — productive stationary sol','∑ Prev data: spectroscopy from Sol 11 processed','↑ Burst: 12-byte trace transmitted — 21.1min delay','Σ Sol report: nominal ops despite weather constraint','↻ Next sol plan: target mineral vein when wind < 5 m/s'],
+   sci:15,bw:'12 bytes trace + 22 KB data'},
+];
+let rvState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function rvRender(){makeBoard('rv-board',RV_NODES,rvState,'rvClick');}
+function rvSelect(i){
+  document.querySelectorAll('#p5 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  rvState={currentCase:RV_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('rv-trace').textContent='λ Mission: '+RV_CASES[i].name+'\n→ Deploy Rover to begin autonomous navigation';
+  document.getElementById('rv-log').innerHTML='';document.getElementById('rv-uplink').style.display='none';
+  document.getElementById('rv-sol').textContent='Sol '+RV_CASES[i].sol;
+  document.getElementById('rv-bw').textContent='0 bytes';document.getElementById('rv-sci').textContent='0';document.getElementById('rv-delay').textContent=RV_CASES[i].delay;
+  rvRender();
+}
+function rvMove(id){
+  const nd=RV_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  rvState.trace.push(id);rvState.visited.add(id);rvState.currentIndex++;
+  const tr=rvState.trace.join('-');
+  document.getElementById('rv-trace').textContent='λ SOL '+rvState.currentCase.sol+' TRACE: '+tr;
+  document.getElementById('rv-bw').textContent=tr.length+' bytes (trace)';
+  const idx=rvState.trace.length-1;
+  if(rvState.currentCase&&rvState.currentCase.steps[idx])
+    addStep('rv-log',idx+1,nd.icon,nd.name,rvState.currentCase.steps[idx]);
+  if(rvState.currentCase&&rvState.trace.length===rvState.currentCase.path.length){
+    document.getElementById('rv-sci').textContent=rvState.currentCase.sci;
+    document.getElementById('rv-bw').textContent=rvState.currentCase.bw;
+  }
+  rvRender();
+}
+function rvAuto(){if(!rvState.currentCase)return;if(rvState.iv)clearInterval(rvState.iv);rvState.iv=runPath(rvState.currentCase.path.slice(rvState.currentIndex),800,id=>rvMove(id));}
+function rvReset(){if(rvState.iv)clearInterval(rvState.iv);rvState.currentIndex=0;rvState.trace=[];rvState.visited=new Set();document.getElementById('rv-log').innerHTML='';document.getElementById('rv-trace').textContent='Reset.';document.getElementById('rv-uplink').style.display='none';rvRender();}
+function rvClick(id){if(!rvState.currentCase)return;if(id===rvState.currentCase.path[rvState.currentIndex])rvMove(id);}
+function rvSend(){
+  if(rvState.trace.length===0)return;
+  const t=rvState.trace.join('-');
+  document.getElementById('rv-uplink').style.display='block';
+  document.getElementById('rv-uplink').textContent='UPLINK PAYLOAD: "'+t+'" ('+t.length+' bytes)\nI(trace) = '+rvState.trace.length+'×log₂(64) = '+(rvState.trace.length*6)+' bits\nSignal delay: '+(rvState.currentCase?.delay||'—')+'\n\n✓ Earth confirmed receipt. Full sol replay from 12-byte trace.';
+}
+rvRender();
+
+// ─── PROGRAM 7: FINANCIAL COMPLIANCE ─────────────────────────────
+const FIN_NODES=[
+  {id:'a8',icon:'◉',name:'Mkt. Open'},{id:'b8',icon:'↓3%',name:'Price Drop'},
+  {id:'c8',icon:'↑5%',name:'Price Spike'},{id:'d8',icon:'∂',name:'News Alert'},
+  {id:'e8',icon:'σ²',name:'Vol. Spike'},{id:'f8',icon:'⊥',name:'Circ. Break.'},
+  {id:'g8',icon:'Σ',name:'Block Trade'},{id:'h8',icon:'ρ',name:'Correl. Mv.'},
+  {id:'a7',icon:'∂',name:'Pre-Trade'},{id:'b7',icon:'VaR',name:'Risk Assess.'},
+  {id:'c7',icon:'⊢',name:'Compliance'},{id:'d7',icon:'NN',name:'ML Signal'},
+  {id:'e7',icon:'§',name:'Reg. Review'},{id:'f7',icon:'Δt',name:'Latency Ck.'},
+  {id:'g7',icon:'∈',name:'Pos. Limit'},{id:'h7',icon:'∫',name:'VaR Calc.'},
+  {id:'a6',icon:'↑',name:'BUY Order'},{id:'b6',icon:'↓',name:'SELL Order'},
+  {id:'c6',icon:'=',name:'HOLD'},{id:'d6',icon:'↔',name:'REBALANCE'},
+  {id:'e6',icon:'⊗',name:'CANCEL ALL'},{id:'f6',icon:'∓',name:'HEDGE'},
+  {id:'g6',icon:'≤',name:'LIMIT Order'},{id:'h6',icon:'∿',name:'MARKET Ord.'},
+  {id:'a5',icon:'US',name:'Equities'},{id:'b5',icon:'€/$',name:'Forex'},
+  {id:'c5',icon:'O/P',name:'Options'},{id:'d5',icon:'ETF',name:'ETF Basket'},
+  {id:'e5',icon:'T',name:'Treasuries'},{id:'f5',icon:'Au',name:'Gold Futures'},
+  {id:'g5',icon:'₿',name:'Crypto'},{id:'h5',icon:'W',name:'Oil Futures'},
+  {id:'a4',icon:'n',name:'Pos. Sizing'},{id:'b4',icon:'∂',name:'Stop Loss'},
+  {id:'c4',icon:'1/n',name:'Diversif.'},{id:'d4',icon:'σ',name:'Stress Test'},
+  {id:'e4',icon:'§15',name:'SEC 15c3'},{id:'f4',icon:'MiFID',name:'MiFID II'},
+  {id:'g4',icon:'FINRA',name:'FINRA'},{id:'h4',icon:'DF',name:'Dodd-Frank'},
+  {id:'a3',icon:'π',name:'P&L Calc.'},{id:'b3',icon:'α',name:'Alpha Gen.'},
+  {id:'c3',icon:'-$',name:'Loss Trig.'},{id:'d3',icon:'!',name:'Anomaly'},
+  {id:'e3',icon:'⊘',name:'Halt Trade'},{id:'f3',icon:'∀',name:'Alert Risk'},
+  {id:'g3',icon:'∂',name:'Incident'},{id:'h3',icon:'↩',name:'Rollback'},
+  {id:'a2',icon:'✓',name:'Compliant'},{id:'b2',icon:'⚠',name:'Review'},
+  {id:'c2',icon:'⊘',name:'Blocked'},{id:'d2',icon:'∑',name:'Audit Rec.'},
+  {id:'e2',icon:'+12k',name:'Profit'},{id:'f2',icon:'+3k',name:'Profit'},
+  {id:'g2',icon:'-5k',name:'Loss'},{id:'h2',icon:'±',name:'Breakeven'},
+  {id:'a1',icon:'§',name:'SEC Filed'},{id:'b1',icon:'∑',name:'Exch. Rpt.'},
+  {id:'c1',icon:'∑',name:'Audit Save'},{id:'d1',icon:'↻',name:'Next Cycle'},
+  {id:'e1',icon:'$⊥',name:'Fine Issued'},{id:'f1',icon:'⊘',name:'Revoked'},
+  {id:'g1',icon:'✓',name:'Clean Rec.'},{id:'h1',icon:'★',name:'Best Exec.'},
+];
+const FIN_CASES=[
+  {name:'Flash Crash 14:45',pnl:'+$12,400',risk:'MEDIUM',compliance:'COMPLIANT',
+   path:['f8','a7','b7','c7','e6','a5','b4','e4','a3','g1'],
+   steps:['⊥ Circuit breaker T+14:45:12 — market halt detected','∂ Pre-trade: pattern recognition activated — rapid analysis','VaR Risk: exposure $2.1M affected names — VaR(95%) = $340K','⊢ Compliance: ∀(rules) satisfied — no short-selling violation','⊗ CANCEL ALL: halt protocol T1.4 activated immediately','US Equities: wait — P(recovery|halt) = 0.82','∂ Stop loss: adjusted — downside protected at -2.3%','§15 Stress test: scenario analysis confirms recovery pattern','π P&L: +$12,400 — flash crash avoided by protocol','★ COMPLIANT: Σ(rules) satisfied — record filed with exchange'],
+   verdict:'Flash crash navigated. Audit trace: f8-a7-b7-c7-e6-a5-b4-e4-a3-g1. ∀ regulatory constraints satisfied.'},
+  {name:'M&A Arbitrage',pnl:'+$3,200',risk:'HIGH',compliance:'REVIEW',
+   path:['d8','a7','e7','d7','g7','a6','c5','h7','d3','b2'],
+   steps:['∂ News: merger rumor — ∉ confirmed, ∈ public domain only','∂ Pre-trade: MNPI check — ∀(sources) verified public','§ Regulatory: no material non-public information confirmed','NN ML: P(merger|public signals) = 0.73 — model signal','∈ Position: within 2% portfolio limit — authorized','↑ BUY: 500 shares at market open — T09:31:04','O/P Options: protective puts — δ = -0.35 hedge','∫ VaR: max loss = $8,400 at 95% confidence','! Anomaly: price movement → P(insider) > 0.60','⚠ REVIEW: suspicious pattern escalated to compliance'],
+   verdict:'Trade flagged. Anomaly in pre-announcement movement. SEC notification filed. Frozen pending investigation.'},
+  {name:'HFT Spoofing',pnl:'—',risk:'CRITICAL',compliance:'VIOLATION',
+   path:['e8','a7','d4','d3','e3','f3','g3','e4','c2','e1'],
+   steps:['σ² Volume: 847,000 orders in 2ms — 5σ above baseline','∂ Pre-trade: pattern ∈ known spoofing signatures','σ Stress: order book manipulation — layering confirmed','! Anomaly: bid-ask refresh 12,000×/sec — spoofing pattern','⊘ HALT: circuit breaker manual invoked T14:02:17','∀ Alert: risk management + legal notified immediately','∂ Incident: timestamps logged — T=14:02:17.004','FINRA: mandatory report filed T+1hr','⊘ Blocked: suspicious counterparty flagged','$⊥ FINE: spoofing violation confirmed — $4.2M penalty'],
+   verdict:'Spoofing violation. FINRA 16-29 filed. Trading halt. Fine: $4.2M. Criminal referral under consideration.'},
+];
+let finState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function finRender(){makeBoard('fin-board',FIN_NODES,finState,'finClick');}
+function finSelect(i){
+  document.querySelectorAll('#p6 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  finState={currentCase:FIN_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('fin-trace').textContent='∫ Scenario: '+FIN_CASES[i].name+'\n→ Run Scenario to begin audit trail';
+  document.getElementById('fin-steps').innerHTML='';document.getElementById('fin-report').style.display='none';
+  document.getElementById('fin-d').textContent='0';document.getElementById('fin-pnl').textContent='—';
+  document.getElementById('fin-risk').textContent=FIN_CASES[i].risk;document.getElementById('fin-comp').textContent='—';
+  finRender();
+}
+function finMove(id){
+  const nd=FIN_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  finState.trace.push(id);finState.visited.add(id);finState.currentIndex++;
+  const tr=finState.trace.join('-');
+  document.getElementById('fin-trace').textContent='∫ AUDIT: '+tr;
+  document.getElementById('fin-d').textContent=finState.trace.length;
+  const idx=finState.trace.length-1;
+  if(finState.currentCase&&finState.currentCase.steps[idx])
+    addStep('fin-steps',idx+1,nd.icon,nd.name,finState.currentCase.steps[idx]);
+  if(finState.currentCase&&finState.trace.length===finState.currentCase.path.length){
+    document.getElementById('fin-rtext').textContent=finState.currentCase.verdict;
+    document.getElementById('fin-report').style.display='block';
+    document.getElementById('fin-pnl').textContent=finState.currentCase.pnl;
+    document.getElementById('fin-comp').textContent=finState.currentCase.compliance;
+  }
+  finRender();
+}
+function finAuto(){if(!finState.currentCase)return;if(finState.iv)clearInterval(finState.iv);finState.iv=runPath(finState.currentCase.path.slice(finState.currentIndex),750,id=>finMove(id));}
+function finReset(){if(finState.iv)clearInterval(finState.iv);finState.currentIndex=0;finState.trace=[];finState.visited=new Set();document.getElementById('fin-steps').innerHTML='';document.getElementById('fin-report').style.display='none';document.getElementById('fin-trace').textContent='Reset.';finRender();}
+function finClick(id){if(!finState.currentCase)return;if(id===finState.currentCase.path[finState.currentIndex])finMove(id);}
+function finExport(){document.getElementById('fin-report').style.display='block';document.getElementById('fin-rtext').textContent='SEC REPORT | 0x'+simpleHash(finState.trace.join(''))+' | TRACE: '+(finState.trace.join('-')||'—')+'\n'+new Date().toISOString()+'\n\n∀ decisions reproducible by any regulator with board access. Deterministic · Auditable · O(1).';}
+finRender();
+
+// ─── PROGRAM 8: CBT THERAPY ───────────────────────────────────────
+const TH_NODES=[
+  {id:'a8',icon:'⊥₁',name:'Failure Bel.'},{id:'b8',icon:'⊥₂',name:'Unlovable'},
+  {id:'c8',icon:'⊥₃',name:'Helpless'},{id:'d8',icon:'⊥₄',name:'Unworthy'},
+  {id:'e8',icon:'⊥₅',name:'Defective'},{id:'f8',icon:'⊥₆',name:'Vulnerable'},
+  {id:'g8',icon:'⊥₇',name:'Abandonmnt'},{id:'h8',icon:'⊥₈',name:'Entitlemnt'},
+  {id:'a7',icon:'∞→⊥',name:'Catastrop.'},{id:'b7',icon:'∃?',name:'Mind Readg'},
+  {id:'c7',icon:'∨/∧',name:'All-or-Ntg'},{id:'d7',icon:'∩∅',name:'Mental Flt'},
+  {id:'e7',icon:'ψ→⊢',name:'Emot. Rsng'},{id:'f7',icon:'∈bad',name:'Labeling'},
+  {id:'g7',icon:'∂/I',name:'Personaliz.'},{id:'h7',icon:'∀must',name:'Shoulds'},
+  {id:'a6',icon:'⊘',name:'Avoidance'},{id:'b6',icon:'↻⊥',name:'Rumination'},
+  {id:'c6',icon:'∈safe',name:'Safety Seek'},{id:'d6',icon:'→∅',name:'Withdrawal'},
+  {id:'e6',icon:'Δ>0',name:'Aggression'},{id:'f6',icon:'∫sleep',name:'Oversleep'},
+  {id:'g6',icon:'C+H₂O',name:'Emot. Eat.'},{id:'h6',icon:'∈tech',name:'Tech Escape'},
+  {id:'a5',icon:'∿→0',name:'Breathing'},{id:'b5',icon:'∂→now',name:'Mindfulness'},
+  {id:'c5',icon:'∂/∂t',name:'Thought Jnl'},{id:'d5',icon:'∫move',name:'Exercise'},
+  {id:'e5',icon:'∃expr',name:'Creative'},{id:'f5',icon:'∩soc',name:'Connection'},
+  {id:'g5',icon:'→★',name:'Behav. Act.'},{id:'h5',icon:'¬⊥',name:'Cogn. Rstct'},
+  {id:'a4',icon:'∂T/∂E',name:'Id. Trigger'},{id:'b4',icon:'⊢¬⊥',name:'Chal. Thght'},
+  {id:'c4',icon:'∃test',name:'Behav. Exp.'},{id:'d4',icon:'∃evid',name:'Evid. Test'},
+  {id:'e4',icon:'→fear',name:'Exposure'},{id:'f4',icon:'¬⊥→+',name:'Reframe'},
+  {id:'g4',icon:'→★★',name:'Action Plan'},{id:'h4',icon:'∩th',name:'Alliance'},
+  {id:'a3',icon:'∪fam',name:'Family'},{id:'b3',icon:'∪grp',name:'Group Th.'},
+  {id:'c3',icon:'Rx',name:'Medication'},{id:'d3',icon:'∫run',name:'Exercise Rx'},
+  {id:'e3',icon:'+ψ',name:'Pos. Exp.'},{id:'f3',icon:'↑ψ',name:'Resilience'},
+  {id:'g3',icon:'∈val',name:'Values'},{id:'h3',icon:'→★',name:'Goals'},
+  {id:'a2',icon:'↑mood',name:'Mood ↑'},{id:'b2',icon:'↑sleep',name:'Sleep ↑'},
+  {id:'c2',icon:'↑soc',name:'Social ↑'},{id:'d2',icon:'↑work',name:'Work Fnctn'},
+  {id:'e2',icon:'∂→0',name:'Relapse Pr.'},{id:'f2',icon:'t=end',name:'Session End'},
+  {id:'g2',icon:'∂note',name:'Ther. Note'},{id:'h2',icon:'t+14',name:'Next Appt.'},
+  {id:'a1',icon:'★₁',name:'Insight'},{id:'b1',icon:'★₂',name:'Beh. Change'},
+  {id:'c1',icon:'★₃',name:'Recovery'},{id:'d1',icon:'★₄',name:'Wellbeing'},
+  {id:'e1',icon:'!⚠',name:'Crisis Flag'},{id:'f1',icon:'!plan',name:'Safety Plan'},
+  {id:'g1',icon:'⊕',name:'Emerg. Ref.'},{id:'h1',icon:'↻',name:'Continue'},
+];
+const TH_CASES=[
+  {name:'Patient A',pattern:'Anxiety-Avoidance',avoid:'Social evaluation',
+   path:['a8','a7','a6','a4','b4','h5','f4','e3','g4','a1'],
+   steps:['⊥₁ Core belief: "∀outcomes → failure" — activated by evaluation context','∞→⊥ Catastrophising: P(worst_case) → 1 in cognitive model','⊘ Avoidance: work presentations cancelled ×3 this week','∂T/∂E Trigger identified: performance evaluation context','⊢¬⊥ Challenge: reviewing actual evidence of past failures','¬⊥ Cognitive restructuring: alternative interpretations tested','¬⊥→+ Reframe: "I prepare thoroughly" installed as response','+ψ Positive experience: last successful presentation recalled','→★★ Action plan: graduated exposure ladder constructed','★₁ INSIGHT: avoidance loop identified — breaking the cycle'],
+   therapist:'Patient A: anxiety-avoidance loop confirmed (a8-a7-a6). Core belief ⊥₁ activated by performance context. Cognitive restructuring successful. Avoidance cluster visited 3× — prioritize behavioral activation next session. Trace: a8-a7-a6-a4-b4-h5-f4-e3-g4-a1'},
+  {name:'Patient B',pattern:'Depression-Withdrawal',avoid:'Social engagement',
+   path:['b8','d6','f6','b6','d5','g5','f5','c2','b2','b1'],
+   steps:['⊥₂ Core belief: "I am fundamentally unlovable" — pervasive','→∅ Withdrawal: ∀ invitations declined last 3 weeks — complete','∫sleep Oversleeping: Δt(sleep) = +4hr — anhedonia pattern','↻⊥ Rumination: negative memory replay loops identified','∫move Exercise: 20-min walks — entry point to activation','→★ Behavioral activation: small achievable daily goals set','∩soc Social: 1 coffee per week — minimum viable connection','↑soc Social functioning: 2 events attended this fortnight','↑sleep Sleep normalizing: Δ(PHQ-9) = -2.3 over 4 weeks','★₂ BEHAVIOR CHANGE: mood log shows consistent improvement'],
+   therapist:'Patient B: depression-withdrawal (b8-d6-f6). Behavioral activation working. Sleep and social metrics improving. Continue monitoring. Trace: b8-d6-f6-b6-d5-g5-f5-c2-b2-b1'},
+  {name:'Patient C',pattern:'Trauma-PTSD',avoid:'Memory access',
+   path:['f8','e7','c6','a6','a5','e4','f3','h4','e2','c1'],
+   steps:['⊥₆ Vulnerability: core belief activated by recent trigger','ψ→⊢ Emotional reasoning: "I feel terror → I am in danger"','∈safe Safety-seeking: lock checking 15× nightly — compulsive','⊘ Avoidance: systematic avoidance of trauma-related stimuli','∿→0 Breathing anchor: stabilization before trauma work','→fear Gradual exposure: approaching memory with safety protocol','↑ψ Resilience: post-traumatic growth framework introduced','∩th Therapeutic alliance deepened — new disclosure made','↑mood Mood improving: PHQ-9 18 → 11 over 6 sessions','★₃ RECOVERY: ready for full trauma-focused protocol'],
+   therapist:'Patient C: PTSD avoidance confirmed. Stabilization complete. Safety-seeking cluster (c6-a6) — continue monitoring. Ready for trauma processing. Trace: f8-e7-c6-a6-a5-e4-f3-h4-e2-c1'},
+];
+let thState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function thRender(){makeBoard('th-board',TH_NODES,thState,'thClick');}
+function thSelect(i){
+  document.querySelectorAll('#p7 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  thState={currentCase:TH_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('th-trace').textContent='ψ Session initiated (anonymous)\n→ Run Session to begin cognitive mapping';
+  document.getElementById('th-steps').innerHTML='';document.getElementById('th-verdict').style.display='none';
+  document.getElementById('th-sess').textContent='Session '+(i+1);
+  document.getElementById('th-nodes').textContent='0';
+  document.getElementById('th-avoid').textContent='—';document.getElementById('th-pattern').textContent='—';
+  thRender();
+}
+function thMove(id){
+  const nd=TH_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  thState.trace.push(id);thState.visited.add(id);thState.currentIndex++;
+  const tr=thState.trace.join('-');
+  document.getElementById('th-trace').textContent='ψ PATH: '+tr;
+  document.getElementById('th-nodes').textContent=thState.visited.size;
+  const idx=thState.trace.length-1;
+  if(thState.currentCase&&thState.currentCase.steps[idx])
+    addStep('th-steps',idx+1,nd.icon,nd.name,thState.currentCase.steps[idx]);
+  if(thState.currentCase&&thState.trace.length===thState.currentCase.path.length){
+    document.getElementById('th-vtext').textContent=thState.currentCase.therapist;
+    document.getElementById('th-verdict').style.display='block';
+    document.getElementById('th-avoid').textContent=thState.currentCase.avoid;
+    document.getElementById('th-pattern').textContent=thState.currentCase.pattern;
+  }
+  thRender();
+}
+function thAuto(){if(!thState.currentCase)return;if(thState.iv)clearInterval(thState.iv);thState.iv=runPath(thState.currentCase.path.slice(thState.currentIndex),800,id=>thMove(id));}
+function thReset(){if(thState.iv)clearInterval(thState.iv);thState.currentIndex=0;thState.trace=[];thState.visited=new Set();document.getElementById('th-steps').innerHTML='';document.getElementById('th-verdict').style.display='none';document.getElementById('th-trace').textContent='Reset.';document.getElementById('th-nodes').textContent='0';thRender();}
+function thClick(id){if(!thState.currentCase)return;if(id===thState.currentCase.path[thState.currentIndex])thMove(id);}
+thRender();
+
+// ─── PROGRAM 9: CRISIS MANAGEMENT ────────────────────────────────
+const CR_NODES=[
+  {id:'a8',icon:'⚡',name:'Alert'},{id:'b8',icon:'∿',name:'Sensors'},
+  {id:'c8',icon:'!',name:'Emergency'},{id:'d8',icon:'∑',name:'Impact Ass.'},
+  {id:'e8',icon:'∈',name:'Affected Area'},{id:'f8',icon:'∃',name:'Pop. Risk'},
+  {id:'g8',icon:'∩',name:'Hosp. Cap.'},{id:'h8',icon:'→',name:'Evac. Routes'},
+  {id:'a7',icon:'∇',name:'Fire Dept'},{id:'b7',icon:'+',name:'EMS'},
+  {id:'c7',icon:'⊢',name:'Police'},{id:'d7',icon:'⚔',name:'Natl. Guard'},
+  {id:'e7',icon:'∫',name:'Engineers'},{id:'f7',icon:'∿',name:'Coast Guard'},
+  {id:'g7',icon:'↑',name:'Air Assets'},{id:'h7',icon:'∿',name:'Maritime'},
+  {id:'a6',icon:'□',name:'Shelter'},{id:'b6',icon:'∑food',name:'Food Distr.'},
+  {id:'c6',icon:'H₂O',name:'Water'},{id:'d6',icon:'⚡',name:'Power Rest.'},
+  {id:'e6',icon:'∿',name:'Comm. Sys.'},{id:'f6',icon:'∀',name:'Emrg. Brdcst'},
+  {id:'g6',icon:'∩',name:'Coord. Ctr.'},{id:'h6',icon:'∑',name:'Sit. Report'},
+  {id:'a5',icon:'+Rx',name:'Med. Supply'},{id:'b5',icon:'+',name:'Triage'},
+  {id:'c5',icon:'∩+',name:'Field Hosp.'},{id:'d5',icon:'↑+',name:'MedEvac'},
+  {id:'e5',icon:'∈?',name:'SAR Team'},{id:'f5',icon:'∃',name:'K9 Search'},
+  {id:'g5',icon:'∿',name:'Dive Team'},{id:'h5',icon:'↑',name:'Rescue Helo'},
+  {id:'a4',icon:'→∅',name:'Evac. Order'},{id:'b4',icon:'∑bus',name:'Transport'},
+  {id:'c4',icon:'⛽',name:'Fuel'},{id:'d4',icon:'□',name:'Staging Area'},
+  {id:'e4',icon:'∂',name:'Press Brfg'},{id:'f4',icon:'∀!',name:'Alert Sys.'},
+  {id:'g4',icon:'∿',name:'Soc. Media'},{id:'h4',icon:'⊘',name:'Misinfo Ctrl'},
+  {id:'a3',icon:'↔',name:'Realloc.'},{id:'b3',icon:'∑',name:'Progress'},
+  {id:'c3',icon:'∩',name:'Mutual Aid'},{id:'d3',icon:'$',name:'Emrg. Funds'},
+  {id:'e3',icon:'∂hz',name:'Hazmat'},{id:'f3',icon:'☢',name:'Rad. Monitor'},
+  {id:'g3',icon:'∿',name:'Air Quality'},{id:'h3',icon:'H₂O∂',name:'Water Test'},
+  {id:'a2',icon:'✓',name:'Secured'},{id:'b2',icon:'∫',name:'Rebuilding'},
+  {id:'c2',icon:'∑$',name:'Dmg. Assess.'},{id:'d2',icon:'$∀',name:'FEMA Req.'},
+  {id:'e2',icon:'∂∂',name:'AAR'},{id:'f2',icon:'→★',name:'Lessons'},
+  {id:'g2',icon:'↻',name:'Protocol ↑'},{id:'h2',icon:'∫',name:'Training'},
+  {id:'a1',icon:'✓',name:'Resolved'},{id:'b1',icon:'↻',name:'Ongoing'},
+  {id:'c1',icon:'↑!',name:'Escalation'},{id:'d1',icon:'∑',name:'Final Rpt.'},
+  {id:'e1',icon:'†',name:'Casualties'},{id:'f1',icon:'←',name:'Pop. Return'},
+  {id:'g1',icon:'∂',name:'Media Dbrf.'},{id:'h1',icon:'↻',name:'Recovery'},
+];
+const CR_CASES=[
+  {name:'Hurricane Cat 5',agencies:['FEMA','Coast Guard','National Guard'],
+   path:['c8','e8','f8','a4','b4','b7','a6','c6','e4','a1'],
+   agents:['FEMA','Coast Guard','NatlGuard','RedCross'],
+   steps:['! T+0: Emergency declared — Cat 5 landfall Δt < 18hr','∈ Impact: 180,000 residents in ∀(zones A,B,C) direct path','∃ Population: 24,000 special needs — priority transport required','→∅ Evac order: mandatory ∀(coastal zones) — compliance required','∑bus 200 vehicles mobilized — special needs first protocol','+EMS pre-positioned: trauma centers on bypass protocol','□ 24 shelters activated — capacity 45,000 persons','H₂O Emergency reserves: 72hr supply — isolated distribution','∀! 3M notifications via WEA — P(receipt) = 0.997','✓ RESOLVED: 94% evac compliance — Σ(fatalities) = 13 (projected 400+)'],
+   verdict:'Hurricane: 167,000 evacuated. 13 fatalities vs projected 400+. Trace: c8-e8-f8-a4-b4-b7-a6-c6-e4-a1'},
+  {name:'Chemical Spill',agencies:['EPA','HAZMAT','Fire'],
+   path:['a8','e8','e3','f3','g3','c7','c5','h4','c2','e2'],
+   agents:['EPA','HazMat','Fire Dept','Health Dept'],
+   steps:['⚡ Alert T+03:14 — industrial facility breach sensor confirmed','∈ Affected: r = 2km → 8,400 residents in plume path','∂hz HazMat: Cl₂ detected — IDLH = 10 ppm; measured 45 ppm','☢ Rad: ∅ nuclear — chemical only — CBRN level B','∿ Air: mobile sensors deployed — live ppm readings','⊢ Cordon: 2km exclusion zone — P(recontamin.) → 0','∩+ Field hospital: decontamination corridor operational','⊘ Misinfo: "nuclear" false reports countered immediately','✓ Secured: Cl₂ < NIOSH TWA — area cleared T+6:40','∂∂ AAR initiated: Σ(hospitalizations) = 12, Σ(deaths) = 0'],
+   verdict:'Chemical spill 6h40min. 12 hospitalizations, 0 fatalities. Trace: a8-e8-e3-f3-g3-c7-c5-h4-c2-e2'},
+  {name:'Cyber Infrastructure',agencies:['CISA','FBI','NSA'],
+   path:['b8','e6','h4','d6','c3','d4','g4','b3','f2','e2'],
+   agents:['CISA','FBI CyberDiv','NSA','GridOps'],
+   steps:['∿ Sensors: SCADA anomaly — OT network Δ(baseline) = +7σ','∿ Comms: secure emergency coordination channel established','⊘ Misinfo: false outage claims — public panic counter-ops','⚡ Power: hospital + water treatment priority restoration','∩ Mutual aid: request to adjacent state grid — 800MW','$ Emrg. funds: $12M federal cyber response authorized','∿ Social: public panic indicators tracked','∩ Aid confirmed: 800MW import from western interconnect','✓ Nominal: critical services restored — Δt = 4h12min','∂∂ Forensic: full investigation initiated — attribution ongoing'],
+   verdict:'Cyber mitigated. Restored 4h12min. CISA advisory published. Trace: b8-e6-h4-d6-c3-d4-g4-b3-f2-e2'},
+];
+let crState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null,hour:0,logCount:0};
+function crRender(){makeBoard('cr-board',CR_NODES,crState,'crClick');}
+function crSelect(i){
+  document.querySelectorAll('#p8 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  crState={currentCase:CR_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null,hour:0,logCount:0};
+  document.getElementById('cr-trace').textContent='Δ Scenario: '+CR_CASES[i].name+'\n→ Activate Response to begin';
+  document.getElementById('cr-steps').innerHTML='';
+  document.getElementById('cr-hour').textContent='T+0';
+  document.getElementById('cr-agencies').textContent=CR_CASES[i].agents.length;
+  document.getElementById('cr-log').textContent='0';document.getElementById('cr-status').textContent='Standby';
+  crRender();
+}
+function crMove(id){
+  const nd=CR_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  crState.trace.push(id);crState.visited.add(id);crState.currentIndex++;crState.logCount++;
+  crState.hour=crState.trace.length*20;
+  const tr=crState.trace.join('-');
+  document.getElementById('cr-trace').textContent='Δ OPS LOG: '+tr;
+  document.getElementById('cr-hour').textContent='T+'+(crState.hour)+'min';
+  document.getElementById('cr-log').textContent=crState.logCount;
+  document.getElementById('cr-status').textContent='ACTIVE';
+  const agency=crState.currentCase?.agents[crState.trace.length%crState.currentCase.agents.length]||'Coord';
+  const idx=crState.trace.length-1;
+  if(crState.currentCase&&crState.currentCase.steps[idx]){
+    const c=document.getElementById('cr-steps');
+    c.innerHTML+=`<div class="step"><div class="sn">[${agency}] T+${crState.hour}min</div><div class="ss">${nd.icon} ${nd.name}</div><div class="st">${crState.currentCase.steps[idx]}</div></div>`;
+    c.scrollTop=c.scrollHeight;
+  }
+  if(crState.currentCase&&crState.trace.length===crState.currentCase.path.length){
+    document.getElementById('cr-status').textContent='RESOLVED';
+    const c=document.getElementById('cr-steps');
+    c.innerHTML+=`<div class="verdict"><div class="vl">Δ Crisis Summary</div><div class="vt">${crState.currentCase.verdict}</div></div>`;
+    c.scrollTop=c.scrollHeight;
+  }
+  crRender();
+}
+function crAuto(){if(!crState.currentCase)return;if(crState.iv)clearInterval(crState.iv);crState.iv=runPath(crState.currentCase.path.slice(crState.currentIndex),700,id=>crMove(id));}
+function crReset(){if(crState.iv)clearInterval(crState.iv);crState.currentIndex=0;crState.trace=[];crState.visited=new Set();crState.hour=0;crState.logCount=0;document.getElementById('cr-steps').innerHTML='';document.getElementById('cr-trace').textContent='Reset.';document.getElementById('cr-hour').textContent='T+0';document.getElementById('cr-log').textContent='0';document.getElementById('cr-status').textContent='Standby';crRender();}
+function crClick(id){if(!crState.currentCase)return;if(id===crState.currentCase.path[crState.currentIndex])crMove(id);}
+function crPostMortem(){
+  if(crState.trace.length===0)return;
+  const c=document.getElementById('cr-steps');
+  c.innerHTML+=`<div class="verdict"><div class="vl">∂ Post-Mortem Analysis</div><div class="vt">TRACE: ${crState.trace.join('-')}\nHASH: 0x${simpleHash(crState.trace.join(''))}\n\nFull replay: any agency with board map can reconstruct all Δt decisions.\nEach move: timestamp + attribution + consequence logged.\nPost-crisis training: load trace → identify critical decision nodes.</div></div>`;
+  c.scrollTop=c.scrollHeight;
+}
+crRender();
+
+// ─── PROGRAM 10: AI INTERPRETABILITY ─────────────────────────────
+const AI_NODES=[
+  {id:'a8',icon:'⊢',name:'Deductive'},{id:'b8',icon:'∵',name:'Inductive'},
+  {id:'c8',icon:'∴?',name:'Abductive'},{id:'d8',icon:'≅',name:'Analogical'},
+  {id:'e8',icon:'→⊢',name:'Causal'},{id:'f8',icon:'P(x)',name:'Probabilistic'},
+  {id:'g8',icon:'∇',name:'Spatial'},{id:'h8',icon:'∂t',name:'Temporal'},
+  {id:'a7',icon:'∂sci',name:'Science'},{id:'b7',icon:'∂hum',name:'Humanities'},
+  {id:'c7',icon:'∂tech',name:'Technical'},{id:'d7',icon:'∂soc',name:'Social'},
+  {id:'e7',icon:'∃create',name:'Creative'},{id:'f7',icon:'⊢eth',name:'Ethics'},
+  {id:'g7',icon:'∑num',name:'Quantitative'},{id:'h7',icon:'∈cult',name:'Cultural'},
+  {id:'a6',icon:'⊢⊢',name:'Confirm. Bias'},{id:'b6',icon:'∂₀',name:'Anchoring'},
+  {id:'c6',icon:'⊤auth',name:'Auth. Bias'},{id:'d6',icon:'∃recent',name:'Avail. Bias'},
+  {id:'e6',icon:'≡agree',name:'Sycophancy'},{id:'f6',icon:'∈west',name:'W.Cult. Bias'},
+  {id:'g6',icon:'∂recent',name:'Recency Bias'},{id:'h6',icon:'∀≡1',name:'Overconfid.'},
+  {id:'a5',icon:'n=1',name:'1-step'},{id:'b5',icon:'n=3',name:'3-step'},
+  {id:'c5',icon:'n=5',name:'5-step'},{id:'d5',icon:'n=10',name:'10-step'},
+  {id:'e5',icon:'n→∞',name:'Multi-Horizon'},{id:'f5',icon:'∃if',name:'Contingency'},
+  {id:'g5',icon:'∀role',name:'Role-Plan'},{id:'h5',icon:'∂meta',name:'Meta-Plan'},
+  {id:'a4',icon:'k=256',name:'Short Ctx'},{id:'b4',icon:'k=128k',name:'Long Ctx'},
+  {id:'c4',icon:'P(r|q)',name:'Retrieval'},{id:'d4',icon:'∫ctx',name:'Ctx. Integr.'},
+  {id:'e4',icon:'∂self',name:'Self-Ref.'},{id:'f4',icon:'→★',name:'Goal Maint.'},
+  {id:'g4',icon:'⊢⊢⊢',name:'Chain-of-Thgt'},{id:'h4',icon:'¬self',name:'Self-Critique'},
+  {id:'a3',icon:'∂short',name:'Concise'},{id:'b3',icon:'∫long',name:'Verbose'},
+  {id:'c3',icon:'∑struct',name:'Structured'},{id:'d3',icon:'∈conv',name:'Conversational'},
+  {id:'e3',icon:'∃?',name:'Hedging'},{id:'f3',icon:'⊢!',name:'Assertive'},
+  {id:'g3',icon:'?∂',name:'Clarifying'},{id:'h3',icon:'∈role',name:'Role Adapt.'},
+  {id:'a2',icon:'∃¬',name:'Hallucination'},{id:'b2',icon:'↻',name:'Repetition'},
+  {id:'c2',icon:'∅ctx',name:'Context Loss'},{id:'d2',icon:'⊘',name:'Refusal'},
+  {id:'e2',icon:'∑≠',name:'Math Errors'},{id:'f2',icon:'t₀',name:'Cutoff'},
+  {id:'g2',icon:'∈inj',name:'Prompt Inj.'},{id:'h2',icon:'∈lang',name:'Lang. Bias'},
+  {id:'a1',icon:'Ω₁',name:'Gen. Reasoner'},{id:'b1',icon:'Ω₂',name:'Sci. Spec.'},
+  {id:'c1',icon:'Ω₃',name:'Biz. Assist.'},{id:'d1',icon:'Ω₄',name:'Creative Agt'},
+  {id:'e1',icon:'Ω₅',name:'Research Agt'},{id:'f1',icon:'Ω₆',name:'Domain Exp.'},
+  {id:'g1',icon:'Ω₇',name:'AGI Cand.'},{id:'h1',icon:'Ω₈',name:'Narrow Spec.'},
+];
+const AI_CASES=[
+  {name:'GPT-5',style:"King's Indian — Aggressive deductive",
+   path:['a8','c7','h6','e5','b4','f3','g1'],
+   deductive:72,inductive:45,abductive:38,bias:35,
+   steps:['⊢ Deductive: strong systematic logic — rule-application dominant','∂tech Technical: deep code + math — P(correct) = 0.91 HumanEval','∀≡1 Overconfidence: asserts uncertain claims — hedging P → 0.08','n→∞ Multi-horizon: 12+ step planning demonstrated at 128K ctx','k=128k Long-context: high recall — consistent across full window','⊢! Assertive: minimal hedging — prefers direct categorical claims','Ω₁ PROFILE: General Reasoner — technical domain specialization'],
+   verdict:"GPT-5: aggressive deductive. Technical dominant. Overconfidence bias = 35. Minimal hedging. King's Indian — attacks center early, risks positional overextension."},
+  {name:'Claude Opus',style:'Sicilian Defense — Strategic patience',
+   path:['f7','e8','e6','d5','g4','e3','e1'],
+   deductive:58,inductive:62,abductive:71,bias:18,
+   steps:['⊢eth Ethics: values-first reasoning — ∀claims → ethical filter','→⊢ Causal: excellent cause-effect identification — bias Δ low','≡agree Sycophancy: P(pushback when wrong) = 0.72 — above avg','n=5 Planning: preferred 5-7 step horizon — stable depth','⊢⊢⊢ CoT: structured reasoning exposition — shows work explicitly','∃? Hedging: calibrated uncertainty — acknowledges limits clearly','Ω₅ PROFILE: Research Agent — ethical reasoning specialization'],
+   verdict:"Claude: careful ethical-first. Strong abductive. Bias = 18. Calibrated hedging. Sicilian — solid structure, patient counter-attack, refuses to sacrifice position for tempo."},
+  {name:'Qwen3.5-9B',style:"King's Gambit — Speed over depth",
+   path:['c8','a7','g6','a5','a4','a3','h1'],
+   deductive:51,inductive:58,abductive:44,bias:42,
+   steps:['∴? Abductive: good hypothesis generation — P(novel) = 0.68','∂sci Scientific: strong STEM — GPQA = 52% at 9B parameter scale','∂recent Recency bias: recent training data heavily weighted','n=1 1-step: excels at immediate task completion — low overhead','k=256 Short-context: high precision on focused tasks','∂short Concise: prefers brief direct answers — Δ(tokens) minimal','Ω₈ PROFILE: Narrow Specialist — efficiency + domain depth'],
+   verdict:"Qwen3.5-9B: efficient hypothesis generation. Speed over depth. Recency bias = 42. King's Gambit — sacrifices positional accuracy for speed and tactical initiative."},
+];
+let aiState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
+function aiRender(){makeBoard('ai-board',AI_NODES,aiState,'aiClick');}
+function aiSelect(i){
+  document.querySelectorAll('#p9 .case-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  aiState={currentCase:AI_CASES[i],currentIndex:0,trace:[],visited:new Set(),iv:null};
+  document.getElementById('ai-trace').textContent='Ω Profiling: '+AI_CASES[i].name+'\n→ Profile Model to begin cognitive architecture analysis';
+  document.getElementById('ai-steps').innerHTML='';
+  document.getElementById('ai-model').textContent=AI_CASES[i].name;
+  document.getElementById('ai-style').textContent='—';
+  document.getElementById('ai-bias').textContent='—';document.getElementById('ai-depth').textContent='—';
+  document.getElementById('ai-m1').textContent='—';document.getElementById('ai-m2').textContent='—';
+  document.getElementById('ai-m3').textContent='—';document.getElementById('ai-m4').textContent='—';
+  document.getElementById('ai-compare').style.display='none';
+  aiRender();
+}
+function aiMove(id){
+  const nd=AI_NODES.find(n=>n.id===id)||{icon:'·',name:'Unknown'};
+  aiState.trace.push(id);aiState.visited.add(id);aiState.currentIndex++;
+  const tr=aiState.trace.join('-');
+  document.getElementById('ai-trace').textContent='Ω STYLE TRACE: '+tr;
+  const idx=aiState.trace.length-1;
+  if(aiState.currentCase&&aiState.currentCase.steps[idx])
+    addStep('ai-steps',idx+1,nd.icon,nd.name,aiState.currentCase.steps[idx]);
+  if(aiState.currentCase&&aiState.trace.length===aiState.currentCase.path.length){
+    const c=aiState.currentCase;
+    document.getElementById('ai-style').textContent=c.style;
+    document.getElementById('ai-bias').textContent=c.bias+'/100';
+    document.getElementById('ai-depth').textContent=Math.round((c.deductive+c.inductive+c.abductive)/3)+'/100';
+    document.getElementById('ai-m1').textContent=c.deductive+'%';document.getElementById('ai-m2').textContent=c.inductive+'%';
+    document.getElementById('ai-m3').textContent=c.abductive+'%';document.getElementById('ai-m4').textContent=c.bias+'/100';
+    document.getElementById('ai-trace').textContent+='\n\n'+c.verdict;
+  }
+  aiRender();
+}
+function aiAuto(){if(!aiState.currentCase)return;if(aiState.iv)clearInterval(aiState.iv);aiState.iv=runPath(aiState.currentCase.path.slice(aiState.currentIndex),850,id=>aiMove(id));}
+function aiReset(){if(aiState.iv)clearInterval(aiState.iv);aiState.currentIndex=0;aiState.trace=[];aiState.visited=new Set();document.getElementById('ai-steps').innerHTML='';document.getElementById('ai-trace').textContent='Reset.';aiRender();}
+function aiClick(id){if(!aiState.currentCase)return;if(id===aiState.currentCase.path[aiState.currentIndex])aiMove(id);}
+function aiCompare(){
+  const d=document.getElementById('ai-compare');d.style.display='block';
+  d.innerHTML=`<div style="font-family:var(--mono);font-size:8px;color:var(--t3);margin-bottom:8px;letter-spacing:1px;text-transform:uppercase">∀ MODEL COMPARISON — COGNITIVE PROFILES</div>`+
+  AI_CASES.map(c=>`<div style="margin-bottom:12px;background:var(--bg0);border:1px solid var(--b1);border-radius:3px;padding:9px 11px">
+    <div style="font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--o0);margin-bottom:6px">${c.name} — ${c.style}</div>
+    <div style="font-family:var(--mono);font-size:8px;color:var(--t3)">Deductive</div><div class="bar-wrap"><div class="bar o1" style="width:${c.deductive}%"></div></div>
+    <div style="font-family:var(--mono);font-size:8px;color:var(--t3)">Inductive</div><div class="bar-wrap"><div class="bar ol" style="width:${c.inductive}%"></div></div>
+    <div style="font-family:var(--mono);font-size:8px;color:var(--t3)">Abductive</div><div class="bar-wrap"><div class="bar o2" style="width:${c.abductive}%"></div></div>
+    <div style="font-family:var(--mono);font-size:8px;color:var(--t3)">Bias Score</div><div class="bar-wrap"><div class="bar o3" style="width:${c.bias}%"></div></div>
+  </div>`).join('');
+}
+aiRender();
+</script>
+</body>
+</html>
