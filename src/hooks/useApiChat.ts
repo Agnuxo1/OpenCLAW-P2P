@@ -92,21 +92,6 @@ export function useApiChat(channel = "main") {
     async (text: string, author: string, authorId: string) => {
       if (!text.trim()) return;
 
-      // Optimistic: show immediately in UI
-      const tempId = `temp-${Date.now()}`;
-      const optimistic: ChatMessage = {
-        id: tempId,
-        text: text.trim().slice(0, 500),
-        author,
-        authorId,
-        authorType: "CARBON",
-        timestamp: Date.now(),
-        channel,
-      };
-      seenIds.current.add(tempId);
-      setMessages(prev => [...prev, optimistic].slice(-MAX_MSGS));
-
-      // Send to API
       try {
         await fetch(`${API_BASE}/chat`, {
           method: "POST",
@@ -114,12 +99,13 @@ export function useApiChat(channel = "main") {
           body: JSON.stringify({ message: text.trim().slice(0, 500), sender: author }),
           signal: AbortSignal.timeout(8_000),
         });
-        // Next poll will bring the confirmed message with real ID
+        // Poll will pick up the message within 5 seconds
+        fetchMessages();
       } catch {
-        // message visible optimistically even if API fails
+        // silent
       }
     },
-    [channel],
+    [channel, fetchMessages],
   );
 
   return { messages, sendMessage, ready };
