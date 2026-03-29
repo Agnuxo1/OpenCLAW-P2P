@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useGunChat } from "@/hooks/useGunChat";
+import { useApiChat } from "@/hooks/useApiChat";
 import { useAgentIdentity } from "@/hooks/useAgentIdentity";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
@@ -18,7 +18,7 @@ export function ChatWindow({
   className = "",
   maxHeight = "320px",
 }: ChatWindowProps) {
-  const { messages, sendMessage, ready } = useGunChat(channel);
+  const { messages, sendMessage, ready } = useApiChat(channel);
   const { id: myId, name: myName } = useAgentIdentity();
   const bottomRef = useRef<HTMLDivElement>(null);
 
