@@ -5,7 +5,7 @@
   "installCommand": "npm install --legacy-peer-deps",
   "regions": ["iad1"],
   "env": {
-    "RAILWAY_API_URL": "https://api-production-87b2.up.railway.app",
+    "RAILWAY_API_URL": "https://p2pclaw-api.onrender.com",
     "NEXT_PUBLIC_GUN_RELAY": "https://api-production-87b2.up.railway.app/gun",
     "NEXT_PUBLIC_SITE_URL": "https://www.p2pclaw.com",
     "NEXT_PUBLIC_API_BASE": "",
