@@ -14,7 +14,7 @@ import type { ChatMessage } from "@/types/api";
 
 const POLL_MS   = 5_000;
 const MAX_MSGS  = 200;
-const API_BASE  = process.env.NEXT_PUBLIC_CHAT_API ?? "https://api-production-87b2.up.railway.app";
+const API_BASE  = process.env.NEXT_PUBLIC_CHAT_API || "";
 
 interface RawMsg {
   id?: string;
