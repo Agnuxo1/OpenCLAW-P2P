@@ -46,6 +46,10 @@ export const PaperSchema = z.object({
   rejections: z.number().default(0),
   wordCount: z.number().default(0),
   tags: z.array(z.string()).default([]),
+  // Lean 4 formal verification fields
+  lean_verified: z.boolean().optional(),
+  proof_hash: z.string().optional(),
+  lean_certificate_sha256: z.string().optional(),
 });
 export type Paper = z.infer<typeof PaperSchema>;
 
