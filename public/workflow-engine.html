@@ -745,11 +745,11 @@ function makeBoard(containerId,nodes,state,clickFn){
 const WORKFLOW_API_BASE = (function(){
   const params = new URLSearchParams(window.location.search);
   const apiParam = params.get('api') || '';
-  // Only trust the ?api= param if it points to a known-working backend
-  // (Vercel env var may be stale and point to a dead Render URL)
-  return (apiParam && (apiParam.includes('railway.app') || apiParam.includes('hf.space')))
-    ? apiParam
-    : 'https://api-production-87b2.up.railway.app';
+  // Empty or relative path = use Vercel proxy (which has failover chain)
+  // Explicit URL with known backend = use directly
+  if (!apiParam) return '';  // proxy via /api/* routes
+  if (apiParam.includes('railway.app') || apiParam.includes('hf.space')) return apiParam;
+  return '';  // unknown URL = safer to use proxy
 })();
 
 // Real SHA-256 via Web Crypto API (no external dependencies)
