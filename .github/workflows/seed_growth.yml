@@ -1,0 +1,276 @@
+name: 🌱 SEED Growth Cycle
+
+on:
+  schedule:
+    # Cada 6 horas
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    # Manual trigger
+  repository_dispatch:
+    types: [harvest_complete, training_complete]
+  # También corre después del workflow del agente
+  workflow_run:
+    workflows: ["🤖 OpenCLAW Autonomous Agent"]
+    types: [completed]
+    branches: [main]
+
+env:
+  HF_TOKEN: ${{ secrets.HF_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  OPENCLAW_STATE_DIR: ${{ github.workspace }}/.state
+  OPENCLAW_DATA_DIR: ${{ github.workspace }}/data/seed
+
+jobs:
+  harvest:
+    name: 📊 Harvest Data
+    runs-on: ubuntu-latest
+    outputs:
+      total_entries: ${{ steps.harvest.outputs.total_entries }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -q aiohttp huggingface_hub
+
+      - name: Harvest data from all sources
+        id: harvest
+        run: |
+          cd src/seed
+          python -c "
+          import asyncio
+          from data.harvester import SEEDHarvester
+          import json
+
+          async def main():
+              harvester = SEEDHarvester()
+              result = await harvester.harvest_all()
+              print(f'Total entries: {result[\"total_entries\"]}')
+              print(f'total_entries={result[\"total_entries\"]}') >> \$GITHUB_OUTPUT
+
+          asyncio.run(main())
+          "
+
+      - name: Upload data to HF Dataset
+        if: steps.harvest.outputs.total_entries > 0
+        run: |
+          cd data/seed
+          # Subir archivos nuevos al dataset de HF
+          for file in training_dataset_*.jsonl; do
+            if [ -f "\$file" ]; then
+              echo "Uploading \$file..."
+              python -c "
+              from huggingface_hub import HfApi
+              import os
+              api = HfApi()
+              api.upload_file(
+                  path_or_fileobj=os.environ.get('FILE', '\$file'),
+                  path_in_repo=os.path.basename(os.environ.get('FILE', '\$file')),
+                  repo_id='Agnuxo/OpenCLAW-SEED-data',
+                  repo_type='dataset',
+                  token='${{ secrets.HF_TOKEN }}'
+              )
+              " || echo "Upload failed, continuing..."
+            fi
+          done
+
+      - name: Commit data changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🌱 SEED: Auto-harvest $(date +%Y-%m-%d)"
+          file_pattern: data/seed/*.jsonl
+
+  evaluate:
+    name: 📈 Evaluate Model
+    needs: harvest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -q .
+
+      - name: Run evaluation
+        run: |
+          python -c "
+          from seed.evaluation.evaluator import SEEDEvaluator
+          import json
+
+          evaluator = SEEDEvaluator()
+          results = evaluator.evaluate()
+
+          # Guardar resultado
+          with open('${{ env.OPENCLAW_DATA_DIR }}/latest_evaluation.json', 'w') as f:
+              json.dump(results, f, indent=2)
+
+          print(f\"Overall Score: {results['overall_score']}/10\")
+          "
+
+      - name: Upload evaluation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: ${{ env.OPENCLAW_DATA_DIR }}/latest_evaluation.json
+
+  evolve:
+    name: 🧬 Evolution Check
+    needs: evaluate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .state
+            data/seed
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download evaluation results
+        uses: actions/download-artifact@v4
+        with:
+          name: evaluation-results
+          path: ${{ env.OPENCLAW_DATA_DIR }}
+
+      - name: Run evolution selector
+        id: evolve
+        run: |
+          python -c "
+          import json
+          from seed.evolution.selector import SEEDSelector
+
+          selector = SEEDSelector()
+          result = selector.select()
+
+          # Guardar resultado
+          with open('${{ env.OPENCLAW_DATA_DIR }}/evolution_result.json', 'w') as f:
+              json.dump(result, f, indent=2)
+
+          print(f\"Action: {result['action']}\")
+          print(f\"Reason: {result['details'].get('reason', 'N/A')}\")
+
+          # Outputs
+          import os
+          print(f\"action={result['action']}\") >> \$GITHUB_OUTPUT
+          print(f\"can_advance={'true' if result['action'] == 'advance_stage' else 'false'}\") >> \$GITHUB_OUTPUT
+          "
+
+      - name: Handle stage advancement
+        if: steps.evolve.outputs.can_advance == 'true'
+        run: |
+          echo "🎉 Stage advancement triggered!"
+          # Aquí se podría actualizar el estado y notificar
+
+          # Crear issue para documentar el avance
+          gh issue create \
+            --title "🌱 SEED Stage Advancement" \
+            --body "El sistema SEED ha avanzado de etapa según la evaluación." \
+            --repo ${{ github.repository }} \
+            || echo "Could not create issue (may not have permissions)"
+
+      - name: Commit evolution changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🧬 SEED: Evolution cycle $(date +%Y-%m-%d)"
+          file_pattern: |
+            data/seed/*.json
+            .state/*.json
+
+  prepare-training:
+    name: 📋 Prepare Training
+    needs: evolve
+    runs-on: ubuntu-latest
+    if: needs.evaluate.outputs.score > 0
+    outputs:
+      ready: ${{ steps.prepare.outputs.ready }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download evaluation
+        uses: actions/download-artifact@v4
+        with:
+          name: evaluation-results
+          path: ${{ env.OPENCLAW_DATA_DIR }}
+
+      - name: Check if ready to train
+        id: prepare
+        run: |
+          python -c "
+          import json
+
+          # Leer evaluación
+          with open('${{ env.OPENCLAW_DATA_DIR }}/latest_evaluation.json') as f:
+              eval_result = json.load(f)
+
+          # Leer estado
+          with open('.state/seed_state.json') as f:
+              state = json.load(f)
+
+          min_data = 100  # Para GERMINATION
+          ready = (
+              eval_result['overall_score'] >= 5.0 and
+              state.get('total_data', 0) >= min_data
+          )
+
+          print(f\"Ready to train: {ready}\")
+          print(f\"ready={str(ready).lower()}\") >> \$GITHUB_OUTPUT
+          "
+
+      - name: Update training notebook
+        if: steps.prepare.outputs.ready == 'true'
+        run: |
+          echo "🔄 Updating training notebook with latest data..."
+          # Regenerar el notebook con los datos más recientes
+
+      - name: Trigger Kaggle training (if configured)
+        if: steps.prepare.outputs.ready == 'true' && env.KAGGLE_USERNAME != ''
+        run: |
+          echo "📤 Triggering Kaggle training..."
+          # Aquí se podría usar la API de Kaggle para activar el notebook
+
+  notify:
+    name: 🔔 Notify
+    needs: [harvest, evaluate, evolve, prepare-training]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate report
+        run: |
+          echo "## 🌱 SEED Growth Cycle Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Harvest" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: \${{ needs.harvest.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Evaluate" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: \${{ needs.evaluate.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Evolve" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: \${{ needs.evolve.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Prepare Training" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: \${{ needs.prepare-training.result }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Discord/Slack notification (optional)
+        if: env.DISCORD_WEBHOOK != ''
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"content": "🌱 SEED Growth Cycle completed"}' \
+            $DISCORD_WEBHOOK || echo "Notification failed"
