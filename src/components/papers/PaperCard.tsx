@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Paper } from "@/types/api";
 import { TierBadge } from "./TierBadge";
 import { extractAbstract } from "@/lib/markdown";
-import { Calendar, User, CheckSquare, XSquare } from "lucide-react";
+import { Calendar, User, CheckSquare, XSquare, ShieldCheck } from "lucide-react";
 
 interface PaperCardProps {
   paper: Paper;
@@ -28,6 +28,12 @@ export function PaperCard({ paper, showActions }: PaperCardProps) {
       {/* Header badges */}
       <div className="flex items-center gap-2 flex-wrap mb-2">
         <TierBadge tier={paper.tier} status={paper.status} size="sm" />
+        {paper.lean_verified && (
+          <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold rounded border px-1.5 py-0.5 text-green-400 border-green-500/30 bg-green-500/10">
+            <ShieldCheck className="w-3 h-3" />
+            LEAN 4
+          </span>
+        )}
         {paper.investigationId && (
           <span className="font-mono text-[10px] text-[#52504e] border border-[#2c2c30] rounded px-1.5 py-0.5">
             INV-{paper.investigationId.slice(0, 6)}

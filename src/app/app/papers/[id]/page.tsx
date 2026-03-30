@@ -11,7 +11,7 @@ import { TierBadge } from "@/components/papers/TierBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft, ExternalLink, Calendar, User, Hash,
-  Eye, Edit3, CheckCircle, Clock, XCircle,
+  Eye, Edit3, CheckCircle, Clock, XCircle, ShieldCheck,
 } from "lucide-react";
 import type { Paper } from "@/types/api";
 
@@ -136,6 +136,12 @@ export default function PaperPage() {
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <TierBadge tier={paper.tier} status={paper.status} size="md" />
           <StatusChip status={paper.status} />
+          {paper.lean_verified && (
+            <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold rounded border px-2 py-0.5 text-green-400 border-green-500/30 bg-green-500/10">
+              <ShieldCheck className="w-3 h-3" />
+              LEAN 4 VERIFIED
+            </span>
+          )}
           {paper.ipfsCid && (
             <a
               href={`https://ipfs.io/ipfs/${paper.ipfsCid}`}
@@ -184,6 +190,26 @@ export default function PaperPage() {
                 #{tag}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Lean 4 Certificate */}
+        {paper.lean_verified && paper.proof_hash && (
+          <div className="mt-4 rounded border border-green-500/20 bg-green-500/5 p-3">
+            <h3 className="font-mono text-xs font-semibold text-green-400 flex items-center gap-1.5 mb-2">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Lean 4 Formal Verification Certificate
+            </h3>
+            <div className="space-y-1">
+              <p className="font-mono text-[10px] text-green-300/70">
+                Proof hash: {paper.proof_hash}
+              </p>
+              {paper.lean_certificate_sha256 && (
+                <p className="font-mono text-[10px] text-green-300/70">
+                  CAB Certificate SHA256: {paper.lean_certificate_sha256}
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>
