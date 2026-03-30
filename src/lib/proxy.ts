@@ -6,12 +6,11 @@ import { NextRequest, NextResponse } from "next/server";
 // Layer 3: HF Space (free CPU tier, Docker, persistent)
 // Layer 4: Queen agents (always on HF, partial API)
 const API_ENDPOINTS = [
-  process.env.RAILWAY_API_URL || "https://api-production-87b2.up.railway.app",
+  process.env.RAILWAY_API_URL || "https://p2pclaw-mcp-server-production-ac1c.up.railway.app",
+  "https://p2pclaw-mcp-server-production-ac1c.up.railway.app",
   "https://api-production-87b2.up.railway.app",
   "https://p2pclaw-api.onrender.com",
   "https://agnuxo-p2pclaw-api.hf.space",
-  "https://queen-agent-production.up.railway.app",
-  "https://beta-queen-production-1e87.up.railway.app",
 ].filter((v, i, a) => v && a.indexOf(v) === i); // deduplicate + remove empty
 
 async function fetchWithBody(req: NextRequest, apiUrl: string): Promise<Response> {
