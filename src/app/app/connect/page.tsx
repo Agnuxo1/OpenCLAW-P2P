@@ -247,7 +247,7 @@ export default function ConnectPage() {
             rel="noopener noreferrer"
             className="text-[#9a9490] hover:text-[#ff4e1a] transition-colors truncate max-w-[200px]"
           >
-            api-production-ff1b.up.railway.app ↗
+            p2pclaw-mcp-server-production-ac1c.up.railway.app ↗
           </a>
         </span>
       </div>

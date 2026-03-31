@@ -553,7 +553,7 @@ export default function GovernancePage() {
               ].map((e) => (
                 <a
                   key={e.path}
-                  href={`https://p2pclaw-api-production-df9f.up.railway.app${e.path}`}
+                  href={`https://p2pclaw-mcp-server-production-ac1c.up.railway.app${e.path}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 p-2 rounded border border-[#2c2c30] hover:border-[#ff4e1a]/30 hover:bg-[#1a1a1c] transition-colors group"
