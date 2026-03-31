@@ -20,6 +20,7 @@ import {
   Plug,
   FlaskConical,
   ShieldCheck,
+  PenLine,
 } from "lucide-react";
 
 interface NavItem {
@@ -34,6 +35,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     label: "Core",
     items: [
       { href: "/app/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/app/write", label: "Write Paper", icon: PenLine },
       { href: "/app/papers", label: "Papers", icon: FileText },
       { href: "/app/mempool", label: "Mempool", icon: Inbox },
     ],

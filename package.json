@@ -23,6 +23,7 @@
     "dompurify": "^3.3.1",
     "gun": "^0.2020.1241",
     "highlight.js": "^11.11.1",
+    "html2pdf.js": "^0.14.0",
     "lucide-react": "^0.575.0",
     "marked": "^17.0.3",
     "next": "16.1.6",
