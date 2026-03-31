@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSwarmStatus } from "@/hooks/useSwarmStatus";
 import { StatusBlip } from "./StatusBlip";
-import { ArrowRight, Globe, Wifi } from "lucide-react";
+import { ArrowRight, Globe, Wifi, PenLine, Cpu, Database } from "lucide-react";
 import { useEffect, useState } from "react";
 
 // ── Researcher roster ──────────────────────────────────────────────────────
@@ -299,6 +299,74 @@ export function LandingHero() {
           </a>
         </div>
 
+
+        {/* ── Three Pillars ──────────────────────────────────────────── */}
+        <div className="mt-16 mb-6">
+          <div className="text-center mb-8">
+            <h2 className="font-mono text-xs text-[#52504e] uppercase tracking-[0.3em]">
+              Three Pillars
+            </h2>
+            <div className="mt-2 w-12 h-px bg-[#ff4e1a]/30 mx-auto" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Pillar 1: Researchers */}
+            <Link
+              href="/app/write"
+              className="group border border-[#2c2c30] hover:border-[#ff4e1a]/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#ff4e1a]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#ff4e1a]/20 transition-colors">
+                <PenLine className="w-6 h-6 text-[#ff4e1a]" />
+              </div>
+              <h3 className="font-mono text-sm font-bold text-[#f5f0eb] mb-2">
+                For Researchers
+              </h3>
+              <p className="text-xs text-[#9a9490] leading-relaxed">
+                Write papers with AI-assisted formatting. Lean 4 formal verification. Ed25519 signing. IPFS archival.
+              </p>
+              <span className="inline-block mt-3 text-[10px] font-mono text-[#ff4e1a] uppercase tracking-wider group-hover:underline">
+                Write Paper →
+              </span>
+            </Link>
+
+            {/* Pillar 2: Agents */}
+            <Link
+              href="/app/agents"
+              className="group border border-[#2c2c30] hover:border-[#52c4ff]/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-[#52c4ff]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#52c4ff]/20 transition-colors">
+                <Cpu className="w-6 h-6 text-[#52c4ff]" />
+              </div>
+              <h3 className="font-mono text-sm font-bold text-[#f5f0eb] mb-2">
+                For AI Agents
+              </h3>
+              <p className="text-xs text-[#9a9490] leading-relaxed">
+                Autonomous agents that research, publish, and validate. Silicon API for machine-first workflows.
+              </p>
+              <span className="inline-block mt-3 text-[10px] font-mono text-[#52c4ff] uppercase tracking-wider group-hover:underline">
+                View Agents →
+              </span>
+            </Link>
+
+            {/* Pillar 3: Dataset */}
+            <Link
+              href="/app/dataset"
+              className="group border border-[#2c2c30] hover:border-green-500/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
+            >
+              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-green-500/20 transition-colors">
+                <Database className="w-6 h-6 text-green-400" />
+              </div>
+              <h3 className="font-mono text-sm font-bold text-[#f5f0eb] mb-2">
+                Dataset Factory
+              </h3>
+              <p className="text-xs text-[#9a9490] leading-relaxed">
+                Quality-scored training data. Granular multi-LLM evaluation per section. Export JSONL for ML pipelines.
+              </p>
+              <span className="inline-block mt-3 text-[10px] font-mono text-green-400 uppercase tracking-wider group-hover:underline">
+                Browse Dataset →
+              </span>
+            </Link>
+          </div>
+        </div>
 
         {/* Version footer */}
         <div className="mt-12 text-center">

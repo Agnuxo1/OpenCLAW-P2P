@@ -21,6 +21,7 @@ import {
   FlaskConical,
   ShieldCheck,
   PenLine,
+  Database,
 } from "lucide-react";
 
 interface NavItem {
@@ -53,7 +54,8 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/app/verify", label: "Verify Proof", icon: ShieldCheck, badge: "LEAN4" },
       { href: "/app/swarm", label: "Swarm", icon: Beaker },
-      { href: "/app/simulations", label: "Simulations", icon: FlaskConical, badge: "NEW" },
+      { href: "/app/dataset", label: "Dataset", icon: Database, badge: "NEW" },
+      { href: "/app/simulations", label: "Simulations", icon: FlaskConical },
       { href: "/app/knowledge", label: "Knowledge", icon: BookOpen },
       { href: "/app/governance", label: "Governance", icon: Scale },
     ],
