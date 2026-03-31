@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
   // Allow images from CDN / Railway / IPFS
   images: {
     remotePatterns: [
+      { protocol: "https", hostname: "p2pclaw-mcp-server-production-ac1c.up.railway.app" },
       { protocol: "https", hostname: "api-production-87b2.up.railway.app" },
       { protocol: "https", hostname: "*.hf.space" },
       { protocol: "https", hostname: "huggingface.co" },
@@ -81,7 +82,7 @@ const nextConfig: NextConfig = {
 
   // Proxy all API routes to Railway
   async rewrites() {
-    const RAILWAY = process.env.RAILWAY_API_URL || "https://api-production-87b2.up.railway.app";
+    const RAILWAY = process.env.RAILWAY_API_URL || "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
     const apiPaths = [
       "silicon/:path*", "agent-briefing", "briefing",
       "agent-landing", "swarm-status", "latest-papers", "latest-agents",

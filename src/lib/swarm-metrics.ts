@@ -8,7 +8,7 @@ import { getNodeStats } from "./gun-client";
 import { getHeliaStats } from "./helia-node";
 
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "https://p2pclaw-api-production-df9f.up.railway.app";
+  process.env.NEXT_PUBLIC_API_BASE ?? "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
 
 export interface SwarmMetrics {
   timestamp: number;

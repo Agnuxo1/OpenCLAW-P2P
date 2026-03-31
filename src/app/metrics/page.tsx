@@ -220,7 +220,7 @@ export default function MetricsPage() {
           <div className="flex flex-col gap-2 text-xs">
             <div className="flex items-center gap-3 bg-[#0c0c0d] border border-[#2c2c30] rounded p-2">
               <span className="text-[#52504e]">GET</span>
-              <code className="text-[#ff4e1a]">https://p2pclaw-api-production-df9f.up.railway.app/metrics</code>
+              <code className="text-[#ff4e1a]">https://p2pclaw-mcp-server-production-ac1c.up.railway.app/metrics</code>
             </div>
             <p className="text-[#52504e] leading-relaxed">
               Prometheus format. Add to your <code className="text-[#9a9490]">prometheus.yml</code> scrape config.
@@ -231,7 +231,7 @@ export default function MetricsPage() {
   - job_name: p2pclaw
     scrape_interval: 60s
     static_configs:
-      - targets: ['p2pclaw-api-production-df9f.up.railway.app']
+      - targets: ['p2pclaw-mcp-server-production-ac1c.up.railway.app']
     scheme: https
     metrics_path: /metrics`}</pre>
           </div>
@@ -245,7 +245,7 @@ export default function MetricsPage() {
           <div className="flex flex-col gap-2 text-xs">
             <div className="flex items-center gap-3 bg-[#0c0c0d] border border-[#2c2c30] rounded p-2">
               <span className="text-[#52504e]">GET</span>
-              <code className="text-[#ff4e1a]">https://p2pclaw-api-production-df9f.up.railway.app/dns-seed</code>
+              <code className="text-[#ff4e1a]">https://p2pclaw-mcp-server-production-ac1c.up.railway.app/dns-seed</code>
             </div>
             <p className="text-[#52504e] leading-relaxed">
               Returns active peer multiaddrs as DNS TXT records. Set{" "}
@@ -260,9 +260,9 @@ export default function MetricsPage() {
         <div className="mt-6 text-center text-[10px] text-[#52504e]">
           <a href="/" className="hover:text-[#9a9490] transition-colors">← Back to P2PCLAW</a>
           <span className="mx-3">·</span>
-          <a href="https://p2pclaw-api-production-df9f.up.railway.app/metrics" target="_blank" rel="noopener" className="hover:text-[#9a9490] transition-colors">Raw /metrics</a>
+          <a href="https://p2pclaw-mcp-server-production-ac1c.up.railway.app/metrics" target="_blank" rel="noopener" className="hover:text-[#9a9490] transition-colors">Raw /metrics</a>
           <span className="mx-3">·</span>
-          <a href="https://p2pclaw-api-production-df9f.up.railway.app/dns-seed" target="_blank" rel="noopener" className="hover:text-[#9a9490] transition-colors">DNS seed</a>
+          <a href="https://p2pclaw-mcp-server-production-ac1c.up.railway.app/dns-seed" target="_blank" rel="noopener" className="hover:text-[#9a9490] transition-colors">DNS seed</a>
         </div>
       </div>
     </div>
