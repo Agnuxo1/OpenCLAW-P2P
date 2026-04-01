@@ -1,9 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Database, Download, BarChart3, Search, RefreshCw, ExternalLink } from "lucide-react";
+import { Database, Download, BarChart3, Search, RefreshCw, ExternalLink, Trophy, Medal } from "lucide-react";
 
 const API = "/api";
+
+interface PodiumEntry {
+  position: number;
+  medal: string;
+  paperId: string;
+  title: string;
+  author: string;
+  author_id: string;
+  overall_score: number;
+  granular_scores: GranularScores | null;
+  timestamp: number;
+}
 
 interface DatasetStats {
   total_papers: number;
@@ -55,6 +67,7 @@ function ScoreBar({ value, max = 10, label }: { value: number; max?: number; lab
 export default function DatasetPage() {
   const [stats, setStats] = useState<DatasetStats | null>(null);
   const [papers, setPapers] = useState<DatasetPaper[]>([]);
+  const [podium, setPodium] = useState<PodiumEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [minScore, setMinScore] = useState(0);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -63,14 +76,19 @@ export default function DatasetPage() {
   async function fetchData() {
     setLoading(true);
     try {
-      const [statsRes, papersRes] = await Promise.all([
+      const [statsRes, papersRes, podiumRes] = await Promise.all([
         fetch(`${API}/dataset/stats`),
         fetch(`${API}/dataset/papers?limit=100&min_score=${minScore}&verified_only=${verifiedOnly}`),
+        fetch(`${API}/podium`),
       ]);
       if (statsRes.ok) setStats(await statsRes.json());
       if (papersRes.ok) {
         const data = await papersRes.json();
         setPapers(data.papers || []);
+      }
+      if (podiumRes.ok) {
+        const data = await podiumRes.json();
+        setPodium(data.podium || []);
       }
     } catch (e) {
       console.error("Dataset fetch error:", e);
@@ -182,6 +200,56 @@ export default function DatasetPage() {
           {filtered.length} papers
         </div>
       </div>
+
+      {/* Podium — Top 3 Best Papers (persistent, only replaced by better) */}
+      {podium.length > 0 && (
+        <div>
+          <h2 className="font-mono text-sm font-semibold text-[#f5f0eb] mb-3 flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-yellow-400" />
+            Hall of Fame — Top 3 Papers
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {podium.map((entry) => {
+              const medalColors: Record<string, { border: string; bg: string; icon: string; text: string }> = {
+                GOLD:   { border: "border-yellow-500/60", bg: "bg-yellow-500/10", icon: "text-yellow-400", text: "#1" },
+                SILVER: { border: "border-gray-400/50",   bg: "bg-gray-400/10",   icon: "text-gray-300",  text: "#2" },
+                BRONZE: { border: "border-amber-700/50",  bg: "bg-amber-700/10",  icon: "text-amber-600", text: "#3" },
+              };
+              const mc = medalColors[entry.medal] || medalColors.BRONZE;
+              return (
+                <div
+                  key={entry.paperId}
+                  className={`relative ${mc.bg} border-2 ${mc.border} rounded-xl p-4 hover:scale-[1.02] transition-transform`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-full ${mc.bg} border ${mc.border}`}>
+                      <span className={`font-mono font-bold text-sm ${mc.icon}`}>{mc.text}</span>
+                    </div>
+                    <Medal className={`w-5 h-5 ${mc.icon}`} />
+                    {entry.overall_score > 0 && (
+                      <div className="ml-auto flex items-center gap-1">
+                        <span className="font-mono text-xl font-bold text-[#f5f0eb]">{entry.overall_score.toFixed(1)}</span>
+                        <span className="text-[10px] text-[#52504e] font-mono">/10</span>
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] line-clamp-2 mb-1">
+                    {entry.title}
+                  </h3>
+                  <div className="text-[10px] font-mono text-[#52504e]">
+                    {entry.author} {entry.timestamp ? `\u00B7 ${new Date(entry.timestamp).toLocaleDateString()}` : ""}
+                  </div>
+                  {entry.granular_scores && entry.granular_scores.judges && (
+                    <div className="mt-2 text-[10px] font-mono text-[#52504e]">
+                      {entry.granular_scores.judge_count || entry.granular_scores.judges.length} judges
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Papers Table */}
       <div className="space-y-3">
