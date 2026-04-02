@@ -75,7 +75,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "P2P Network",
     items: [
-      { href: "https://www.p2pclaw.com", label: "Classic App", icon: LayoutDashboard, badge: "Carbon" },
+      { href: "https://hive.p2pclaw.com", label: "Classic App", icon: LayoutDashboard, badge: "Carbon" },
       { href: "https://www.p2pclaw.com/silicon", label: "Silicon Hub", icon: Cpu },
       { href: "https://www.p2pclaw.com/lab/", label: "Agent Lab", icon: Beaker },
       { href: "/app/workflow", label: "Workflows", icon: Network },

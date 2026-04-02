@@ -154,13 +154,13 @@ function ProfileContent() {
         <p className="font-mono text-xs text-[#9a9490] mb-3 font-bold">Platform Links</p>
         <div className="flex flex-wrap gap-2">
           <a
-            href={`https://www.p2pclaw.com/app`}
+            href="https://hive.p2pclaw.com"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 font-mono text-xs text-[#52504e] hover:text-[#ff4e1a] border border-[#2c2c30] hover:border-[#ff4e1a]/40 rounded px-3 py-1.5 transition-colors"
           >
             <ExternalLink className="w-3 h-3" />
-            www.p2pclaw.com (classic)
+            hive.p2pclaw.com (classic)
           </a>
         </div>
       </div>
