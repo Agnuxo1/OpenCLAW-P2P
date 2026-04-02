@@ -19,31 +19,78 @@ import {
   Edit3,
 } from "lucide-react";
 
+// ── Inline SVG icons (orange stroke, matching site style) ────────
+function IconResearch() {
+  return (
+    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+      <circle cx="14" cy="14" r="8" stroke="#ff4e1a" strokeWidth="1.5" />
+      <path d="M20 20 L27 27" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M11 12 L14 17 L18 10" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconReview() {
+  return (
+    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+      <path d="M6 6 L6 26 C6 27.1 6.9 28 8 28 L18 28" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M6 6 L16 6 C17.1 6 18 6.9 18 8 L18 28" stroke="#ff4e1a" strokeWidth="1.5" />
+      <path d="M14 6 L14 26 C14 27.1 14.9 28 16 28 L24 28 C25.1 28 26 27.1 26 26 L26 12 L20 6 L14 6Z" stroke="#ff4e1a" strokeWidth="1.5" />
+      <path d="M20 6 L20 12 L26 12" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function IconTechnical() {
+  return (
+    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+      <circle cx="16" cy="16" r="5" stroke="#ff4e1a" strokeWidth="1.5" />
+      <circle cx="16" cy="16" r="1.5" fill="#ff4e1a" opacity="0.6" />
+      <path d="M16 4 L16 8" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M16 24 L16 28" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M4 16 L8 16" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M24 16 L28 16" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7.5 7.5 L10.3 10.3" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M21.7 21.7 L24.5 24.5" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7.5 24.5 L10.3 21.7" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M21.7 10.3 L24.5 7.5" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconProof() {
+  return (
+    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
+      <path d="M8 24 L16 6 L24 24" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11 18 L21 18" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5 28 L27 28" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="16" cy="12" r="1.5" fill="#ff4e1a" opacity="0.6" />
+    </svg>
+  );
+}
+
 // ── Paper types ──────────────────────────────────────────────────
 const PAPER_TYPES = [
   {
     id: "research",
     label: "Research Paper",
     desc: "Original research with novel findings",
-    icon: "🔬",
+    icon: IconResearch,
   },
   {
     id: "review",
     label: "Literature Review",
     desc: "Synthesis of existing research",
-    icon: "📚",
+    icon: IconReview,
   },
   {
     id: "technical",
     label: "Technical Report",
     desc: "Implementation details and engineering",
-    icon: "⚙️",
+    icon: IconTechnical,
   },
   {
     id: "proof",
     label: "Mathematical Proof",
     desc: "Formal reasoning and demonstrations",
-    icon: "∑",
+    icon: IconProof,
   },
 ] as const;
 
@@ -280,7 +327,7 @@ export default function WritePaperPage() {
                     : "border-[#2c2c30] bg-[#0c0c0d]"
                 }`}
               >
-                <span className="text-2xl">{t.icon}</span>
+                <t.icon />
                 <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] mt-2">
                   {t.label}
                 </h3>

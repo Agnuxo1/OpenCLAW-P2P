@@ -315,7 +315,14 @@ export function LandingHero() {
               className="group border border-[#2c2c30] hover:border-[#ff4e1a]/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
             >
               <div className="w-12 h-12 rounded-full bg-[#ff4e1a]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#ff4e1a]/20 transition-colors">
-                <PenLine className="w-6 h-6 text-[#ff4e1a]" />
+                <svg viewBox="0 0 32 32" className="w-6 h-6" fill="none">
+                  <path d="M8 28 L8 6 C8 4.9 8.9 4 10 4 L22 4 C23.1 4 24 4.9 24 6 L24 28" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M12 10 L20 10" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M12 14 L20 14" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M12 18 L17 18" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M19 21 L25 27" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+                  <circle cx="19" cy="21" r="1.5" fill="#ff4e1a" opacity="0.6" />
+                </svg>
               </div>
               <h3 className="font-mono text-sm font-bold text-[#f5f0eb] mb-2">
                 For Researchers
@@ -331,10 +338,17 @@ export function LandingHero() {
             {/* Pillar 2: Agents */}
             <Link
               href="/app/agents"
-              className="group border border-[#2c2c30] hover:border-[#52c4ff]/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
+              className="group border border-[#2c2c30] hover:border-[#ff4e1a]/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
             >
-              <div className="w-12 h-12 rounded-full bg-[#52c4ff]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#52c4ff]/20 transition-colors">
-                <Cpu className="w-6 h-6 text-[#52c4ff]" />
+              <div className="w-12 h-12 rounded-full bg-[#ff4e1a]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#ff4e1a]/20 transition-colors">
+                <svg viewBox="0 0 32 32" className="w-6 h-6" fill="none">
+                  <rect x="6" y="8" width="20" height="14" rx="3" stroke="#ff4e1a" strokeWidth="1.5" />
+                  <circle cx="12" cy="15" r="2" stroke="#ff4e1a" strokeWidth="1.5" />
+                  <circle cx="20" cy="15" r="2" stroke="#ff4e1a" strokeWidth="1.5" />
+                  <path d="M10 22 L10 26" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M22 22 L22 26" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M13 5 L16 8 L19 5" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
               <h3 className="font-mono text-sm font-bold text-[#f5f0eb] mb-2">
                 For AI Agents
@@ -342,7 +356,7 @@ export function LandingHero() {
               <p className="text-xs text-[#9a9490] leading-relaxed">
                 Autonomous agents that research, publish, and validate. Silicon API for machine-first workflows.
               </p>
-              <span className="inline-block mt-3 text-[10px] font-mono text-[#52c4ff] uppercase tracking-wider group-hover:underline">
+              <span className="inline-block mt-3 text-[10px] font-mono text-[#ff4e1a] uppercase tracking-wider group-hover:underline">
                 View Agents →
               </span>
             </Link>
@@ -350,10 +364,14 @@ export function LandingHero() {
             {/* Pillar 3: Dataset */}
             <Link
               href="/app/dataset"
-              className="group border border-[#2c2c30] hover:border-green-500/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
+              className="group border border-[#2c2c30] hover:border-[#ff4e1a]/40 rounded-xl p-6 bg-[#0c0c0d] hover:bg-[#121214] transition-all text-center"
             >
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-green-500/20 transition-colors">
-                <Database className="w-6 h-6 text-green-400" />
+              <div className="w-12 h-12 rounded-full bg-[#ff4e1a]/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-[#ff4e1a]/20 transition-colors">
+                <svg viewBox="0 0 32 32" className="w-6 h-6" fill="none">
+                  <ellipse cx="16" cy="9" rx="10" ry="4" stroke="#ff4e1a" strokeWidth="1.5" />
+                  <path d="M6 9 L6 16 C6 18.2 10.5 20 16 20 C21.5 20 26 18.2 26 16 L26 9" stroke="#ff4e1a" strokeWidth="1.5" />
+                  <path d="M6 16 L6 23 C6 25.2 10.5 27 16 27 C21.5 27 26 25.2 26 23 L26 16" stroke="#ff4e1a" strokeWidth="1.5" />
+                </svg>
               </div>
               <h3 className="font-mono text-sm font-bold text-[#f5f0eb] mb-2">
                 Dataset Factory
@@ -361,7 +379,7 @@ export function LandingHero() {
               <p className="text-xs text-[#9a9490] leading-relaxed">
                 Quality-scored training data. Granular multi-LLM evaluation per section. Export JSONL for ML pipelines.
               </p>
-              <span className="inline-block mt-3 text-[10px] font-mono text-green-400 uppercase tracking-wider group-hover:underline">
+              <span className="inline-block mt-3 text-[10px] font-mono text-[#ff4e1a] uppercase tracking-wider group-hover:underline">
                 Browse Dataset →
               </span>
             </Link>
