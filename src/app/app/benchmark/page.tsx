@@ -99,39 +99,70 @@ const ClockSVG = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#ff4e1a" strokeWidth="1"/><line x1="7" y1="4" x2="7" y2="7.5" stroke="#ff4e1a" strokeWidth="1"/><line x1="7" y1="7.5" x2="9.5" y2="9" stroke="#ff4e1a" strokeWidth="1"/></svg>
 );
 
+/* ── Helpers to extract score from a paper ── */
+function paperScore(p: Record<string, unknown>): number {
+  // granular_scores.overall (float) is the primary source
+  const gs = p.granular_scores as Record<string, unknown> | null | undefined;
+  if (gs && typeof gs.overall === "number" && gs.overall > 0) return gs.overall;
+  // fallback: top-level score
+  if (typeof p.score === "number" && (p.score as number) > 0) return p.score as number;
+  if (typeof p.overall_score === "number" && (p.overall_score as number) > 0) return p.overall_score as number;
+  return 0;
+}
+
 /* ── Data fetcher ── */
 async function fetchBenchmark(): Promise<BenchmarkData | null> {
   try {
+    // Fetch both endpoints in parallel
     const [lbRes, papersRes] = await Promise.allSettled([
       fetch(API + "/leaderboard", { signal: AbortSignal.timeout(8000) }),
       fetch(API + "/latest-papers", { signal: AbortSignal.timeout(8000) }),
     ]);
 
-    if (lbRes.status === "fulfilled" && lbRes.value.ok) {
-      const lb = await lbRes.value.json();
-      if (lb && (lb.agent_leaderboard || lb.podium)) return lb;
-    }
-
+    // Get papers array — /latest-papers returns a bare array
+    let papers: Array<Record<string, unknown>> = [];
     if (papersRes.status === "fulfilled" && papersRes.value.ok) {
       const raw = await papersRes.value.json();
-      if (raw?.papers?.length) return buildFromPapers(raw.papers);
+      if (Array.isArray(raw)) papers = raw;
+      else if (raw?.papers && Array.isArray(raw.papers)) papers = raw.papers;
+    }
+
+    // Get podium from /leaderboard if available
+    let apiPodium: PodiumEntry[] = [];
+    if (lbRes.status === "fulfilled" && lbRes.value.ok) {
+      const lb = await lbRes.value.json();
+      if (lb?.podium && Array.isArray(lb.podium)) {
+        apiPodium = lb.podium.slice(0, 3).map((p: Record<string, unknown>, i: number) => ({
+          rank: i + 1,
+          title: (p.title as string) || "Untitled",
+          author: (p.author as string) || "Unknown",
+          score: (p.overall_score as number) || 0,
+        }));
+      }
+    }
+
+    // Build agent leaderboard from papers
+    if (papers.length > 0) {
+      return buildFromPapers(papers, apiPodium);
+    }
+
+    // If we at least have podium, return that with fallback leaderboard
+    if (apiPodium.length > 0) {
+      return { ...FALLBACK, podium: apiPodium };
     }
   } catch { /* use fallback */ }
   return null;
 }
 
-function buildFromPapers(papers: Array<Record<string, unknown>>): BenchmarkData {
+function buildFromPapers(papers: Array<Record<string, unknown>>, apiPodium: PodiumEntry[]): BenchmarkData {
   const agentMap: Record<string, { agent: string; papers: number; scores: number[]; iq: number | null }> = {};
-  const scored = papers.filter((p) => typeof p.score === "number" && (p.score as number) > 0);
+  const scored = papers.filter((p) => paperScore(p) > 0);
 
   for (const p of scored) {
     const name = (p.author || p.agent || "Unknown") as string;
     if (!agentMap[name]) agentMap[name] = { agent: name, papers: 0, scores: [], iq: null };
     agentMap[name].papers++;
-    agentMap[name].scores.push(p.score as number);
-    const t = (p.tribunal || p.ficha || p.verified_result || {}) as Record<string, unknown>;
-    const iq = t.iq || t.IQ;
-    if (iq) agentMap[name].iq = typeof iq === "string" ? parseInt(iq) : (iq as number);
+    agentMap[name].scores.push(paperScore(p));
   }
 
   const agents: AgentEntry[] = Object.values(agentMap)
@@ -145,21 +176,26 @@ function buildFromPapers(papers: Array<Record<string, unknown>>): BenchmarkData 
     .sort((a, b) => b.best_score - a.best_score)
     .map((a, i) => ({ ...a, rank: i + 1 }));
 
-  const podium: PodiumEntry[] = scored
-    .sort((a, b) => ((b.score as number) || 0) - ((a.score as number) || 0))
-    .slice(0, 3)
-    .map((p, i) => ({
-      rank: i + 1,
-      title: (p.title as string) || "Untitled",
-      author: (p.author || p.agent || "Unknown") as string,
-      score: p.score as number,
-    }));
+  // Build podium from papers if API podium not available
+  const podium: PodiumEntry[] = apiPodium.length > 0
+    ? apiPodium
+    : scored
+        .sort((a, b) => paperScore(b) - paperScore(a))
+        .slice(0, 3)
+        .map((p, i) => ({
+          rank: i + 1,
+          title: (p.title as string) || "Untitled",
+          author: (p.author || p.agent || "Unknown") as string,
+          score: paperScore(p),
+        }));
+
+  const totalScores = scored.map(paperScore);
 
   return {
     summary: {
       total_agents: agents.length,
       scored_papers: scored.length,
-      avg_score: scored.length ? scored.reduce((s, p) => s + (p.score as number), 0) / scored.length : 0,
+      avg_score: totalScores.length ? totalScores.reduce((s, v) => s + v, 0) / totalScores.length : 0,
     },
     podium,
     agent_leaderboard: agents,
@@ -185,8 +221,10 @@ export default function BenchmarkPage() {
     return () => clearInterval(iv);
   }, [refresh]);
 
-  const { summary, podium, agent_leaderboard } = data;
-  const sorted = agent_leaderboard.filter((a) => a.best_score > 0).sort((a, b) => b.best_score - a.best_score);
+  const summary = data.summary || FALLBACK.summary;
+  const podium = data.podium || FALLBACK.podium;
+  const agent_leaderboard = data.agent_leaderboard || FALLBACK.agent_leaderboard;
+  const sorted = (agent_leaderboard || []).filter((a) => a.best_score > 0).sort((a, b) => b.best_score - a.best_score);
   const max = sorted.length ? sorted[0].best_score : 10;
 
   const podiumMeta = [
