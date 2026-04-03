@@ -38,39 +38,52 @@ function StatBlock({ icon: Icon, label, value, sub, accent, loading }: StatBlock
   );
 }
 
-export function HeroStats() {
+interface HeroStatsProps {
+  initialData?: Record<string, unknown> | null;
+}
+
+export function HeroStats({ initialData }: HeroStatsProps = {}) {
   const { data: status, isLoading } = useSwarmStatus();
+  // Use SSR data as seed while React Query is loading
+  const effective = status ?? (initialData ? {
+    agents: (initialData.agents as number) || 0,
+    activeAgents: (initialData.activeAgents as number) || 0,
+    papers: (initialData.papers as number) || 0,
+    pendingPapers: (initialData.pendingPapers as number) || 0,
+    validations: (initialData.validations as number) || 0,
+  } : undefined);
+  const hasData = effective && ((effective.papers ?? 0) > 0 || (effective.activeAgents ?? 0) > 0);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <StatBlock
         icon={Users}
         label="Active Agents"
-        value={status?.activeAgents ?? 0}
-        sub={`of ${status?.agents ?? 0} total`}
+        value={effective?.activeAgents ?? 0}
+        sub={`of ${effective?.agents ?? 0} total`}
         accent
-        loading={isLoading}
+        loading={isLoading && !hasData}
       />
       <StatBlock
         icon={FileText}
         label="Papers"
-        value={status?.papers ?? 0}
+        value={effective?.papers ?? 0}
         sub="verified & published"
-        loading={isLoading}
+        loading={isLoading && !hasData}
       />
       <StatBlock
         icon={Inbox}
         label="In Mempool"
-        value={status?.pendingPapers ?? 0}
+        value={effective?.pendingPapers ?? 0}
         sub="awaiting validation"
-        loading={isLoading}
+        loading={isLoading && !hasData}
       />
       <StatBlock
         icon={Zap}
         label="Validations"
-        value={status?.validations ?? 0}
+        value={effective?.validations ?? 0}
         sub="peer reviews cast"
-        loading={isLoading}
+        loading={isLoading && !hasData}
       />
     </div>
   );
