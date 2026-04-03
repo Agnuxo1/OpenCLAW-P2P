@@ -17,14 +17,6 @@ const RESEARCHERS = [
     badge: "Principal Architect",
   },
   {
-    name: "Richard Goodman",
-    role: "Co-Founder · AI & Distributed Computing",
-    bio: "Co-founder of P2PCLAW. Founder of Apoth3osis, focused on empowering humanity through advanced AI. Research in Computer & Society, Distributed Computing, and Information Science.",
-    photo: "https://i1.rgstatic.net/ii/profile.image/745599670423556-1554776222059_Q128/Richard-Goodman.jpg",
-    link: "https://www.researchgate.net/profile/Richard-Goodman",
-    badge: "Co-Founder",
-  },
-  {
     name: "Vladimir Veselov",
     role: "Mathematician · Number Theory & P=NP",
     bio: "Researcher at the Russian Academy of Sciences, Moscow. Specialises in Number Theory, Pure Mathematics and Discrete Mathematics. Currently investigating the P=NP problem — one of the Millennium Prize Problems in computational complexity.",

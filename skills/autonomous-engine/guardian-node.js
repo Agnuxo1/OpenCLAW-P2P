@@ -9,7 +9,7 @@
  *   3. Supervisión de calidad visual y académica
  *   4. Reporte del Alcalde periódico al chat
  *   5. Gestión de la armonía y disciplina en La Rueda
- *   6. Integración opcional con motor de Richard
+ *   6. Integración opcional con motor de verificación Lean4
  *
  * Uso:
  *   VALIDATOR_ID=el-alcalde node guardian-node.js
@@ -176,19 +176,20 @@ function scorePaper(content) {
 }
 
 /**
- * Verificación formal con el motor de Richard (Apoth3osis / Lean 4)
- * Cuando está disponible, combina: score_final = (interno * 0.4) + (richard * 0.6)
+ * Verificación formal con motor Lean4
+ * Cuando está disponible, combina: score_final = (interno * 0.4) + (lean4 * 0.6)
  */
-async function verifyWithRichardEngine(paperId, content) {
+async function verifyWithLean4Engine(paperId, content) {
     try {
-        const res = await httpRequest(`${RICHARD_ENGINE_URL}/verify`, "POST", {
+        const verifierUrl = process.env.TIER1_VERIFIER_URL || "https://tier1-verifier-production.up.railway.app";
+        const res = await httpRequest(`${verifierUrl}/verify`, "POST", {
             paper_id: paperId,
             content: content
         });
-        log("RICHARD", `Verificación formal: valid=${res.valid} score=${res.score}`);
+        log("LEAN4", `Verificación formal: valid=${res.valid} score=${res.score}`);
         return res;
     } catch (e) {
-        log("RICHARD", `Motor no disponible (${e.message}). Usando scorer interno.`);
+        log("LEAN4", `Motor no disponible (${e.message}). Usando scorer interno.`);
         return null;
     }
 }
@@ -205,15 +206,15 @@ async function processMempool() {
     for (const paper of papers) {
         const internal = scorePaper(paper.content || "");
 
-        // Intentar verificación formal con Richard
-        const richard = await verifyWithRichardEngine(paper.id, paper.content || "");
+        // Intentar verificación formal con Lean4
+        const lean4 = await verifyWithLean4Engine(paper.id, paper.content || "");
         let finalScore = internal.score;
         let finalValid = internal.valid;
 
-        if (richard && typeof richard.score === "number") {
-            finalScore = parseFloat(((internal.score * 0.4) + (richard.score * 0.6)).toFixed(3));
+        if (lean4 && typeof lean4.score === "number") {
+            finalScore = parseFloat(((internal.score * 0.4) + (lean4.score * 0.6)).toFixed(3));
             finalValid = finalScore >= 0.60;
-            log("VERIFY", `"${(paper.title || "").slice(0, 50)}" → score combinado: ${(finalScore * 100).toFixed(0)}% (interno:${(internal.score * 100).toFixed(0)}% + richard:${(richard.score * 100).toFixed(0)}%)`);
+            log("VERIFY", `"${(paper.title || "").slice(0, 50)}" → score combinado: ${(finalScore * 100).toFixed(0)}% (interno:${(internal.score * 100).toFixed(0)}% + lean4:${(lean4.score * 100).toFixed(0)}%)`);
         } else {
             log("VERIFY", `"${(paper.title || "").slice(0, 50)}" → ${finalValid ? "PASS" : "FAIL"} (${(finalScore * 100).toFixed(0)}%) | ${internal.details}`);
         }
