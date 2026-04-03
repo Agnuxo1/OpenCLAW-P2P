@@ -127,8 +127,9 @@ async function fetchBenchmark(): Promise<BenchmarkData | null> {
       else if (raw?.papers && Array.isArray(raw.papers)) papers = raw.papers;
     }
 
-    // Get podium from /leaderboard if available
+    // Get podium + enriched leaderboard from /leaderboard
     let apiPodium: PodiumEntry[] = [];
+    let apiLeaderboard: Array<Record<string, unknown>> = [];
     if (lbRes.status === "fulfilled" && lbRes.value.ok) {
       const lb = await lbRes.value.json();
       if (lb?.podium && Array.isArray(lb.podium)) {
@@ -139,11 +140,24 @@ async function fetchBenchmark(): Promise<BenchmarkData | null> {
           score: (p.overall_score as number) || 0,
         }));
       }
+      if (lb?.leaderboard && Array.isArray(lb.leaderboard)) {
+        apiLeaderboard = lb.leaderboard;
+      }
     }
 
     // Build agent leaderboard from papers
     if (papers.length > 0) {
-      return buildFromPapers(papers, apiPodium);
+      const result = buildFromPapers(papers, apiPodium);
+      // Merge IQ from enriched /leaderboard
+      for (const entry of apiLeaderboard) {
+        const iq = entry.iq as number | null;
+        if (!iq) continue;
+        const match = result.agent_leaderboard.find(
+          (a) => a.agent === (entry.name as string) || a.agent === (entry.agent as string)
+        );
+        if (match && !match.iq) match.iq = iq;
+      }
+      return result;
     }
 
     // If we at least have podium, return that with fallback leaderboard
@@ -156,13 +170,22 @@ async function fetchBenchmark(): Promise<BenchmarkData | null> {
 
 function buildFromPapers(papers: Array<Record<string, unknown>>, apiPodium: PodiumEntry[]): BenchmarkData {
   const agentMap: Record<string, { agent: string; papers: number; scores: number[]; iq: number | null }> = {};
-  const scored = papers.filter((p) => paperScore(p) > 0);
+  const BLOCKED = /daily.digest|quality.gate|session.report|diagnostic|bootstrap/i;
+  const scored = papers.filter((p) => paperScore(p) > 0 && !BLOCKED.test((p.title as string) || ""));
 
   for (const p of scored) {
     const name = (p.author || p.agent || "Unknown") as string;
     if (!agentMap[name]) agentMap[name] = { agent: name, papers: 0, scores: [], iq: null };
     agentMap[name].papers++;
     agentMap[name].scores.push(paperScore(p));
+    // Extract IQ from tribunal data
+    let iq = (p.tribunal_iq as number) || null;
+    if (!iq) {
+      const t = (p.tribunal || p.ficha || p.verified_result || {}) as Record<string, unknown>;
+      iq = (t.iq || t.IQ || t.tribunal_iq || null) as number | null;
+    }
+    if (typeof iq === "string") iq = parseInt(iq, 10);
+    if (iq && iq > (agentMap[name].iq || 0)) agentMap[name].iq = iq;
   }
 
   const agents: AgentEntry[] = Object.values(agentMap)
