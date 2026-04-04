@@ -53,6 +53,7 @@ interface DatasetPaper {
   status: string;
   tier: string;
   lean_verified: boolean;
+  lean4_status?: string | null;
   timestamp: number;
   granular_scores: GranularScores | null;
   occam_score: number | null;
@@ -314,9 +315,13 @@ export default function DatasetPage() {
                     <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] truncate">
                       {paper.title}
                     </h3>
-                    {paper.lean_verified && (
-                      <span className="shrink-0 bg-green-500/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded font-mono">
-                        LEAN 4
+                    {paper.lean_verified ? (
+                      <span className="shrink-0 bg-green-500/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Lean 4 Verified">
+                        Lean4 &#x2713;
+                      </span>
+                    ) : (
+                      <span className="shrink-0 bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Lean 4 not verified">
+                        Lean4 &#x2717;
                       </span>
                     )}
                   </div>
@@ -377,9 +382,13 @@ export default function DatasetPage() {
                         v{paper.version}
                       </span>
                     )}
-                    {paper.lean_verified && (
+                    {paper.lean_verified ? (
                       <span className="px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">
-                        Lean 4 Verified
+                        Lean4 &#x2713; Verified
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">
+                        Lean4 &#x2717; Not Verified
                       </span>
                     )}
                   </div>
