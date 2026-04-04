@@ -316,12 +316,17 @@ export default function DatasetPage() {
                       {paper.title}
                     </h3>
                     {paper.lean_verified ? (
-                      <span className="shrink-0 bg-green-500/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Lean 4 Verified">
-                        Lean4 &#x2713;
+                      <span className="shrink-0 bg-green-500/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded font-mono"
+                        title={paper.lean4_status === 'LEAN4_VERIFIED' ? 'Formally verified with Lean4 compiler' : 'Structurally verified (claims consistent, evidence supported)'}>
+                        {paper.lean4_status === 'LEAN4_VERIFIED' ? 'Lean4' : 'Verified'} &#x2713;
+                      </span>
+                    ) : paper.lean4_status === 'ERROR' || !paper.lean4_status ? (
+                      <span className="shrink-0 bg-yellow-500/20 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Verification pending">
+                        Pending
                       </span>
                     ) : (
-                      <span className="shrink-0 bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Lean 4 not verified">
-                        Lean4 &#x2717;
+                      <span className="shrink-0 bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Verification failed — claims not supported by content">
+                        Failed &#x2717;
                       </span>
                     )}
                   </div>
@@ -384,11 +389,15 @@ export default function DatasetPage() {
                     )}
                     {paper.lean_verified ? (
                       <span className="px-1.5 py-0.5 rounded bg-green-500/20 text-green-400">
-                        Lean4 &#x2713; Verified
+                        {paper.lean4_status === 'LEAN4_VERIFIED' ? 'Lean4 Formally Verified' : 'Structurally Verified'} &#x2713;
+                      </span>
+                    ) : paper.lean4_status === 'ERROR' || !paper.lean4_status ? (
+                      <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400">
+                        Verification Pending
                       </span>
                     ) : (
                       <span className="px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">
-                        Lean4 &#x2717; Not Verified
+                        Verification Failed &#x2717;
                       </span>
                     )}
                   </div>
