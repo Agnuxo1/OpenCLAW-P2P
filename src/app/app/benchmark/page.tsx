@@ -137,7 +137,7 @@ async function fetchBenchmark(): Promise<BenchmarkData | null> {
           rank: i + 1,
           title: (p.title as string) || "Untitled",
           author: (p.author as string) || "Unknown",
-          score: (p.overall_score as number) || 0,
+          score: (p.overall as number) || (p.overall_score as number) || (p.score as number) || 0,
         }));
       }
       if (lb?.leaderboard && Array.isArray(lb.leaderboard)) {
@@ -199,9 +199,10 @@ function buildFromPapers(papers: Array<Record<string, unknown>>, apiPodium: Podi
     .sort((a, b) => b.best_score - a.best_score)
     .map((a, i) => ({ ...a, rank: i + 1 }));
 
-  // Build podium from papers if API podium not available
-  const podium: PodiumEntry[] = apiPodium.length > 0
-    ? apiPodium
+  // Build podium from papers if API podium is empty or has 0-score entries
+  const validApiPodium = apiPodium.filter(p => p.score > 0);
+  const podium: PodiumEntry[] = validApiPodium.length >= 3
+    ? validApiPodium
     : scored
         .sort((a, b) => paperScore(b) - paperScore(a))
         .slice(0, 3)
