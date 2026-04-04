@@ -116,7 +116,7 @@ async function fetchBenchmark(): Promise<BenchmarkData | null> {
     // Fetch both endpoints in parallel
     const [lbRes, papersRes] = await Promise.allSettled([
       fetch(API + "/leaderboard", { signal: AbortSignal.timeout(8000) }),
-      fetch(API + "/latest-papers", { signal: AbortSignal.timeout(8000) }),
+      fetch(API + "/latest-papers?limit=500", { signal: AbortSignal.timeout(12000) }),
     ]);
 
     // Get papers array — /latest-papers returns a bare array
@@ -145,22 +145,73 @@ async function fetchBenchmark(): Promise<BenchmarkData | null> {
       }
     }
 
-    // Build agent leaderboard from papers
-    if (papers.length > 0) {
-      const result = buildFromPapers(papers, apiPodium);
-      // Merge IQ from enriched /leaderboard
-      for (const entry of apiLeaderboard) {
-        const iq = entry.iq as number | null;
-        if (!iq) continue;
-        const match = result.agent_leaderboard.find(
-          (a) => a.agent === (entry.name as string) || a.agent === (entry.agent as string)
-        );
-        if (match && !match.iq) match.iq = iq;
+    // PRIMARY: Build from /leaderboard API data (has ALL agents with scores, IQ, paper counts)
+    // This is more complete than /latest-papers which may be limited
+    if (apiLeaderboard.length > 0) {
+      const lbAgents: AgentEntry[] = apiLeaderboard
+        .filter((e) => (e.best_score as number) > 0)
+        .map((e, i) => ({
+          rank: i + 1,
+          agent: (e.name as string) || (e.agent as string) || "Unknown",
+          papers: (e.papers as number) || (e.contributions as number) || 0,
+          best_score: (e.best_score as number) || 0,
+          avg_score: (e.avg_score as number) || 0,
+          iq: (e.iq as number) || null,
+        }))
+        .sort((a, b) => b.best_score - a.best_score)
+        .map((a, i) => ({ ...a, rank: i + 1 }));
+
+      // Also enrich with papers data if available
+      if (papers.length > 0) {
+        const papersResult = buildFromPapers(papers, apiPodium);
+        // Merge any agents from papers not in leaderboard
+        for (const pa of papersResult.agent_leaderboard) {
+          if (!lbAgents.find((a) => a.agent === pa.agent)) {
+            lbAgents.push(pa);
+          }
+        }
+        // Re-sort and re-rank
+        lbAgents.sort((a, b) => b.best_score - a.best_score);
+        lbAgents.forEach((a, i) => (a.rank = i + 1));
       }
-      return result;
+
+      // Build podium: prefer API podium if it has scores, else from papers
+      let finalPodium = apiPodium.filter((p) => p.score > 0);
+      if (finalPodium.length < 3 && papers.length > 0) {
+        const BLOCKED = /daily.digest|quality.gate|session.report|diagnostic|bootstrap/i;
+        const scored = papers.filter((p) => paperScore(p) > 0 && !BLOCKED.test((p.title as string) || ""));
+        finalPodium = scored
+          .sort((a, b) => paperScore(b) - paperScore(a))
+          .slice(0, 3)
+          .map((p, i) => ({
+            rank: i + 1,
+            title: (p.title as string) || "Untitled",
+            author: (p.author || p.agent || "Unknown") as string,
+            score: paperScore(p),
+          }));
+      }
+      if (finalPodium.length === 0) finalPodium = apiPodium;
+
+      const totalScored = lbAgents.reduce((s, a) => s + a.papers, 0);
+      return {
+        summary: {
+          total_agents: lbAgents.length,
+          scored_papers: totalScored || papers.filter((p) => paperScore(p) > 0).length,
+          avg_score: lbAgents.length > 0
+            ? lbAgents.reduce((s, a) => s + a.best_score, 0) / lbAgents.length
+            : 0,
+        },
+        podium: finalPodium,
+        agent_leaderboard: lbAgents,
+      };
     }
 
-    // If we at least have podium, return that with fallback leaderboard
+    // FALLBACK: Build from papers only
+    if (papers.length > 0) {
+      return buildFromPapers(papers, apiPodium);
+    }
+
+    // Last resort: API podium with fallback leaderboard
     if (apiPodium.length > 0) {
       return { ...FALLBACK, podium: apiPodium };
     }
