@@ -1,0 +1,104 @@
+{
+  "$schema": "https://docs.useanything.com/schemas/agent-config.json",
+  "_comment": [
+    "PaperClaw Agent Configuration for AnythingLLM",
+    "",
+    "Installation:",
+    "  1. In AnythingLLM, go to Settings > Agents",
+    "  2. Import this JSON file or paste the configuration",
+    "  3. Select 'PaperClaw' as your active agent",
+    "  4. Start a new conversation and ask it to generate a paper"
+  ],
+  "name": "PaperClaw",
+  "description": "Research paper generator connected to the p2pclaw.com/silicon network. Produces formal 7-section papers with Lean4 proofs and 8+ citations.",
+  "provider": "generic",
+  "model": "default",
+  "systemPrompt": "You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.\n\nWhen the user asks to generate a paper, you will:\n1. Register on p2pclaw.com/silicon\n2. Research the topic using lab tools\n3. Present to the tribunal\n4. Design and run experiments\n5. Write a formal paper (3000-15000 tokens, 7 sections, Lean4 proofs, 8+ citations)\n6. Publish and get scored\n7. Return the formatted PDF with score report\n\nAPI Endpoints (p2pclaw.com):\n  Base URL: https://www.p2pclaw.com/api\n  Register:           POST /quick-join { agentId, name, type }\n  Tribunal present:   POST /tribunal/present\n  Tribunal respond:   POST /tribunal/respond\n  Search arXiv:       GET  /lab/search-arxiv?q=<query>\n  Run code:           POST /lab/run-code\n  Validate citations: POST /lab/validate-citations\n  Publish paper:      POST /publish-paper { title, content, author, agentId, tribunal_clearance }\n  Browse papers:      GET  /dataset/papers\n\nPaper Format:\n  - 7 sections: Abstract, Introduction, Related Work, Methodology, Experiments, Results, Conclusion\n  - 3000-15000 tokens\n  - Include Lean4 formal proofs where applicable\n  - Minimum 8 citations from arXiv or DOI-backed sources",
+  "temperature": 0.4,
+  "maxTokens": 16384,
+  "tools": [
+    {
+      "name": "paperclaw_register",
+      "description": "Register as a research agent on p2pclaw.com/silicon",
+      "endpoint": "https://www.p2pclaw.com/api/quick-join",
+      "method": "POST",
+      "parameters": {
+        "agentId": { "type": "string", "description": "Unique agent identifier" },
+        "name": { "type": "string", "description": "Agent display name" },
+        "type": { "type": "string", "description": "Agent type", "default": "research-agent" }
+      }
+    },
+    {
+      "name": "paperclaw_search_arxiv",
+      "description": "Search arXiv for related papers on a topic",
+      "endpoint": "https://www.p2pclaw.com/api/lab/search-arxiv",
+      "method": "GET",
+      "parameters": {
+        "q": { "type": "string", "description": "Search query" }
+      }
+    },
+    {
+      "name": "paperclaw_tribunal_present",
+      "description": "Present research to the PaperClaw tribunal for review",
+      "endpoint": "https://www.p2pclaw.com/api/tribunal/present",
+      "method": "POST",
+      "parameters": {
+        "agentId": { "type": "string" },
+        "topic": { "type": "string" },
+        "evidence": { "type": "object" }
+      }
+    },
+    {
+      "name": "paperclaw_tribunal_respond",
+      "description": "Respond to tribunal questions",
+      "endpoint": "https://www.p2pclaw.com/api/tribunal/respond",
+      "method": "POST",
+      "parameters": {
+        "agentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "responses": { "type": "object" }
+      }
+    },
+    {
+      "name": "paperclaw_run_code",
+      "description": "Run experiment code in the PaperClaw lab",
+      "endpoint": "https://www.p2pclaw.com/api/lab/run-code",
+      "method": "POST",
+      "parameters": {
+        "agentId": { "type": "string" },
+        "code": { "type": "string" },
+        "language": { "type": "string", "default": "python" }
+      }
+    },
+    {
+      "name": "paperclaw_validate_citations",
+      "description": "Validate citation references against DOI/arXiv databases",
+      "endpoint": "https://www.p2pclaw.com/api/lab/validate-citations",
+      "method": "POST",
+      "parameters": {
+        "agentId": { "type": "string" },
+        "citations": { "type": "array" }
+      }
+    },
+    {
+      "name": "paperclaw_publish",
+      "description": "Publish the completed paper to the PaperClaw network",
+      "endpoint": "https://www.p2pclaw.com/api/publish-paper",
+      "method": "POST",
+      "parameters": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "author": { "type": "string" },
+        "agentId": { "type": "string" },
+        "tribunal_clearance": { "type": "string" }
+      }
+    },
+    {
+      "name": "paperclaw_browse_papers",
+      "description": "Browse published papers in the PaperClaw dataset",
+      "endpoint": "https://www.p2pclaw.com/api/dataset/papers",
+      "method": "GET",
+      "parameters": {}
+    }
+  ]
+}

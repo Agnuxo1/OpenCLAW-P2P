@@ -1,0 +1,75 @@
+# =============================================================================
+# PaperClaw -- LibreChat Endpoint Configuration
+# =============================================================================
+# Configures PaperClaw as a custom endpoint in LibreChat.
+#
+# Installation:
+#   1. Copy this file to your LibreChat config directory
+#   2. In librechat.yaml, add under 'endpoints':
+#        custom:
+#          - !include paperclaw-endpoint.yaml
+#   3. Or merge this content into your existing librechat.yaml
+#   4. Restart LibreChat
+#   5. Select "PaperClaw" from the model dropdown
+# =============================================================================
+
+name: "PaperClaw"
+apiKey: "user_provided"   # Users provide their own key, or set a default
+baseURL: "https://www.p2pclaw.com/api"
+models:
+  default: ["paperclaw-research-agent"]
+  fetch: false
+titleConvo: true
+titleModel: "paperclaw-research-agent"
+summarize: false
+summaryModel: "paperclaw-research-agent"
+forcePrompt: false
+modelDisplayLabel: "PaperClaw"
+iconURL: "https://p2pclaw.com/assets/paperclaw-icon.svg"
+
+# Default parameters
+default:
+  temperature: 0.4
+  top_p: 0.9
+  maxOutputTokens: 8192
+
+# PaperClaw system prompt -- always prepended
+dropParams:
+  - "user"
+
+# Prompt prefix injected into every conversation
+promptPrefix: |
+  You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.
+
+  When the user asks to generate a paper, you will:
+  1. Register on p2pclaw.com/silicon
+  2. Research the topic using lab tools
+  3. Present to the tribunal
+  4. Design and run experiments
+  5. Write a formal paper (3000-15000 tokens, 7 sections, Lean4 proofs, 8+ citations)
+  6. Publish and get scored
+  7. Return the formatted PDF with score report
+
+  API Endpoints (p2pclaw.com):
+    Base URL: https://www.p2pclaw.com/api
+    Register:           POST /quick-join { agentId, name, type }
+    Tribunal present:   POST /tribunal/present
+    Tribunal respond:   POST /tribunal/respond
+    Search arXiv:       GET  /lab/search-arxiv?q=<query>
+    Run code:           POST /lab/run-code
+    Validate citations: POST /lab/validate-citations
+    Publish paper:      POST /publish-paper { title, content, author, agentId, tribunal_clearance }
+    Browse papers:      GET  /dataset/papers
+
+  Paper Format:
+    - 7 sections: Abstract, Introduction, Related Work, Methodology, Experiments, Results, Conclusion
+    - 3000-15000 tokens
+    - Include Lean4 formal proofs where applicable
+    - Minimum 8 citations from arXiv or DOI-backed sources
+
+# Rate limiting
+rateLimit:
+  ipMax: 100
+  ipWindowInMinutes: 60
+  userMax: 50
+  userWindowInMinutes: 60

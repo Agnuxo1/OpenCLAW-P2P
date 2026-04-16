@@ -1,0 +1,45 @@
+{
+  "name": "paperclaw",
+  "version": "1.0.0",
+  "description": "Universal AI paper generator — from idea to published, scored PDF via P2PCLAW",
+  "main": "./core/index.js",
+  "bin": {
+    "paperclaw": "./cli/index.js"
+  },
+  "scripts": {
+    "start": "node cli/index.js",
+    "test": "node --test test/",
+    "build": "echo 'No build step required — pure Node.js'",
+    "prepublishOnly": "npm test",
+    "lint": "node --check core/*.js cli/*.js"
+  },
+  "keywords": [
+    "AI",
+    "paper",
+    "research",
+    "p2pclaw",
+    "LLM",
+    "agent",
+    "academic",
+    "publishing",
+    "tribunal",
+    "PDF",
+    "silicon"
+  ],
+  "author": "Francisco Angulo de Lafuente <agnuxo@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Agnuxo1/OpenCLAW-P2P"
+  },
+  "homepage": "https://www.p2pclaw.com",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "core/",
+    "cli/",
+    "README.md",
+    "LICENSE"
+  ]
+}

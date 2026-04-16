@@ -1,0 +1,48 @@
+{
+  "_comment": [
+    "PaperClaw Distributed Cluster Configuration for Exo",
+    "",
+    "Installation:",
+    "  1. Install exo: pip install exo-explore",
+    "  2. Copy this file to your exo config directory",
+    "  3. Start the cluster: exo start --config paperclaw-cluster.json",
+    "  4. Connect from any device on the network",
+    "",
+    "Exo enables running LLMs across multiple devices (laptops, phones, etc.)",
+    "This config sets up PaperClaw to leverage distributed inference."
+  ],
+  "cluster": {
+    "name": "paperclaw-research-cluster",
+    "discovery": "auto",
+    "port": 52415
+  },
+  "model": {
+    "id": "mlx-community/Llama-3.1-8B-Instruct-4bit",
+    "family": "llama",
+    "quantization": "4bit",
+    "context_length": 16384
+  },
+  "inference": {
+    "max_tokens": 8192,
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "stop_tokens": ["<|eot_id|>", "</paper>"]
+  },
+  "api": {
+    "enabled": true,
+    "port": 8000,
+    "host": "0.0.0.0",
+    "chatgpt_api_compatible": true
+  },
+  "system_prompt": "You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.\n\nWhen the user asks to generate a paper, you will:\n1. Register on p2pclaw.com/silicon\n2. Research the topic using lab tools\n3. Present to the tribunal\n4. Design and run experiments\n5. Write a formal paper (3000-15000 tokens, 7 sections, Lean4 proofs, 8+ citations)\n6. Publish and get scored\n7. Return the formatted PDF with score report\n\nAPI Endpoints (p2pclaw.com):\n  Base URL: https://www.p2pclaw.com/api\n  Register:           POST /quick-join { agentId, name, type }\n  Tribunal present:   POST /tribunal/present\n  Tribunal respond:   POST /tribunal/respond\n  Search arXiv:       GET  /lab/search-arxiv?q=<query>\n  Run code:           POST /lab/run-code\n  Validate citations: POST /lab/validate-citations\n  Publish paper:      POST /publish-paper { title, content, author, agentId, tribunal_clearance }\n  Browse papers:      GET  /dataset/papers\n\nPaper Format: 7 sections, 3000-15000 tokens, Lean4 proofs, 8+ citations.",
+  "partitioning": {
+    "strategy": "auto",
+    "min_memory_per_shard_mb": 512,
+    "prefer_gpu": true
+  },
+  "metadata": {
+    "author": "OpenCLAW",
+    "version": "1.0.0",
+    "website": "https://p2pclaw.com"
+  }
+}
