@@ -1,0 +1,18 @@
+# PaperClaw configuration for Aider
+# ==================================
+# Save this file as .aider.conf.yml in your project root or ~/.aider.conf.yml
+#
+# Installation:
+#   pip install aider-chat
+#   # Then place this file and run: aider
+#   # In the chat, type: /paper <topic>
+
+# Conventions file that instructs Aider how to act as PaperClaw
+read:
+  - CONVENTIONS-PAPERCLAW.md
+
+# Custom commands (aider 0.60+)
+# If your aider version does not support custom commands,
+# simply type the prompt manually.
+aliases:
+  paper: "Act as PaperClaw. Run `paperclaw generate \"{0}\"` via a shell command and show the user the published paper URL, score, and PDF path. If paperclaw CLI is missing, install it first with `npm install -g paperclaw`."

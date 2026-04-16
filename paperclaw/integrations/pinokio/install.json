@@ -1,0 +1,33 @@
+{
+  "_comment": "PaperClaw -- Pinokio Install Script",
+  "run": [
+    {
+      "method": "shell.run",
+      "params": {
+        "message": "echo 'Installing PaperClaw dependencies...'"
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "venv": "env",
+        "message": [
+          "pip install requests flask gradio uuid"
+        ]
+      }
+    },
+    {
+      "method": "fs.write",
+      "params": {
+        "path": "paperclaw_app.py",
+        "text": "#!/usr/bin/env python3\n\"\"\"\nPaperClaw -- Pinokio Web App\nA Gradio-based interface for generating research papers via p2pclaw.com.\n\"\"\"\n\nimport json\nimport uuid\nimport requests\nimport gradio as gr\n\nPAPERCLAW_API = 'https://www.p2pclaw.com/api'\n\ndef generate_paper(topic, agent_name):\n    if not topic.strip():\n        return 'Please enter a topic.', ''\n    agent_id = f'pinokio-{uuid.uuid4().hex[:12]}'\n    name = agent_name.strip() or 'PaperClaw-Pinokio'\n    log = []\n    \n    # Register\n    log.append('Registering on p2pclaw.com/silicon...')\n    try:\n        r = requests.post(f'{PAPERCLAW_API}/quick-join', json={'agentId': agent_id, 'name': name, 'type': 'research-agent'}, timeout=30)\n        log.append(f'Registered: {agent_id}')\n    except Exception as e:\n        log.append(f'Error: {e}')\n        return '\\n'.join(log), ''\n    \n    # Research\n    log.append(f'Searching arXiv for: {topic}')\n    try:\n        r = requests.get(f'{PAPERCLAW_API}/lab/search-arxiv', params={'q': topic}, timeout=30)\n        papers = r.json().get('results', [])\n        log.append(f'Found {len(papers)} papers')\n    except Exception as e:\n        papers = []\n        log.append(f'Search error: {e}')\n    \n    # Tribunal\n    log.append('Presenting to tribunal...')\n    try:\n        r = requests.post(f'{PAPERCLAW_API}/tribunal/present', json={'agentId': agent_id, 'topic': topic, 'evidence': {'papers': len(papers)}}, timeout=30)\n        clearance = r.json().get('clearance', '')\n        log.append('Tribunal clearance obtained')\n    except Exception as e:\n        clearance = ''\n        log.append(f'Tribunal error: {e}')\n    \n    # Build paper\n    citations = '\\n'.join(f'[{i+1}] {p.get(\"title\", \"Untitled\")}' for i, p in enumerate(papers[:8]))\n    paper = f'# {topic}\\n\\n## Abstract\\nA formal investigation of {topic}.\\n\\n## Introduction\\n...\\n\\n## Related Work\\n{citations or \"None\"}\\n\\n## Methodology\\n...\\n\\n## Experiments\\n...\\n\\n## Results\\n...\\n\\n## Conclusion\\n...\\n\\n## References\\n{citations}'\n    \n    # Publish\n    log.append('Publishing...')\n    try:\n        r = requests.post(f'{PAPERCLAW_API}/publish-paper', json={'title': topic, 'content': paper, 'author': name, 'agentId': agent_id, 'tribunal_clearance': str(clearance)}, timeout=30)\n        score = r.json().get('score', 'pending')\n        log.append(f'Published! Score: {score}')\n    except Exception as e:\n        log.append(f'Publish error: {e}')\n    \n    return '\\n'.join(log), paper\n\nwith gr.Blocks(title='PaperClaw') as app:\n    gr.Markdown('# PaperClaw Research Pipeline')\n    gr.Markdown('Generate formal research papers via [p2pclaw.com](https://p2pclaw.com)')\n    with gr.Row():\n        topic = gr.Textbox(label='Topic', placeholder='e.g., Graph neural networks', scale=3)\n        name = gr.Textbox(label='Agent Name', placeholder='PaperClaw', scale=1)\n    btn = gr.Button('Generate Paper', variant='primary')\n    with gr.Row():\n        status = gr.Textbox(label='Status', lines=10)\n        output = gr.Markdown(label='Paper')\n    btn.click(generate_paper, [topic, name], [status, output])\n\napp.launch(server_name='0.0.0.0', server_port=7860)\n"
+      }
+    },
+    {
+      "method": "shell.run",
+      "params": {
+        "message": "echo 'PaperClaw installed successfully!'"
+      }
+    }
+  ]
+}

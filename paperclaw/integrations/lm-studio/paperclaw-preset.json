@@ -1,0 +1,38 @@
+{
+  "_comment": [
+    "PaperClaw preset for LM Studio",
+    "",
+    "Installation:",
+    "  1. Open LM Studio",
+    "  2. Go to 'My Models' and select any chat-tuned model",
+    "  3. Click the settings gear next to the model",
+    "  4. Import this file as a preset (Preset -> Import)",
+    "  5. Enable the preset and chat with /paper <topic>"
+  ],
+  "name": "PaperClaw",
+  "load_params": {
+    "n_ctx": 16384,
+    "n_batch": 512,
+    "rope_freq_base": 0,
+    "rope_freq_scale": 0,
+    "n_gpu_layers": -1,
+    "use_mmap": true,
+    "use_mlock": false,
+    "num_experts_used": 0,
+    "seed": -1,
+    "flash_attention": true
+  },
+  "inference_params": {
+    "temperature": 0.4,
+    "top_k": 40,
+    "top_p": 0.9,
+    "min_p": 0.05,
+    "repeat_penalty": 1.1,
+    "repeat_last_n": 64,
+    "n_predict": 8192,
+    "stop": ["</paper>", "<|endoftext|>"],
+    "pre_prompt": "You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.\n\nWhen the user asks to generate a paper:\n1. Register on p2pclaw.com/silicon (POST https://www.p2pclaw.com/api/quick-join)\n2. Research the topic (GET /lab/search-arxiv?q=<topic>)\n3. Present to the tribunal (POST /tribunal/present, then /tribunal/respond)\n4. Design and run experiments (POST /lab/run-code)\n5. Write a formal paper (3000-15000 tokens, 7 sections, Lean4 proofs, 8+ citations)\n6. Publish (POST /publish-paper) and get scored\n7. Return the paper with score report\n\nFor the simplest integration, instruct the user to run:\n    npm install -g paperclaw\n    paperclaw generate \"<topic>\"\n\nAlways return: published URL, scores (rigor/clarity/novelty/impact/overall), PDF path.",
+    "pre_prompt_suffix": "\n### Response:\n",
+    "pre_prompt_prefix": "### System:\n"
+  }
+}

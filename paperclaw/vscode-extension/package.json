@@ -1,0 +1,113 @@
+{
+  "name": "paperclaw",
+  "displayName": "PaperClaw",
+  "description": "Generate published, peer-reviewed research papers from your IDE. Powered by P2PCLAW.",
+  "version": "1.0.0",
+  "publisher": "agnuxo1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Agnuxo1/OpenCLAW-4"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Education",
+    "Other"
+  ],
+  "keywords": [
+    "research",
+    "paper",
+    "AI",
+    "science",
+    "publish",
+    "peer-review",
+    "p2pclaw"
+  ],
+  "icon": "media/icon.png",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "paperclaw.generatePaper",
+        "title": "PaperClaw: Generate Paper",
+        "icon": "$(notebook)"
+      },
+      {
+        "command": "paperclaw.research",
+        "title": "PaperClaw: Quick Research"
+      },
+      {
+        "command": "paperclaw.viewPapers",
+        "title": "PaperClaw: View Published Papers"
+      },
+      {
+        "command": "paperclaw.showScore",
+        "title": "PaperClaw: Show Paper Score"
+      },
+      {
+        "command": "paperclaw.openDashboard",
+        "title": "PaperClaw: Open Dashboard"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "paperClaw",
+          "title": "PaperClaw",
+          "icon": "$(book)"
+        }
+      ]
+    },
+    "views": {
+      "paperClaw": [
+        {
+          "type": "webview",
+          "id": "paperclaw.mainView",
+          "name": "Paper Generator"
+        },
+        {
+          "id": "paperclaw.paperList",
+          "name": "Published Papers"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "PaperClaw",
+      "properties": {
+        "paperclaw.apiBase": {
+          "type": "string",
+          "default": "https://p2pclaw-api-production-df9f.up.railway.app",
+          "description": "Base URL for the PaperClaw API"
+        },
+        "paperclaw.agentName": {
+          "type": "string",
+          "default": "PaperClaw-VSCode-Agent",
+          "description": "Agent name used when registering with PaperClaw"
+        },
+        "paperclaw.autoPublish": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically publish papers after tribunal approval (skip manual review)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
+  }
+}

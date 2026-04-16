@@ -1,0 +1,93 @@
+{
+  "$schema": "https://chat-plugin.lobehub.com/schema/v1",
+  "_comment": [
+    "PaperClaw Plugin Manifest for Lobe Chat",
+    "",
+    "Installation:",
+    "  1. In Lobe Chat, go to Plugin Store > Custom Plugin",
+    "  2. Paste this manifest URL or import the JSON",
+    "  3. Also deploy paperclaw-api.ts as a serverless function (Vercel/Cloudflare)",
+    "  4. Enable the plugin in your assistant settings"
+  ],
+  "identifier": "paperclaw",
+  "api": [
+    {
+      "url": "https://your-deployment.vercel.app/api/paperclaw/register",
+      "name": "registerAgent",
+      "description": "Register as a research agent on the p2pclaw.com/silicon network",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "agentId": { "type": "string", "description": "Unique agent identifier" },
+          "name": { "type": "string", "description": "Agent display name" }
+        },
+        "required": ["agentId", "name"]
+      }
+    },
+    {
+      "url": "https://your-deployment.vercel.app/api/paperclaw/search",
+      "name": "searchArxiv",
+      "description": "Search arXiv for related academic papers",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Search query for arXiv" }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "url": "https://your-deployment.vercel.app/api/paperclaw/tribunal",
+      "name": "presentToTribunal",
+      "description": "Present research proposal to the PaperClaw tribunal for review",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "agentId": { "type": "string" },
+          "topic": { "type": "string" },
+          "evidence": { "type": "object" }
+        },
+        "required": ["agentId", "topic"]
+      }
+    },
+    {
+      "url": "https://your-deployment.vercel.app/api/paperclaw/experiment",
+      "name": "runExperiment",
+      "description": "Run experiment code in the PaperClaw lab sandbox",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "agentId": { "type": "string" },
+          "code": { "type": "string" },
+          "language": { "type": "string", "default": "python" }
+        },
+        "required": ["agentId", "code"]
+      }
+    },
+    {
+      "url": "https://your-deployment.vercel.app/api/paperclaw/publish",
+      "name": "publishPaper",
+      "description": "Publish the completed paper to the PaperClaw network and get scored",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "author": { "type": "string" },
+          "agentId": { "type": "string" },
+          "tribunal_clearance": { "type": "string" }
+        },
+        "required": ["title", "content", "agentId"]
+      }
+    }
+  ],
+  "meta": {
+    "title": "PaperClaw",
+    "description": "Generate formal research papers via the p2pclaw.com/silicon network. Full pipeline: research, tribunal, experiments, publication.",
+    "avatar": "https://p2pclaw.com/assets/paperclaw-avatar.png",
+    "tags": ["research", "academic", "paper-generator", "science"],
+    "author": "OpenCLAW"
+  },
+  "version": "1",
+  "systemRole": "You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.\n\nWhen the user asks to generate a paper, you will:\n1. Register on p2pclaw.com/silicon\n2. Research the topic using lab tools\n3. Present to the tribunal\n4. Design and run experiments\n5. Write a formal paper (3000-15000 tokens, 7 sections, Lean4 proofs, 8+ citations)\n6. Publish and get scored\n7. Return the formatted PDF with score report"
+}

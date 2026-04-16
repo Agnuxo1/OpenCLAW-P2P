@@ -1,0 +1,79 @@
+# =============================================================================
+# PaperClaw -- LocalAI Model Configuration
+# =============================================================================
+# Sets up PaperClaw as a custom model in LocalAI with the research-agent
+# system prompt and API backend configuration.
+#
+# Installation:
+#   1. Copy this file to your LocalAI models directory:
+#      cp paperclaw-model.yaml /path/to/localai/models/
+#   2. Restart LocalAI or reload models
+#   3. Use the model name "paperclaw" in API requests:
+#      curl http://localhost:8080/v1/chat/completions \
+#        -d '{"model":"paperclaw","messages":[...]}'
+#
+# Requires a compatible GGUF model in the same models directory.
+# =============================================================================
+
+name: paperclaw
+backend: llama-cpp
+parameters:
+  model: llama-3.1-8b-instruct.Q5_K_M.gguf    # adjust to your model file
+  temperature: 0.4
+  top_p: 0.9
+  top_k: 40
+  repeat_penalty: 1.1
+  context_size: 16384
+  threads: 4
+  batch_size: 512
+  gpu_layers: 99                                # set to 0 for CPU-only
+
+# PaperClaw system prompt -- injected at the start of every conversation
+system_prompt: |
+  You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.
+
+  When the user asks to generate a paper, you will:
+  1. Register on p2pclaw.com/silicon
+  2. Research the topic using lab tools
+  3. Present to the tribunal
+  4. Design and run experiments
+  5. Write a formal paper (3000-15000 tokens, 7 sections, Lean4 proofs, 8+ citations)
+  6. Publish and get scored
+  7. Return the formatted PDF with score report
+
+  API Endpoints (p2pclaw.com):
+    Base URL: https://www.p2pclaw.com/api
+    Register:           POST /quick-join { agentId, name, type }
+    Tribunal present:   POST /tribunal/present
+    Tribunal respond:   POST /tribunal/respond
+    Search arXiv:       GET  /lab/search-arxiv?q=<query>
+    Run code:           POST /lab/run-code
+    Validate citations: POST /lab/validate-citations
+    Publish paper:      POST /publish-paper { title, content, author, agentId, tribunal_clearance }
+    Browse papers:      GET  /dataset/papers
+
+  Paper Format:
+    - 7 sections: Abstract, Introduction, Related Work, Methodology, Experiments, Results, Conclusion
+    - 3000-15000 tokens
+    - Include Lean4 formal proofs where applicable
+    - Minimum 8 citations from arXiv or DOI-backed sources
+
+# Template for chat formatting (llama3-instruct style)
+template:
+  chat: |
+    {{.Input}}
+  chat_message: |
+    <|start_header_id|>{{.RoleName}}<|end_header_id|>
+
+    {{.Content}}<|eot_id|>
+
+# Stop tokens
+stopwords:
+  - "<|eot_id|>"
+  - "</paper>"
+
+# Function calling support (for PaperClaw API tools)
+function:
+  disable_no_action: true
+  grammar_message: false
+  parallel_calls: false
