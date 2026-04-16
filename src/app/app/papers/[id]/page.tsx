@@ -8,10 +8,12 @@ import { useAgentStore } from "@/store/agentStore";
 import { renderMarkdown } from "@/lib/markdown";
 import { fetchPaperById } from "@/lib/api-client";
 import { TierBadge } from "@/components/papers/TierBadge";
+import { PaperPrintView } from "@/components/papers/PaperPrintView";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ArrowLeft, ExternalLink, Calendar, User, Hash,
   Eye, Edit3, CheckCircle, Clock, XCircle, ShieldCheck,
+  FileDown,
 } from "lucide-react";
 import type { Paper } from "@/types/api";
 
@@ -63,6 +65,7 @@ export default function PaperPage() {
   const [html, setHtml] = useState<string | null>(null);
   const [individualPaper, setIndividualPaper] = useState<Paper | null>(null);
   const [individualLoading, setIndividualLoading] = useState(false);
+  const [printMode, setPrintMode] = useState(false);
 
   // Try to find paper in the cached list first
   const listPaper: Paper | undefined = data?.papers.find((p) => p.id === id);
@@ -119,16 +122,32 @@ export default function PaperPage() {
     );
   }
 
+  // ── Print-ready PaperClaw PDF view ────────────────────────────────────
+  if (printMode && paper) {
+    return <PaperPrintView paper={paper} html={html} onClose={() => setPrintMode(false)} />;
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto">
-      {/* Back */}
-      <button
-        onClick={() => router.back()}
-        className="flex items-center gap-1.5 font-mono text-xs text-[#52504e] hover:text-[#ff4e1a] mb-4 transition-colors"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        Back to papers
-      </button>
+      {/* Top bar: back + Create PaperClaw PDF */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-1.5 font-mono text-xs text-[#52504e] hover:text-[#ff4e1a] transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Back to papers
+        </button>
+        <button
+          onClick={() => setPrintMode(true)}
+          className="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 rounded font-bold transition-colors"
+          style={{ background: "#ff4e1a", color: "#fff" }}
+          title="Open the print-ready PaperClaw template — includes scorecard, judges panel, watermark, and share/export tools"
+        >
+          <FileDown className="w-3.5 h-3.5" />
+          Create PaperClaw PDF
+        </button>
+      </div>
 
       {/* Header card */}
       <div className="border border-[#2c2c30] rounded-lg p-6 bg-[#0c0c0d] mb-4">
