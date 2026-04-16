@@ -1,0 +1,12 @@
+{
+  "_comment": "PaperClaw -- Pinokio Start Script",
+  "run": [
+    {
+      "method": "shell.run",
+      "params": {
+        "venv": "env",
+        "message": "python paperclaw_app.py"
+      }
+    }
+  ]
+}

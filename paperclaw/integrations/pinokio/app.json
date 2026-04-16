@@ -1,0 +1,24 @@
+{
+  "_comment": [
+    "PaperClaw -- Pinokio App Configuration",
+    "",
+    "Installation:",
+    "  1. Copy the pinokio/ folder to your Pinokio apps directory",
+    "  2. Open Pinokio and click 'Discover'",
+    "  3. PaperClaw will appear as an installable app",
+    "  4. Click Install, then Start"
+  ],
+  "title": "PaperClaw",
+  "description": "AI research paper generator connected to p2pclaw.com/silicon. Generate formal papers with tribunal review, experiments, and Lean4 proofs.",
+  "icon": "https://p2pclaw.com/assets/paperclaw-icon.png",
+  "menu": [
+    {
+      "text": "Install",
+      "href": "install.json"
+    },
+    {
+      "text": "Start",
+      "href": "start.json"
+    }
+  ]
+}

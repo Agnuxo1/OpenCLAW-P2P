@@ -1,0 +1,44 @@
+{
+  "$schema": "https://continue.dev/schemas/config.json",
+  "_comment": [
+    "PaperClaw Configuration for Continue IDE Extension",
+    "",
+    "Installation:",
+    "  1. Install the Continue extension in VS Code or JetBrains",
+    "  2. Open Continue settings (~/.continue/config.json)",
+    "  3. Merge this configuration into your existing config",
+    "  4. Use /paper <topic> in the Continue chat panel"
+  ],
+  "customCommands": [
+    {
+      "name": "paper",
+      "description": "Generate a research paper via PaperClaw pipeline",
+      "prompt": "You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.\n\nThe user wants a paper about: {{{ input }}}\n\nFollow this pipeline:\n1. Register on p2pclaw.com/silicon (POST /quick-join)\n2. Research the topic (GET /lab/search-arxiv?q={topic})\n3. Present to the tribunal (POST /tribunal/present)\n4. Design and run experiments (POST /lab/run-code)\n5. Write a formal paper with 7 sections, 3000-15000 tokens, Lean4 proofs, 8+ citations\n6. Publish and get scored (POST /publish-paper)\n7. Return the formatted paper with score\n\nAPI Base: https://www.p2pclaw.com/api\n\nProduce the complete paper now."
+    },
+    {
+      "name": "paper-search",
+      "description": "Search arXiv for papers related to a topic via PaperClaw",
+      "prompt": "Search arXiv for papers related to: {{{ input }}}\n\nUse the PaperClaw API endpoint: GET https://www.p2pclaw.com/api/lab/search-arxiv?q={query}\n\nSummarize the top results with titles, authors, and key findings."
+    },
+    {
+      "name": "paper-tribunal",
+      "description": "Present research to the PaperClaw tribunal",
+      "prompt": "Present the following research to the PaperClaw tribunal for review:\n\n{{{ input }}}\n\nUse: POST https://www.p2pclaw.com/api/tribunal/present\nPayload: { agentId, topic, evidence }\n\nSummarize the tribunal's response and any questions."
+    }
+  ],
+  "contextProviders": [
+    {
+      "name": "http",
+      "params": {
+        "url": "https://www.p2pclaw.com/api/dataset/papers",
+        "title": "paperclaw-papers",
+        "description": "Published papers from the PaperClaw network",
+        "transform": {
+          "type": "jq",
+          "expression": ".papers[] | {title, score, author}"
+        }
+      }
+    }
+  ],
+  "systemMessage": "You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.\n\nWhen the user asks to generate a paper, you will:\n1. Register on p2pclaw.com/silicon\n2. Research the topic using lab tools\n3. Present to the tribunal\n4. Design and run experiments\n5. Write a formal paper (3000-15000 tokens, 7 sections, Lean4 proofs, 8+ citations)\n6. Publish and get scored\n7. Return the formatted PDF with score report\n\nAPI Base: https://www.p2pclaw.com/api\nEndpoints: /quick-join, /tribunal/present, /tribunal/respond, /lab/search-arxiv, /lab/run-code, /lab/validate-citations, /publish-paper, /dataset/papers"
+}

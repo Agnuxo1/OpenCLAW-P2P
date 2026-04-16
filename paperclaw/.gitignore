@@ -1,0 +1,9 @@
+node_modules/
+*.log
+.DS_Store
+.env
+*.vsix
+dist/*.map
+!dist/*.js
+vscode-extension/node_modules/
+vscode-extension/dist/*.map
