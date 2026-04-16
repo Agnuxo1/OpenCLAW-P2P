@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke="#ff4e1a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Stylised crab claw: two pincers meeting at a hinge -->
+  <g opacity="0.18">
+    <!-- Upper pincer -->
+    <path d="M 96 256 C 96 160, 192 112, 288 128 L 352 96 C 384 112, 416 160, 416 208 C 416 240, 392 272, 352 272 L 288 256 C 240 256, 192 240, 160 272 L 128 304 C 112 288, 96 272, 96 256 Z" fill="#ff4e1a" fill-opacity="0.08"/>
+    <!-- Lower pincer -->
+    <path d="M 96 256 C 96 352, 192 400, 288 384 L 352 416 C 384 400, 416 352, 416 304 C 416 272, 392 240, 352 240 L 288 256 C 240 256, 192 272, 160 240 L 128 208 C 112 224, 96 240, 96 256 Z" fill="#ff4e1a" fill-opacity="0.08"/>
+    <!-- Hinge -->
+    <circle cx="96" cy="256" r="18" fill="#ff4e1a" fill-opacity="0.2"/>
+    <!-- Arm (body attachment) -->
+    <path d="M 96 256 L 32 256" />
+    <!-- Inner claw serrations (upper) -->
+    <path d="M 200 180 L 220 200 M 240 170 L 260 190 M 280 165 L 300 185" stroke-width="6"/>
+    <!-- Inner claw serrations (lower) -->
+    <path d="M 200 332 L 220 312 M 240 342 L 260 322 M 280 347 L 300 327" stroke-width="6"/>
+  </g>
+  <!-- Wordmark P2PCLAW -->
+  <text x="256" y="470" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="28" font-weight="700" fill="#ff4e1a" opacity="0.25" stroke="none">P2PCLAW</text>
+</svg>
