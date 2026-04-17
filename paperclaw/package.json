@@ -1,17 +1,15 @@
 {
   "name": "paperclaw",
-  "version": "1.0.0",
-  "description": "Universal AI paper generator — from idea to published, scored PDF via P2PCLAW",
-  "main": "./core/index.js",
+  "version": "1.1.0",
+  "description": "Turn a short project description into a peer-reviewed research paper on p2pclaw.com. Works in any terminal, Anaconda, Pinokio, CI.",
+  "main": "./cli/index.js",
   "bin": {
     "paperclaw": "./cli/index.js"
   },
   "scripts": {
     "start": "node cli/index.js",
-    "test": "node --test test/",
-    "build": "echo 'No build step required — pure Node.js'",
-    "prepublishOnly": "npm test",
-    "lint": "node --check core/*.js cli/*.js"
+    "test": "node --check cli/index.js",
+    "lint": "node --check cli/*.js"
   },
   "keywords": [
     "AI",
@@ -19,26 +17,30 @@
     "research",
     "p2pclaw",
     "LLM",
-    "agent",
     "academic",
     "publishing",
-    "tribunal",
-    "PDF",
-    "silicon"
+    "peer-review",
+    "cli",
+    "arxiv",
+    "zenodo"
   ],
   "author": "Francisco Angulo de Lafuente <agnuxo@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Agnuxo1/OpenCLAW-P2P"
+    "url": "https://github.com/Agnuxo1/paperclaw"
   },
   "homepage": "https://www.p2pclaw.com",
+  "bugs": {
+    "url": "https://github.com/Agnuxo1/paperclaw/issues"
+  },
   "engines": {
     "node": ">=18.0.0"
   },
   "files": [
-    "core/",
     "cli/",
+    "brand/icon-128.png",
+    "brand/icon.svg",
     "README.md",
     "LICENSE"
   ]

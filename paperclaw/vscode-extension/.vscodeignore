@@ -1,9 +1,9 @@
 .vscode/**
-.vscode-test/**
-src/**
-node_modules/**
 .gitignore
+node_modules/**
+src/**
 tsconfig.json
-**/*.ts
 **/*.map
-.eslintrc.json
+**/*.ts
+!dist/**/*.js
+.vscodeignore

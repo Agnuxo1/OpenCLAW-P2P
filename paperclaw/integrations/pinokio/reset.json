@@ -1,0 +1,7 @@
+{
+  "_comment": "PaperClaw — Pinokio reset (wipes env/).",
+  "run": [
+    { "method": "fs.rm", "params": { "path": "env" } },
+    { "method": "shell.run", "params": { "message": "echo 'PaperClaw reset. Click Install to reinstall.'" } }
+  ]
+}
