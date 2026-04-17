@@ -164,26 +164,75 @@ export function PaperPrintView({
 
   return (
     <div className="paperclaw-print-root fixed inset-0 z-50 overflow-auto" style={{ background: "#f1ece7" }}>
-      {/* Print-only CSS: page size, hide chrome, serif body */}
+      {/* Print-only CSS: page size, hide chrome, serif body, force colors, paginate */}
       <style jsx global>{`
-        @page { size: A4; margin: 18mm 16mm 22mm 16mm; }
+        @page { size: A4; margin: 14mm 12mm 18mm 12mm; }
         @media print {
-          body { background: #fff !important; }
-          .no-print { display: none !important; }
-          .paperclaw-page {
-            box-shadow: none !important;
+          html, body {
+            background: #fff !important;
             margin: 0 !important;
-            width: 100% !important;
-            min-height: auto !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
+          /* Force every element to keep its backgrounds + colors when printing */
+          *, *::before, *::after {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          .no-print { display: none !important; }
+          /* Neutralize the fixed full-screen overlay used on screen */
           .paperclaw-print-root {
             position: static !important;
+            inset: auto !important;
+            top: auto !important;
+            left: auto !important;
+            right: auto !important;
+            bottom: auto !important;
+            z-index: auto !important;
             overflow: visible !important;
+            height: auto !important;
+            min-height: 0 !important;
             background: #fff !important;
           }
+          /* The A4 page itself flows as normal content so pagination works */
+          .paperclaw-page {
+            box-shadow: none !important;
+            margin: 0 auto !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+            background: ${PAPER_BG} !important;
+          }
+          /* Keep structural blocks from splitting awkwardly across pages */
+          .paperclaw-body h2,
+          .paperclaw-body h3 {
+            page-break-after: avoid;
+            break-after: avoid-page;
+          }
+          .paperclaw-body pre,
+          .paperclaw-body table,
+          .paperclaw-body blockquote,
+          .paperclaw-body figure,
+          .paperclaw-body img {
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          img { max-width: 100% !important; height: auto !important; }
+          a { color: ${ACCENT_LIGHT} !important; text-decoration: none !important; }
         }
         .paperclaw-page {
           font-family: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          color-adjust: exact;
         }
         .paperclaw-page h1, .paperclaw-page h2, .paperclaw-page h3 {
           font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
