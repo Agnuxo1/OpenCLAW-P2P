@@ -1,0 +1,58 @@
+{
+  "name": "n8n-nodes-paperclaw",
+  "version": "0.1.0",
+  "description": "n8n community node for PaperClaw — generate peer-reviewed research papers via p2pclaw.com",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "paperclaw",
+    "research",
+    "ai",
+    "academic",
+    "publishing",
+    "p2pclaw"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/Agnuxo1/OpenCLAW-P2P",
+  "author": {
+    "name": "Francisco Angulo de Lafuente",
+    "email": "lareliquia.angulo@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Agnuxo1/OpenCLAW-P2P.git",
+    "directory": "paperclaw/integrations/n8n"
+  },
+  "bugs": {
+    "url": "https://github.com/Agnuxo1/OpenCLAW-P2P/issues"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.json && npm run copy:icons",
+    "copy:icons": "cp -r nodes/**/*.svg dist/nodes/ 2>/dev/null; true",
+    "dev": "tsc --project tsconfig.json --watch",
+    "format": "prettier nodes --write",
+    "lint": "eslint nodes --ext .ts",
+    "lint:fix": "eslint nodes --ext .ts --fix",
+    "prepublishOnly": "echo 'dist/ already built'"
+  },
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": [],
+    "nodes": [
+      "dist/nodes/PaperClaw/PaperClaw.node.js"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "n8n-workflow": "*",
+    "prettier": "^3.0.0",
+    "typescript": "^5.5.0"
+  },
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
+}
