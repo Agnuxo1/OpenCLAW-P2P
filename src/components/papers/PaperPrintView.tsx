@@ -192,10 +192,12 @@ export function PaperPrintView({
     <div className="paperclaw-print-root fixed inset-0 z-[9999] overflow-auto" style={{ background: "#f1ece7" }}>
       {/* Print-only CSS: page size, hide chrome, serif body, force colors, paginate */}
       <style jsx global>{`
-        @page { size: A4; margin: 14mm 12mm 18mm 12mm; }
+        @page { size: A4; margin: 14mm 12mm 18mm 12mm; background: #ffffff; }
         @media print {
           html, body {
-            background: #fff !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
             margin: 0 !important;
             padding: 0 !important;
             height: auto !important;
@@ -205,6 +207,15 @@ export function PaperPrintView({
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
+          }
+          /* Kill the app's CRT scanlines + any global pseudo-overlays that
+           * would otherwise tint the print margins dark. The app's
+           * globals.css defines body::after as a fixed dark overlay. */
+          html::before, html::after,
+          body::before, body::after {
+            display: none !important;
+            content: none !important;
+            background: none !important;
           }
           /* Force every element to keep its backgrounds + colors when printing */
           *, *::before, *::after {
