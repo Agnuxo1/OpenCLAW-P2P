@@ -13,6 +13,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { renderMarkdown } from "@/lib/markdown";
 import type { Paper } from "@/types/api";
 import {
@@ -125,9 +126,31 @@ export function PaperPrintView({
 }) {
   const [scored, setScored] = useState<GranularScores | null>(null);
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const pageUrl = typeof window !== "undefined" ? window.location.href : "";
   const share = useMemo(() => shareUrls(paper, pageUrl), [paper, pageUrl]);
+
+  // Portal mount flag (avoid SSR mismatch)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // While the print-view is open, lock the underlying app's scroll so the
+  // overlay behaves like a full-screen modal on screen, and — more
+  // importantly — disable the app's fixed layout during print by tagging
+  // <html>. That lets the print CSS target `html.paperclaw-printing *` and
+  // safely hide everything except the portal.
+  useEffect(() => {
+    const htmlEl = document.documentElement;
+    const prevOverflow = document.body.style.overflow;
+    htmlEl.classList.add("paperclaw-printing");
+    document.body.style.overflow = "hidden";
+    return () => {
+      htmlEl.classList.remove("paperclaw-printing");
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
 
   useEffect(() => {
     let live = true;
@@ -162,8 +185,11 @@ export function PaperPrintView({
     } catch { /* noop */ }
   }
 
-  return (
-    <div className="paperclaw-print-root fixed inset-0 z-50 overflow-auto" style={{ background: "#f1ece7" }}>
+  // SSR guard — portal only after client mount
+  if (!mounted || typeof document === "undefined") return null;
+
+  const printView = (
+    <div className="paperclaw-print-root fixed inset-0 z-[9999] overflow-auto" style={{ background: "#f1ece7" }}>
       {/* Print-only CSS: page size, hide chrome, serif body, force colors, paginate */}
       <style jsx global>{`
         @page { size: A4; margin: 14mm 12mm 18mm 12mm; }
@@ -174,6 +200,7 @@ export function PaperPrintView({
             padding: 0 !important;
             height: auto !important;
             min-height: 0 !important;
+            max-height: none !important;
             overflow: visible !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -185,8 +212,15 @@ export function PaperPrintView({
             print-color-adjust: exact !important;
             color-adjust: exact !important;
           }
+          /* ══ PRINT ISOLATION ═══════════════════════════════════════════
+           * The component is portaled directly into <body>, so at body
+           * level we simply hide every sibling that is NOT the print root.
+           * This makes the browser paginate ONLY the paper content instead
+           * of screenshotting the app chrome + clipping to one viewport. */
+          body > *:not(.paperclaw-print-root) { display: none !important; }
           .no-print { display: none !important; }
-          /* Neutralize the fixed full-screen overlay used on screen */
+          /* The portal container itself flows as normal block content
+           * so it expands to its full natural height and paginates. */
           .paperclaw-print-root {
             position: static !important;
             inset: auto !important;
@@ -198,6 +232,8 @@ export function PaperPrintView({
             overflow: visible !important;
             height: auto !important;
             min-height: 0 !important;
+            max-height: none !important;
+            width: 100% !important;
             background: #fff !important;
           }
           /* The A4 page itself flows as normal content so pagination works */
@@ -207,6 +243,7 @@ export function PaperPrintView({
             width: 100% !important;
             max-width: 100% !important;
             min-height: 0 !important;
+            max-height: none !important;
             padding: 0 !important;
             overflow: visible !important;
             background: ${PAPER_BG} !important;
@@ -524,6 +561,11 @@ export function PaperPrintView({
       </div>
     </div>
   );
+
+  // Render into <body> so the print-isolation CSS can cleanly hide the rest
+  // of the app's DOM (sidebar, top bar, scroll containers) which otherwise
+  // wrap this overlay and make the browser print only the first viewport.
+  return createPortal(printView, document.body);
 }
 
 // ── Small helpers ────────────────────────────────────────────────────────
