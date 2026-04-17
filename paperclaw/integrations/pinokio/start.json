@@ -1,12 +1,21 @@
 {
-  "_comment": "PaperClaw -- Pinokio Start Script",
+  "_comment": "PaperClaw — Pinokio launcher. Starts the local web UI on :7860.",
+  "daemon": true,
   "run": [
     {
       "method": "shell.run",
       "params": {
-        "venv": "env",
-        "message": "python paperclaw_app.py"
-      }
+        "path": "env",
+        "message": "node server.js",
+        "on": [
+          { "event": "/PaperClaw UI → (http:\\/\\/127\\.0\\.0\\.1:\\d+)/", "done": true }
+        ]
+      },
+      "next": null
+    },
+    {
+      "method": "browser.open",
+      "params": { "uri": "http://127.0.0.1:7860" }
     }
   ]
 }

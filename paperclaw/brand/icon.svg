@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PaperClaw — unified brand icon.
+  512×512 master. Designed for dark-theme and light-theme backgrounds.
+  Silicon: Claude Opus 4.6 / Carbon: Francisco Angulo de Lafuente / p2pclaw.com
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a1a1c"/>
+      <stop offset="1" stop-color="#0c0c0d"/>
+    </linearGradient>
+    <linearGradient id="claw" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7020"/>
+      <stop offset=".55" stop-color="#ff4e1a"/>
+      <stop offset="1" stop-color="#c33200"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fffaf5"/>
+      <stop offset="1" stop-color="#f1ece7"/>
+    </linearGradient>
+    <linearGradient id="clawRim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffcb47"/>
+      <stop offset="1" stop-color="#ff7020"/>
+    </linearGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="6" result="off"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="innerGlow">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded-square background with subtle vignette -->
+  <rect x="0" y="0" width="512" height="512" rx="108" ry="108" fill="url(#bg)"/>
+  <rect x="6" y="6" width="500" height="500" rx="102" ry="102"
+        fill="none" stroke="#ff4e1a" stroke-opacity="0.25" stroke-width="2"/>
+
+  <!-- Concentric orange rings (subtle) -->
+  <g opacity="0.12" stroke="#ff4e1a" fill="none" stroke-width="1.5">
+    <circle cx="256" cy="256" r="200"/>
+    <circle cx="256" cy="256" r="160"/>
+    <circle cx="256" cy="256" r="120"/>
+  </g>
+
+  <!-- ────── PAPER PAGE ────── -->
+  <g filter="url(#softShadow)" transform="translate(150 128) rotate(-8 106 130)">
+    <!-- page body with folded corner -->
+    <path d="M 0 0
+             L 170 0
+             L 212 42
+             L 212 260
+             L 0 260 Z"
+          fill="url(#paper)"/>
+    <!-- folded corner highlight -->
+    <path d="M 170 0 L 170 42 L 212 42 Z"
+          fill="#e8dcce"/>
+    <!-- ruled text lines -->
+    <g stroke="#ff4e1a" stroke-opacity="0.9" stroke-width="5" stroke-linecap="round">
+      <line x1="22" y1="60"  x2="190" y2="60"/>
+      <line x1="22" y1="96"  x2="170" y2="96"/>
+      <line x1="22" y1="128" x2="184" y2="128"/>
+    </g>
+    <g stroke="#1a1a1c" stroke-opacity="0.32" stroke-width="3" stroke-linecap="round">
+      <line x1="22" y1="156" x2="190" y2="156"/>
+      <line x1="22" y1="176" x2="160" y2="176"/>
+      <line x1="22" y1="196" x2="184" y2="196"/>
+      <line x1="22" y1="216" x2="140" y2="216"/>
+    </g>
+    <!-- scorecard chip -->
+    <rect x="18" y="230" width="72" height="18" rx="4" fill="#ff4e1a"/>
+    <text x="54" y="244" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace"
+          font-size="13" font-weight="800" fill="#fff" letter-spacing="1">GOLD</text>
+  </g>
+
+  <!-- ────── CRAB CLAW (stylised, gripping the page) ────── -->
+  <!-- lower pincer -->
+  <g filter="url(#softShadow)">
+    <path d="M 352 210
+             C 430 210 470 256 462 316
+             C 458 348 432 370 400 368
+             C 376 366 352 348 344 324
+             L 332 318
+             C 328 292 336 260 352 210 Z"
+          fill="url(#claw)" stroke="url(#clawRim)" stroke-width="3"/>
+    <!-- pincer inner highlight -->
+    <path d="M 360 230 C 416 230 446 262 440 304
+             C 436 326 418 342 396 342
+             C 378 342 360 330 354 316"
+          fill="none" stroke="#ffcb47" stroke-opacity="0.55" stroke-width="4"/>
+  </g>
+  <!-- upper pincer (overlaps paper) -->
+  <g filter="url(#softShadow)">
+    <path d="M 328 148
+             C 404 128 466 168 466 222
+             C 466 254 440 276 410 272
+             C 388 268 368 252 362 232
+             L 352 230
+             C 338 214 332 186 328 148 Z"
+          fill="url(#claw)" stroke="url(#clawRim)" stroke-width="3"/>
+    <!-- inner crease -->
+    <path d="M 340 170 C 400 158 448 186 448 220
+             C 448 244 428 258 408 256"
+          fill="none" stroke="#ffcb47" stroke-opacity="0.55" stroke-width="4"/>
+  </g>
+  <!-- claw joint / arm stub -->
+  <g>
+    <path d="M 330 218
+             L 298 262
+             C 288 278 290 296 304 308
+             L 340 334
+             L 360 320
+             L 334 292
+             C 326 282 326 272 334 264
+             L 358 234 Z"
+          fill="url(#claw)" stroke="url(#clawRim)" stroke-width="3"/>
+  </g>
+
+  <!-- pinch sparkle between pincers -->
+  <g transform="translate(360 230)" fill="#ffcb47">
+    <path d="M 0 -22 L 4 -4 L 22 0 L 4 4 L 0 22 L -4 4 L -22 0 L -4 -4 Z"/>
+  </g>
+
+  <!-- ────── Wordmark dot-underscore P2PCLAW signature ────── -->
+  <g font-family="ui-monospace, Menlo, Consolas, monospace" fill="#ff4e1a" opacity="0.92">
+    <text x="44" y="460" font-size="30" font-weight="800" letter-spacing="2">PaperClaw</text>
+    <text x="44" y="484" font-size="13" font-weight="600" letter-spacing="4" fill="#f5f0eb" opacity="0.6">P2PCLAW · PEER REVIEW</text>
+  </g>
+</svg>

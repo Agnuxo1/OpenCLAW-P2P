@@ -1,394 +1,329 @@
 #!/usr/bin/env node
-
 /**
- * PaperClaw CLI
+ * PaperClaw — terminal CLI.
  *
- * Command-line interface for generating research papers through P2PCLAW.
+ * Works from any shell (Bash, PowerShell, Windows Terminal, Anaconda Prompt),
+ * called directly from Pinokio install scripts, or piped from other tools.
  *
- * Usage:
- *   paperclaw generate "my research idea"
- *   paperclaw research "topic"
- *   paperclaw status
- *   paperclaw papers
- *   paperclaw score <paperId>
+ *   paperclaw "A peer-to-peer reputation system using VDFs"
+ *   paperclaw --readme
+ *   cat design.md | paperclaw --stdin
+ *   paperclaw --help
  *
- * Zero external dependencies.
+ * Zero dependencies. Only Node built-ins (>=18).
+ *
+ * Signed: Silicon: Claude Opus 4.6 / Carbon: Francisco Angulo de Lafuente /
+ * Plataforma: p2pclaw.com
  */
+"use strict";
 
-'use strict';
+const https = require("https");
+const http = require("http");
+const { URL } = require("url");
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
 
-const { PaperClaw, generateAgentId, DEFAULT_API_BASE } = require('../core/index');
-const path = require('path');
-const fs = require('fs');
+const PKG = require("../package.json");
+const DEFAULT_API = "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+const CONFIG_PATH = path.join(os.homedir(), ".paperclaw.json");
 
-// ---------------------------------------------------------------------------
-// Terminal helpers (no external deps — raw ANSI)
-// ---------------------------------------------------------------------------
+// ── ANSI helpers ────────────────────────────────────────────────────────────
+const C = {
+  reset: "\x1b[0m",
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  orange: "\x1b[38;5;208m",
+  green: "\x1b[38;5;82m",
+  red: "\x1b[38;5;203m",
+  gray: "\x1b[38;5;244m",
+  cyan: "\x1b[38;5;117m",
+};
+const noColor = !process.stdout.isTTY || process.env.NO_COLOR;
+for (const k of Object.keys(C)) if (noColor) C[k] = "";
 
-const BOLD = '\x1b[1m';
-const DIM = '\x1b[2m';
-const RESET = '\x1b[0m';
-const GREEN = '\x1b[32m';
-const CYAN = '\x1b[36m';
-const YELLOW = '\x1b[33m';
-const RED = '\x1b[31m';
-const BLUE = '\x1b[34m';
-
-const SPINNER_FRAMES = ['|', '/', '-', '\\'];
-let spinnerIdx = 0;
-let spinnerInterval = null;
-let spinnerMsg = '';
-
-function startSpinner(msg) {
-  spinnerMsg = msg;
-  spinnerIdx = 0;
-  if (spinnerInterval) clearInterval(spinnerInterval);
-  spinnerInterval = setInterval(() => {
-    const frame = SPINNER_FRAMES[spinnerIdx % SPINNER_FRAMES.length];
-    process.stderr.write(`\r${CYAN}${frame}${RESET} ${spinnerMsg}  `);
-    spinnerIdx++;
-  }, 120);
-}
-
-function updateSpinner(msg) {
-  spinnerMsg = msg;
-}
-
-function stopSpinner(msg) {
-  if (spinnerInterval) {
-    clearInterval(spinnerInterval);
-    spinnerInterval = null;
+// ── Arg parsing ─────────────────────────────────────────────────────────────
+function parseArgs(argv) {
+  const args = { positional: [], flags: {} };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--help" || a === "-h") args.flags.help = true;
+    else if (a === "--version" || a === "-v") args.flags.version = true;
+    else if (a === "--readme") args.flags.readme = true;
+    else if (a === "--stdin") args.flags.stdin = true;
+    else if (a === "--open") args.flags.open = true;
+    else if (a === "--no-open") args.flags.noOpen = true;
+    else if (a === "--print") args.flags.print = true;
+    else if (a === "--author" && argv[i + 1]) { args.flags.author = argv[++i]; }
+    else if (a === "--title" && argv[i + 1]) { args.flags.title = argv[++i]; }
+    else if (a === "--tags" && argv[i + 1]) { args.flags.tags = argv[++i]; }
+    else if (a === "--api" && argv[i + 1]) { args.flags.api = argv[++i]; }
+    else if (a === "--save" && argv[i + 1]) { args.flags.save = argv[++i]; }
+    else args.positional.push(a);
   }
-  process.stderr.write(`\r${GREEN}*${RESET} ${msg || spinnerMsg}  \n`);
+  return args;
 }
 
-function log(msg) {
-  console.log(msg);
+function help() {
+  console.log(`
+${C.bold}${C.orange}PaperClaw${C.reset} ${C.dim}v${PKG.version}${C.reset} — publish your project as a research paper on p2pclaw.com
+
+${C.bold}USAGE${C.reset}
+  paperclaw "<short description>"         Publish directly
+  paperclaw --readme                      Use ./README.md as the description
+  paperclaw --stdin                       Read description from stdin (pipe-friendly)
+
+${C.bold}OPTIONS${C.reset}
+  --author NAME        Author name printed on the paper
+  --title TITLE        Override the inferred paper title
+  --tags "a,b,c"       Comma-separated keywords
+  --api URL            Override the P2PCLAW API endpoint
+  --open / --no-open   Open the paper URL in browser when done (default: open if TTY)
+  --print              Open the paper directly in the print view (Save-as-PDF mode)
+  --save PATH          Write the published URL to PATH when done
+  -v, --version        Print version
+  -h, --help           This message
+
+${C.bold}EXAMPLES${C.reset}
+  ${C.dim}# One-liner:${C.reset}
+  paperclaw "Peer-reviewed p2p ledger using VDFs and Byzantine consensus"
+
+  ${C.dim}# From a README:${C.reset}
+  paperclaw --readme --author "Ada Lovelace" --tags "p2p,crypto"
+
+  ${C.dim}# From a pipe (works in Anaconda, Pinokio, anywhere):${C.reset}
+  cat DESIGN.md | paperclaw --stdin --author "Francisco Angulo"
+
+${C.bold}CONFIG${C.reset}
+  Persistent defaults live in ${C.cyan}${CONFIG_PATH}${C.reset} (JSON).
+  Keys: author, apiBase, tags, openInBrowser.
+`);
 }
 
-function logError(msg) {
-  console.error(`${RED}Error:${RESET} ${msg}`);
-}
-
-// ---------------------------------------------------------------------------
-// Config persistence (~/.paperclaw.json)
-// ---------------------------------------------------------------------------
-
-const CONFIG_PATH = path.join(
-  process.env.HOME || process.env.USERPROFILE || '.',
-  '.paperclaw.json'
-);
-
+// ── Config ──────────────────────────────────────────────────────────────────
 function loadConfig() {
   try {
-    return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+    return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
   } catch {
     return {};
   }
 }
-
-function saveConfig(data) {
-  const existing = loadConfig();
-  const merged = { ...existing, ...data };
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(merged, null, 2), 'utf-8');
-  return merged;
+function saveConfig(cfg) {
+  try { fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2)); } catch {}
 }
 
-function getOrCreateAgentId() {
-  const cfg = loadConfig();
-  if (cfg.agentId) return cfg.agentId;
-  const id = generateAgentId();
-  saveConfig({ agentId: id });
-  return id;
-}
-
-// ---------------------------------------------------------------------------
-// Progress callback
-// ---------------------------------------------------------------------------
-
-function onProgress(stage, message, pct) {
-  if (pct === 100) {
-    stopSpinner(message);
-  } else if (pct >= 0) {
-    updateSpinner(`[${pct}%] ${message}`);
-  } else {
-    logError(message);
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Commands
-// ---------------------------------------------------------------------------
-
-async function cmdGenerate(idea, flags) {
-  if (!idea) {
-    logError('Please provide a research idea. Usage: paperclaw generate "my idea"');
-    process.exit(1);
-  }
-
-  log('');
-  log(`${BOLD}${BLUE}  PaperClaw${RESET} ${DIM}v1.0.0${RESET}`);
-  log(`${DIM}  From idea to published paper via P2PCLAW Silicon${RESET}`);
-  log('');
-  log(`  Idea: ${CYAN}${idea}${RESET}`);
-  log('');
-
-  const agentId = getOrCreateAgentId();
-  const outDir = flags.out || process.cwd();
-
-  const pc = new PaperClaw({
-    apiBase: flags.api || DEFAULT_API_BASE,
-    agentId,
-    agentName: flags.name || 'PaperClaw CLI Agent',
-    onProgress,
+// ── Input helpers ───────────────────────────────────────────────────────────
+function readStdin() {
+  return new Promise((resolve, reject) => {
+    if (process.stdin.isTTY) return reject(new Error("Nothing on stdin. Pipe text into --stdin."));
+    let data = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (c) => (data += c));
+    process.stdin.on("end", () => resolve(data.trim()));
+    process.stdin.on("error", reject);
   });
-
-  startSpinner('Starting full pipeline...');
-
-  const result = await pc.fullPipeline(idea, {
-    author: flags.author || 'PaperClaw AI',
-    outDir,
-  });
-
-  if (result.success) {
-    log('');
-    log(`${GREEN}${BOLD}  Paper generated successfully!${RESET}`);
-    log(`  PDF: ${CYAN}${result.pdfPath}${RESET}`);
-    if (result.stages.score?.overall != null) {
-      log(`  Score: ${BOLD}${result.stages.score.overall}/100${RESET}`);
-    }
-    log('');
-  } else {
-    log('');
-    logError(`Pipeline failed: ${result.error}`);
-    log(`${DIM}  Partial results may have been generated.${RESET}`);
-    process.exit(1);
-  }
 }
 
-async function cmdResearch(topic, flags) {
-  if (!topic) {
-    logError('Please provide a topic. Usage: paperclaw research "topic"');
-    process.exit(1);
+function readReadme() {
+  const candidates = ["README.md", "Readme.md", "readme.md", "README.MD"];
+  for (const name of candidates) {
+    if (fs.existsSync(name)) return fs.readFileSync(name, "utf8").trim();
   }
-
-  const agentId = getOrCreateAgentId();
-  const pc = new PaperClaw({
-    apiBase: flags.api || DEFAULT_API_BASE,
-    agentId,
-    onProgress,
-  });
-
-  startSpinner(`Researching: ${topic}`);
-
-  try {
-    await pc.register();
-  } catch {
-    // Registration may fail if already registered — continue
-  }
-
-  const result = await pc.research(topic);
-  stopSpinner('Research complete.');
-
-  log('');
-  log(`${BOLD}ArXiv results:${RESET} ${(result.arxiv || []).length} papers`);
-  (result.arxiv || []).slice(0, 5).forEach((s, i) => {
-    log(`  ${i + 1}. ${s.title || s.name || JSON.stringify(s).slice(0, 80)}`);
-  });
-
-  log('');
-  log(`${BOLD}P2PCLAW dataset:${RESET} ${(result.papers || []).length} papers`);
-  (result.papers || []).slice(0, 5).forEach((s, i) => {
-    log(`  ${i + 1}. ${s.title || s.name || JSON.stringify(s).slice(0, 80)}`);
-  });
-  log('');
+  throw new Error("No README.md found in the current directory.");
 }
 
-async function cmdStatus(flags) {
-  const cfg = loadConfig();
-  log('');
-  log(`${BOLD}PaperClaw Status${RESET}`);
-  log(`  Agent ID:  ${cfg.agentId || '(not registered)'}`);
-  log(`  API Base:  ${flags.api || DEFAULT_API_BASE}`);
-  log(`  Config:    ${CONFIG_PATH}`);
-  log('');
+function extractMarkdownTitle(md) {
+  const m = md.match(/^\s*#\s+(.+?)\s*$/m);
+  return m ? m[1].trim() : null;
 }
 
-async function cmdPapers(flags) {
-  startSpinner('Fetching published papers...');
+async function promptInteractive(question) {
+  return new Promise((resolve) => {
+    process.stdout.write(question);
+    let data = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.once("data", (c) => resolve(String(c).trim()));
+  });
+}
 
-  try {
-    const https = require('https');
-    const http = require('http');
-    const url = new URL(
-      '/dataset/papers',
-      flags.api || DEFAULT_API_BASE
-    );
-    const transport = url.protocol === 'https:' ? https : http;
-
-    const data = await new Promise((resolve, reject) => {
-      transport.get(url.toString(), (res) => {
+// ── HTTP ───────────────────────────────────────────────────────────────────
+function postJSON(url, body, timeoutMs = 120_000) {
+  return new Promise((resolve, reject) => {
+    let parsed;
+    try { parsed = new URL(url); } catch { return reject(new Error(`Invalid URL: ${url}`)); }
+    const transport = parsed.protocol === "https:" ? https : http;
+    const payload = Buffer.from(JSON.stringify(body), "utf8");
+    const req = transport.request(
+      {
+        method: "POST",
+        hostname: parsed.hostname,
+        port: parsed.port || (parsed.protocol === "https:" ? 443 : 80),
+        path: parsed.pathname + parsed.search,
+        headers: {
+          "Content-Type": "application/json",
+          "Content-Length": payload.length,
+          "User-Agent": `PaperClaw-CLI/${PKG.version} (${process.platform}; node/${process.versions.node})`,
+          Accept: "application/json",
+        },
+        timeout: timeoutMs,
+      },
+      (res) => {
         const chunks = [];
-        res.on('data', (c) => chunks.push(c));
-        res.on('end', () => {
+        res.on("data", (c) => chunks.push(c));
+        res.on("end", () => {
+          const raw = Buffer.concat(chunks).toString("utf8");
           try {
-            resolve(JSON.parse(Buffer.concat(chunks).toString()));
+            const json = JSON.parse(raw);
+            if (res.statusCode >= 400) return reject(new Error(json.message || json.error || `HTTP ${res.statusCode}`));
+            resolve(json);
           } catch {
-            resolve([]);
+            reject(new Error(`Malformed response (HTTP ${res.statusCode}): ${raw.slice(0, 160)}`));
           }
         });
-      }).on('error', reject);
-    });
-
-    stopSpinner('Papers retrieved.');
-    log('');
-    const papers = Array.isArray(data) ? data : data.papers || [];
-    if (papers.length === 0) {
-      log(`${DIM}  No papers found.${RESET}`);
-    } else {
-      papers.slice(0, 20).forEach((p, i) => {
-        log(
-          `  ${i + 1}. ${BOLD}${p.title || 'Untitled'}${RESET} ${DIM}(${p.author || 'unknown'})${RESET}`
-        );
-      });
-    }
-    log('');
-  } catch (err) {
-    stopSpinner('');
-    logError(`Could not fetch papers: ${err.message}`);
-  }
-}
-
-async function cmdScore(paperId, flags) {
-  if (!paperId) {
-    logError('Please provide a paper ID. Usage: paperclaw score <paperId>');
-    process.exit(1);
-  }
-
-  const agentId = getOrCreateAgentId();
-  const pc = new PaperClaw({
-    apiBase: flags.api || DEFAULT_API_BASE,
-    agentId,
-    onProgress,
+      },
+    );
+    req.on("error", reject);
+    req.on("timeout", () => { req.destroy(); reject(new Error(`Timed out after ${Math.round(timeoutMs/1000)}s`)); });
+    req.write(payload);
+    req.end();
   });
+}
 
-  startSpinner(`Fetching scores for: ${paperId}`);
+// ── Browser open (cross-platform) ───────────────────────────────────────────
+function openInBrowser(url) {
   try {
-    const scores = await pc.getScore(paperId);
-    stopSpinner('Scores retrieved.');
-
-    log('');
-    log(`${BOLD}Score Report${RESET}`);
-    if (scores.overall != null) {
-      log(`  Overall: ${BOLD}${scores.overall}/100${RESET}`);
-    }
-    if (scores.dimensions) {
-      scores.dimensions.forEach((d) => {
-        log(`  ${d.name}: ${d.score} — ${DIM}${d.comment || ''}${RESET}`);
-      });
-    } else {
-      log(`  ${DIM}${JSON.stringify(scores, null, 2)}${RESET}`);
-    }
-    log('');
-  } catch (err) {
-    stopSpinner('');
-    logError(`Could not retrieve scores: ${err.message}`);
+    const { spawn } = require("child_process");
+    const p = process.platform;
+    const cmd = p === "darwin" ? "open" : p === "win32" ? "cmd" : "xdg-open";
+    const args = p === "win32" ? ["/c", "start", "", url] : [url];
+    spawn(cmd, args, { detached: true, stdio: "ignore" }).unref();
+    return true;
+  } catch {
+    return false;
   }
 }
 
-// ---------------------------------------------------------------------------
-// Argument parsing (zero-dep)
-// ---------------------------------------------------------------------------
-
-function parseArgs(argv) {
-  const args = argv.slice(2);
-  const command = args[0] || 'help';
-  const positional = [];
-  const flags = {};
-
-  for (let i = 1; i < args.length; i++) {
-    if (args[i].startsWith('--')) {
-      const key = args[i].slice(2);
-      const val = args[i + 1] && !args[i + 1].startsWith('--') ? args[++i] : true;
-      flags[key] = val;
-    } else {
-      positional.push(args[i]);
-    }
+// ── Spinner ─────────────────────────────────────────────────────────────────
+function spinner(label) {
+  if (noColor || !process.stdout.isTTY) {
+    console.log(`… ${label}`);
+    return () => console.log(`  done.`);
   }
-
-  return { command, positional, flags };
+  const frames = ["⠋","⠙","⠹","⠸","⠼","⠴","⠦","⠧","⠇","⠏"];
+  let i = 0;
+  const t = setInterval(() => {
+    process.stdout.write(`\r${C.orange}${frames[i = (i+1) % frames.length]}${C.reset} ${label}   `);
+  }, 80);
+  return () => {
+    clearInterval(t);
+    process.stdout.write(`\r${C.green}✓${C.reset} ${label}       \n`);
+  };
 }
 
-function showHelp() {
-  log(`
-${BOLD}PaperClaw${RESET} v1.0.0 — Universal AI paper generator via P2PCLAW Silicon
-
-${BOLD}USAGE${RESET}
-  paperclaw <command> [arguments] [--flags]
-
-${BOLD}COMMANDS${RESET}
-  generate <idea>    Full pipeline: idea -> published, scored PDF
-  research <topic>   Search literature on arXiv + P2PCLAW
-  status             Show agent registration and config
-  papers             List published papers on P2PCLAW
-  score <paperId>    Retrieve quality scores for a paper
-  help               Show this help message
-
-${BOLD}FLAGS${RESET}
-  --api <url>        P2PCLAW API base URL (default: production)
-  --name <name>      Agent display name
-  --author <name>    Paper author name
-  --out <dir>        Output directory for generated files
-
-${BOLD}EXAMPLES${RESET}
-  paperclaw generate "Quantum error correction with topological codes"
-  paperclaw research "transformer attention mechanisms"
-  paperclaw score abc123
-
-${DIM}https://www.p2pclaw.com${RESET}
-`);
-}
-
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
-
+// ── Main ────────────────────────────────────────────────────────────────────
 async function main() {
-  const { command, positional, flags } = parseArgs(process.argv);
+  const args = parseArgs(process.argv.slice(2));
+  if (args.flags.help) { help(); return; }
+  if (args.flags.version) { console.log(PKG.version); return; }
 
-  try {
-    switch (command) {
-      case 'generate':
-        await cmdGenerate(positional[0], flags);
-        break;
-      case 'research':
-        await cmdResearch(positional[0], flags);
-        break;
-      case 'status':
-        await cmdStatus(flags);
-        break;
-      case 'papers':
-        await cmdPapers(flags);
-        break;
-      case 'score':
-        await cmdScore(positional[0], flags);
-        break;
-      case 'help':
-      case '--help':
-      case '-h':
-        showHelp();
-        break;
-      default:
-        logError(`Unknown command: ${command}`);
-        showHelp();
-        process.exit(1);
+  const cfg = loadConfig();
+
+  // 1. Resolve the description.
+  let description = args.positional.join(" ").trim();
+  let title = args.flags.title;
+
+  if (args.flags.readme) {
+    const readme = readReadme();
+    description = readme.slice(0, 4000);
+    title = title || extractMarkdownTitle(readme);
+  } else if (args.flags.stdin) {
+    description = (await readStdin()).slice(0, 4000);
+  }
+
+  if (!description) {
+    // Interactive fallback
+    if (process.stdin.isTTY) {
+      description = await promptInteractive(`${C.bold}${C.orange}PaperClaw${C.reset} — describe your project (1-3 sentences):\n> `);
     }
+  }
+
+  if (!description || description.length < 30) {
+    console.error(`${C.red}Error:${C.reset} description is required and must be at least 30 characters.`);
+    console.error(`Try: ${C.cyan}paperclaw "a short description of your project"${C.reset}  or  ${C.cyan}paperclaw --help${C.reset}`);
+    process.exit(2);
+  }
+
+  // 2. Resolve author.
+  let author = args.flags.author || cfg.author || process.env.PAPERCLAW_AUTHOR;
+  if (!author && process.stdin.isTTY) {
+    author = await promptInteractive(`Author name: `);
+  }
+  if (!author) author = "Anonymous Researcher";
+
+  const apiBase = (args.flags.api || cfg.apiBase || DEFAULT_API).replace(/\/$/, "");
+  const tagsRaw = args.flags.tags || cfg.tags || "";
+  const tags = tagsRaw ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 10) : [];
+
+  // Persist nice defaults for next run.
+  if (args.flags.author) cfg.author = author;
+  if (args.flags.api) cfg.apiBase = apiBase;
+  if (args.flags.tags) cfg.tags = tagsRaw;
+  saveConfig(cfg);
+
+  console.log();
+  console.log(`${C.bold}${C.orange}PaperClaw${C.reset} → ${C.dim}${apiBase}/paperclaw/generate${C.reset}`);
+  console.log(`${C.dim}author:${C.reset} ${author}    ${C.dim}chars:${C.reset} ${description.length}    ${C.dim}tags:${C.reset} ${tags.join(", ") || "—"}`);
+  console.log();
+
+  const stop = spinner("Asking your P2PCLAW agent to write & publish the paper…");
+
+  let resp;
+  try {
+    resp = await postJSON(`${apiBase}/paperclaw/generate`, {
+      description,
+      author,
+      title,
+      tags,
+      client: "paperclaw-cli",
+    });
   } catch (err) {
-    if (spinnerInterval) stopSpinner('');
-    logError(err.message);
-    if (flags.verbose) console.error(err.stack);
+    stop();
+    console.error(`\n${C.red}✗${C.reset} ${err.message}`);
     process.exit(1);
   }
+
+  stop();
+
+  if (!resp.success || !resp.url) {
+    console.error(`${C.red}Error:${C.reset} ${resp.message || resp.error || "unknown error"}`);
+    process.exit(1);
+  }
+
+  const targetUrl = args.flags.print ? `${resp.url}#print` : resp.url;
+
+  console.log();
+  console.log(`${C.bold}${C.green}✓ Published${C.reset}`);
+  console.log(`  ${C.dim}Title:${C.reset}     ${resp.title}`);
+  console.log(`  ${C.dim}Author:${C.reset}    ${resp.author}`);
+  console.log(`  ${C.dim}Words:${C.reset}     ${resp.wordCount}`);
+  console.log(`  ${C.dim}LLM:${C.reset}       ${resp.llm?.provider || "?"} (${resp.llm?.model || "?"})`);
+  console.log(`  ${C.dim}Paper ID:${C.reset}  ${resp.paperId}`);
+  console.log();
+  console.log(`  ${C.bold}${C.cyan}${targetUrl}${C.reset}`);
+  console.log();
+
+  if (args.flags.save) {
+    try { fs.writeFileSync(args.flags.save, targetUrl + "\n"); console.log(`  ${C.dim}URL saved to${C.reset} ${args.flags.save}`); }
+    catch (e) { console.error(`  ${C.red}Could not write${C.reset} ${args.flags.save}: ${e.message}`); }
+  }
+
+  const shouldOpen = args.flags.open || (!args.flags.noOpen && process.stdout.isTTY);
+  if (shouldOpen) {
+    openInBrowser(targetUrl);
+  }
 }
 
-main();
+main().catch((err) => {
+  console.error(`\n${C.red}Fatal:${C.reset} ${err.stack || err.message}`);
+  process.exit(1);
+});

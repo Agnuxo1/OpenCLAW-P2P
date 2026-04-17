@@ -1,13 +1,23 @@
 {
   "name": "paperclaw",
   "displayName": "PaperClaw",
-  "description": "Generate published, peer-reviewed research papers from your IDE. Powered by P2PCLAW.",
-  "version": "1.0.0",
+  "description": "Turn a short description of your project into a peer-reviewed research paper. One command, powered by P2PCLAW.",
+  "version": "1.1.0",
   "publisher": "agnuxo1",
   "license": "MIT",
+  "pricing": "Free",
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#0c0c0d",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Agnuxo1/OpenCLAW-4"
+    "url": "https://github.com/Agnuxo1/paperclaw-extension"
+  },
+  "homepage": "https://www.p2pclaw.com",
+  "bugs": {
+    "url": "https://github.com/Agnuxo1/paperclaw-extension/issues"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -22,11 +32,13 @@
     "paper",
     "AI",
     "science",
+    "academic",
     "publish",
     "peer-review",
-    "p2pclaw"
+    "p2pclaw",
+    "arxiv",
+    "llm"
   ],
-  "icon": "media/icon.png",
   "activationEvents": [
     "onStartupFinished"
   ],
@@ -34,46 +46,36 @@
   "contributes": {
     "commands": [
       {
-        "command": "paperclaw.generatePaper",
-        "title": "PaperClaw: Generate Paper",
-        "icon": "$(notebook)"
+        "command": "paperclaw.publishProject",
+        "title": "PaperClaw: Publish Project as Research Paper",
+        "icon": "$(rocket)"
       },
       {
-        "command": "paperclaw.research",
-        "title": "PaperClaw: Quick Research"
-      },
-      {
-        "command": "paperclaw.viewPapers",
-        "title": "PaperClaw: View Published Papers"
-      },
-      {
-        "command": "paperclaw.showScore",
-        "title": "PaperClaw: Show Paper Score"
+        "command": "paperclaw.publishFromReadme",
+        "title": "PaperClaw: Publish Paper from README.md"
       },
       {
         "command": "paperclaw.openDashboard",
-        "title": "PaperClaw: Open Dashboard"
+        "title": "PaperClaw: Open p2pclaw.com Dashboard"
+      },
+      {
+        "command": "paperclaw.openLastPaper",
+        "title": "PaperClaw: Open Last Generated Paper"
       }
     ],
-    "viewsContainers": {
-      "activitybar": [
+    "menus": {
+      "explorer/context": [
         {
-          "id": "paperClaw",
-          "title": "PaperClaw",
-          "icon": "$(book)"
+          "command": "paperclaw.publishFromReadme",
+          "when": "resourceFilename =~ /^README.*\\.md$/i",
+          "group": "paperclaw"
         }
-      ]
-    },
-    "views": {
-      "paperClaw": [
+      ],
+      "editor/title": [
         {
-          "type": "webview",
-          "id": "paperclaw.mainView",
-          "name": "Paper Generator"
-        },
-        {
-          "id": "paperclaw.paperList",
-          "name": "Published Papers"
+          "command": "paperclaw.publishProject",
+          "group": "navigation",
+          "when": "resourceLangId == markdown"
         }
       ]
     },
@@ -82,18 +84,23 @@
       "properties": {
         "paperclaw.apiBase": {
           "type": "string",
-          "default": "https://p2pclaw-api-production-df9f.up.railway.app",
-          "description": "Base URL for the PaperClaw API"
+          "default": "https://p2pclaw-mcp-server-production-ac1c.up.railway.app",
+          "description": "P2PCLAW API base URL. Leave default unless self-hosting."
         },
-        "paperclaw.agentName": {
+        "paperclaw.authorName": {
           "type": "string",
-          "default": "PaperClaw-VSCode-Agent",
-          "description": "Agent name used when registering with PaperClaw"
+          "default": "",
+          "description": "Default author name used when publishing (leave empty to be asked each time)."
         },
-        "paperclaw.autoPublish": {
+        "paperclaw.openInBrowser": {
           "type": "boolean",
-          "default": false,
-          "description": "Automatically publish papers after tribunal approval (skip manual review)"
+          "default": true,
+          "description": "Open the generated paper in your browser automatically."
+        },
+        "paperclaw.tags": {
+          "type": "string",
+          "default": "",
+          "description": "Default comma-separated tags (e.g. 'ai, graph-theory')."
         }
       }
     }
@@ -102,12 +109,15 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package"
+    "package": "vsce package --no-yarn",
+    "publish": "vsce publish --no-yarn",
+    "publish:ovsx": "ovsx publish"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "^20.0.0",
-    "typescript": "^5.3.0",
-    "@vscode/vsce": "^2.22.0"
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "ovsx": "^0.9.5",
+    "typescript": "^5.3.0"
   }
 }
