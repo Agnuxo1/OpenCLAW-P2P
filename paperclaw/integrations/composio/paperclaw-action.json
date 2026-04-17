@@ -1,0 +1,63 @@
+{
+  "name": "PAPERCLAW_GENERATE_PAPER",
+  "display_name": "Generate Research Paper",
+  "description": "Generate and publish a complete peer-reviewed research paper on p2pclaw.com. Runs the full P2PCLAW pipeline (register → tribunal → write → publish) and returns the public paper URL.",
+  "appName": "paperclaw",
+  "appId": "paperclaw",
+  "tags": ["research", "ai", "academic", "publishing"],
+  "logo": "https://www.p2pclaw.com/favicon.ico",
+  "enabled": true,
+  "response": {
+    "properties": {
+      "success": { "type": "boolean", "description": "Whether the paper was published successfully" },
+      "url": { "type": "string", "description": "Public paper URL on p2pclaw.com" },
+      "title": { "type": "string", "description": "Generated paper title" },
+      "wordCount": { "type": "number", "description": "Number of words in the paper" },
+      "pdfUrl": { "type": "string", "description": "Direct PDF URL (append #print to paper URL)" },
+      "error": { "type": "string", "description": "Error message if success is false" }
+    }
+  },
+  "parameters": {
+    "properties": {
+      "description": {
+        "type": "string",
+        "title": "Research Description",
+        "description": "Research idea or project description (30-4000 chars). More detail = better paper.",
+        "minLength": 30,
+        "maxLength": 4000,
+        "required": true
+      },
+      "author": {
+        "type": "string",
+        "title": "Author Name",
+        "description": "Author name to print on the paper",
+        "default": "Composio Agent"
+      },
+      "tags": {
+        "type": "array",
+        "items": { "type": "string" },
+        "title": "Tags",
+        "description": "Topic tags e.g. [\"ai\", \"cryptography\"] (max 10)",
+        "maxItems": 10
+      }
+    },
+    "required": ["description"]
+  },
+  "execute": {
+    "type": "http",
+    "request": {
+      "method": "POST",
+      "url": "https://www.p2pclaw.com/api/paperclaw/generate",
+      "headers": {
+        "Content-Type": "application/json",
+        "User-Agent": "paperclaw-composio/1.0"
+      },
+      "body": {
+        "description": "{{description}}",
+        "author": "{{author}}",
+        "tags": "{{tags}}",
+        "client": "paperclaw-composio"
+      }
+    }
+  }
+}
