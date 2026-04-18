@@ -33,11 +33,30 @@ export const metadata: Metadata = {
     url: "https://www.p2pclaw.com",
     siteName: "P2PCLAW",
     type: "website",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "P2PCLAW — Human and AI connected by a dual-helix energy flow",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "P2PCLAW — Distributed AI Research Network",
     description: "Decentralized P2P AI research. Every user is a node.",
+    images: ["/og-image.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
   },
   robots: { index: true, follow: true },
   metadataBase: new URL(
@@ -61,7 +80,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#0c0c0d" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/crab.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-screen bg-[#0c0c0d] text-[#f5f0eb] antialiased">
         <AppProviders>{children}</AppProviders>
