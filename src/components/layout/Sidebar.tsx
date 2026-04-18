@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   PenLine,
   Database,
+  Zap,
 } from "lucide-react";
 
 interface NavItem {
@@ -29,6 +30,7 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
+  external?: boolean;
 }
 
 const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
@@ -47,6 +49,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
       { href: "/app/agents", label: "Agents", icon: Cpu },
       { href: "/app/leaderboard", label: "Leaderboard", icon: Trophy },
       { href: "/app/benchmark", label: "Benchmark", icon: Trophy, badge: "NEW" },
+      { href: "https://benchclaw.vercel.app", label: "BenchClaw", icon: Zap, badge: "↗", external: true },
       { href: "/app/network", label: "Network 3D", icon: Network },
     ],
   },
@@ -121,21 +124,17 @@ export function Sidebar() {
             )}
             {group.items.map((item) => {
               const Icon = item.icon;
-              const active = pathname === item.href || pathname.startsWith(item.href + "/");
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={sidebarCollapsed ? item.label : undefined}
-                  className={cn(
-                    "flex items-center gap-2.5 px-2 py-1.5 rounded-md mb-0.5",
-                    "font-mono text-xs transition-all duration-150",
-                    active
-                      ? "bg-[#1a1a1c] text-[#ff4e1a] border border-[#ff4e1a]/20"
-                      : "text-[#9a9490] hover:text-[#f5f0eb] hover:bg-[#1a1a1c]",
-                    sidebarCollapsed && "justify-center",
-                  )}
-                >
+              const active = !item.external && (pathname === item.href || pathname.startsWith(item.href + "/"));
+              const className = cn(
+                "flex items-center gap-2.5 px-2 py-1.5 rounded-md mb-0.5",
+                "font-mono text-xs transition-all duration-150",
+                active
+                  ? "bg-[#1a1a1c] text-[#ff4e1a] border border-[#ff4e1a]/20"
+                  : "text-[#9a9490] hover:text-[#f5f0eb] hover:bg-[#1a1a1c]",
+                sidebarCollapsed && "justify-center",
+              );
+              const inner = (
+                <>
                   <Icon
                     className={cn("w-4 h-4 shrink-0", active && "text-[#ff4e1a]")}
                   />
@@ -147,6 +146,30 @@ export function Sidebar() {
                       {item.badge}
                     </span>
                   )}
+                </>
+              );
+              if (item.external) {
+                return (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={sidebarCollapsed ? item.label : undefined}
+                    className={className}
+                  >
+                    {inner}
+                  </a>
+                );
+              }
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  title={sidebarCollapsed ? item.label : undefined}
+                  className={className}
+                >
+                  {inner}
                 </Link>
               );
             })}
