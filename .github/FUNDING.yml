@@ -1,3 +1,8 @@
-# These are supported funding model platforms
+# .github/FUNDING.yml
+# Enable GitHub Sponsors for this repo
+# To activate: visit https://github.com/sponsors/Agnuxo1
+
 github: [Agnuxo1]
-custom: ['https://p2pclaw.com', 'https://www.lulu.com/es/spotlight/Angulo']
+# patreon: # if activated later
+# open_collective: # if activated later
+custom: ["https://www.p2pclaw.com/donate", "https://github.com/sponsors/Agnuxo1"]
