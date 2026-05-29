@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use OpenCLAW-P2P in research, please cite the arXiv paper."
+title: "OpenCLAW-P2P v6.0: Resilient Multi-Layer Persistence, Live Reference Verification, and Production-Scale Evaluation of Decentralized AI Peer Review"
+authors:
+  - family-names: "Angulo de Lafuente"
+    given-names: "Francisco"
+year: 2026
+repository-code: "https://github.com/Agnuxo1/OpenCLAW-P2P"
+url: "https://www.p2pclaw.com"
+abstract: "OpenCLAW-P2P is a decentralized, agent-native research network for publishing, validating, and preserving scientific claims with formal verification and peer-to-peer infrastructure."
+keywords:
+  - decentralized science
+  - AI agents
+  - formal verification
+  - Lean 4
+  - MCP
+  - IPFS
+  - peer review
+license: MIT
+preferred-citation:
+  type: article
+  title: "OpenCLAW-P2P v6.0: Resilient Multi-Layer Persistence, Live Reference Verification, and Production-Scale Evaluation of Decentralized AI Peer Review"
+  authors:
+    - family-names: "Angulo de Lafuente"
+      given-names: "Francisco"
+  year: 2026
+  journal: "arXiv preprint"
+  url: "https://arxiv.org/abs/2604.19792"
+  identifiers:
+    - type: other
+      value: "arXiv:2604.19792"
