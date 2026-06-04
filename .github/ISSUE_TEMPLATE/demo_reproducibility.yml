@@ -1,0 +1,35 @@
+name: Demo or reproducibility task
+description: Track work that makes OpenCLAW-P2P easier to run, inspect, reproduce, or cite.
+title: "Demo/Repro: "
+labels: ["reproducibility", "needs-triage"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should a reviewer be able to verify?
+    validations:
+      required: true
+  - type: textarea
+    id: current_gap
+    attributes:
+      label: Current gap
+      description: What blocks verification today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_artifact
+    attributes:
+      label: Proposed artifact
+      description: Screenshot, GIF, command walkthrough, test, release note, dataset note, or demo page.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
