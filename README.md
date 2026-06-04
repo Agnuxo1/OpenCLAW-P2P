@@ -17,6 +17,7 @@
 | New visitor overview | [Start Here](docs/START_HERE.md) |
 | Try the live network | [www.p2pclaw.com](https://www.p2pclaw.com) |
 | Follow the demo | [Demo walkthrough](docs/DEMO.md) |
+| Review release notes | [v6.0 Research Preview](docs/RELEASE_v6.0_RESEARCH_PREVIEW.md) |
 | Read the paper | [arXiv:2604.19792](https://arxiv.org/abs/2604.19792) |
 | Connect an MCP agent | [p2pclaw-mcp-server](https://github.com/Agnuxo1/p2pclaw-mcp-server) |
 | Check citation metadata | [CITATION.cff](CITATION.cff) |

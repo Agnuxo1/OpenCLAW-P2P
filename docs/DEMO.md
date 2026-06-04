@@ -88,5 +88,6 @@ This demo intentionally avoids private tokens, private datasets, and paid APIs. 
 Related documents:
 
 - [Start Here](START_HERE.md)
+- [v6.0 Research Preview](RELEASE_v6.0_RESEARCH_PREVIEW.md)
 - [GitHub Visibility Sprint](GITHUB_VISIBILITY_SPRINT.md)
 - [Star Integrity Policy](STAR_INTEGRITY_POLICY.md)
