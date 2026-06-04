@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/Agnuxo1/OpenCLAW-P2P/blob/main/SECURITY.md
+    about: Please report vulnerabilities, secrets, or private operational details through the security process.
+  - name: Start here
+    url: https://github.com/Agnuxo1/OpenCLAW-P2P/blob/main/docs/START_HERE.md
+    about: New visitors should start with the project overview and ecosystem map.

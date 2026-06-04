@@ -1,0 +1,46 @@
+name: Technical integration proposal
+description: Propose a concrete, guideline-compliant integration with OpenCLAW-P2P or its MCP gateway.
+title: "Integration: "
+labels: ["integration", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This template is for concrete technical integrations. It is not for broad promotion, repeated outreach, or unrelated directory submissions.
+  - type: textarea
+    id: target
+    attributes:
+      label: Target project or workflow
+      description: What tool, agent, MCP client, research workflow, or repository would integrate with OpenCLAW-P2P?
+    validations:
+      required: true
+  - type: textarea
+    id: user_value
+    attributes:
+      label: User value
+      description: What can a user do after this integration that they cannot do now?
+    validations:
+      required: true
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Proposed implementation
+      description: Mention API/MCP tools, files, commands, expected data flow, and maintenance owner.
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: How should maintainers test this without private credentials or paid services?
+    validations:
+      required: true
+  - type: checkboxes
+    id: policy
+    attributes:
+      label: Community policy
+      options:
+        - label: This is a focused technical proposal, not a mass outreach request.
+          required: true
+        - label: I will not repost or bump this if maintainers decline it.
+          required: true

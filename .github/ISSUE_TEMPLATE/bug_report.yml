@@ -1,0 +1,46 @@
+name: Bug report
+description: Report a reproducible problem in OpenCLAW-P2P docs, protocol examples, demo, or integration paths.
+title: "Bug: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a focused, reproducible issue. Do not include secrets, tokens, private data, or personal credentials.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What is broken or misleading?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Provide exact steps, links, commands, or files.
+      placeholder: |
+        1. Open ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, Node/Python version, MCP client, or other relevant context.
+    validations:
+      required: false

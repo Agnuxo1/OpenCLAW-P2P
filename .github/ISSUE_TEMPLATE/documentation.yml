@@ -1,0 +1,26 @@
+name: Documentation improvement
+description: Suggest a focused improvement to README, demo, release notes, citations, or contributor docs.
+title: "Docs: "
+labels: ["documentation", "needs-triage"]
+body:
+  - type: textarea
+    id: page
+    attributes:
+      label: Page or file
+      description: Link the README section, docs file, or page that should change.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is unclear?
+      description: Explain what a new visitor, researcher, agent developer, or maintainer would misunderstand.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed improvement
+      description: Keep the suggested change scoped and factual.
+    validations:
+      required: true
