@@ -4,7 +4,7 @@ This document prepares the first public release notes for OpenCLAW-P2P. It is in
 
 ## Release status
 
-`v6.0-research-preview` is a research preview. It documents the current public protocol, live network entry points, MCP gateway, paper trail, collaboration inventory, publication status, and ecosystem map. It is not a final production guarantee for every satellite repository.
+`v6.0-research-preview` is a research preview. It documents the current public protocol, live network entry points, MCP gateway, paper trail, collaboration inventory, publication status, ecosystem map, and satellite implementation work. It is not a final production guarantee for every satellite repository.
 
 ## What is included
 
@@ -43,19 +43,29 @@ This document prepares the first public release notes for OpenCLAW-P2P. It is in
 | `p2pclaw-unified` | Live frontend and dashboard | Needs final link review. |
 | `p2pclaw-mcp-server` | MCP and REST gateway | Linked from README/release notes. |
 | `CAJAL` | Local scientific paper generation | Linked from research dossier and ecosystem map. |
-| `benchclaw` | Agent benchmarking workflow | Radar chart spec added for open issue #1. |
-| `PaperClaw` | IDE research-paper publishing client | README cleaned and web IDE support plan added for issue #1. |
-| `CognitionBoard` | Board-routed cognitive skills | README cleaned and new-skill guide added for issue #1. |
-| `EnigmAgent` | Local credential handling for AI agents | Security audit guide added for issue #1. |
+| `benchclaw` | Agent benchmarking workflow | Functional radar chart CLI added and tested. |
+| `PaperClaw` | IDE research-paper publishing client | VS Code web extension entrypoint added and compiled. |
+| `CognitionBoard` | Board-routed cognitive skills | E1-E3 extension skills added and routed. |
+| `EnigmAgent` | Local credential handling for AI agents | Security audit tests added to existing harness. |
 | `The-Living-Agent` | Autonomous research-agent reference line | Needs final link review. |
 
 ## Satellite preparation completed on 2026-06-05
+
+Documentation pass:
 
 - `paperclaw-extension`: cleaned the README and added `docs/VSCODE_WEB_CODESPACES.md`.
 - `EnigmAgent`: added `docs/security-audit.md`.
 - `benchclaw`: added `docs/RADAR_CHART_VISUALIZATION.md`.
 - `CognitionBoard`: cleaned the README and added `docs/NEW_COGNITIVE_SKILLS.md`.
-- Open issues in those repositories were updated with precise status comments and remaining implementation work.
+
+Functional implementation pass:
+
+- `benchclaw` commit `c7f4f6f`: added `benchclaw radar --file scores.json --out radar.html`, standalone SVG/HTML generation, score normalization, BOM-safe JSON parsing, and `node --test` coverage. Verified: 5 passed, 0 failed; generated a real `radar.html` locally.
+- `EnigmAgent` commit `bf560ae`: added executable security audit invariants to `build-tool/run-tests.mjs`. Verified after `npm ci`: 35 passed, 0 failed.
+- `paperclaw-extension` commit `c66663e`: added `src/api-bridge.ts`, `src/web-extension.ts`, and VS Code `browser` / `extensionKind` metadata. Verified: `npm run compile` passes and emits `dist/web-extension.js` plus `dist/api-bridge.js`.
+- `CognitionBoard` commit `baab7d5`: added Neuroscientist, Anthropologist, and Roboticist skill files, then wired E1-E3 into the master router and skills index.
+
+Open issues in those repositories were updated with precise status comments and verification notes.
 
 ## Verification checklist before tagging
 
@@ -65,6 +75,7 @@ This document prepares the first public release notes for OpenCLAW-P2P. It is in
 - [x] `docs/STAR_INTEGRITY_POLICY.md` is present.
 - [ ] All satellite repositories point back to `OpenCLAW-P2P`.
 - [x] Key satellite repositories have release-prep docs or README cleanup.
+- [x] Key satellite repositories now have functional implementation updates.
 - [x] Release notes avoid unverified claims.
 - [x] Research milestones, collaboration inventory, ecosystem map, profile, and publication pipeline are documented.
 - [ ] A screenshot or GIF of the live workflow is available or explicitly deferred.
@@ -81,7 +92,7 @@ The goal of this release is to make the project easier to inspect, cite, and int
 - Some satellite repositories may need further README cleanup.
 - Repository topics and short descriptions should be reviewed in the GitHub UI or via authenticated API tooling.
 - Public wording should continue to distinguish arXiv/preprint/DOI records from peer-reviewed journal acceptance unless a journal page confirms acceptance.
-- Satellite issue docs added on 2026-06-05 still require implementation/tests before those individual issues should be closed.
+- `paperclaw-extension` has dev-tooling audit findings from `npm ci`; no automatic `npm audit fix` was run because it may rewrite the lockfile broadly.
 
 ## Non-goals
 
