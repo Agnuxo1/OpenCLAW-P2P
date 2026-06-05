@@ -37,16 +37,25 @@ This document prepares the first public release notes for OpenCLAW-P2P. It is in
 
 ## Ecosystem repositories
 
-| Repository | Role |
-|---|---|
-| `OpenCLAW-P2P` | Canonical protocol, papers, docs, and ecosystem map |
-| `p2pclaw-unified` | Live frontend and dashboard |
-| `p2pclaw-mcp-server` | MCP and REST gateway |
-| `CAJAL` | Local scientific paper generation |
-| `benchclaw` | Agent benchmarking workflow |
-| `PaperClaw` | Scientific paper assistant line |
-| `The-Living-Agent` | Autonomous research-agent reference line |
-| `EnigmAgent` | Local credential handling for AI agents |
+| Repository | Role | v6 preparation status |
+|---|---|---|
+| `OpenCLAW-P2P` | Canonical protocol, papers, docs, and ecosystem map | Current front door and release notes are prepared. |
+| `p2pclaw-unified` | Live frontend and dashboard | Needs final link review. |
+| `p2pclaw-mcp-server` | MCP and REST gateway | Linked from README/release notes. |
+| `CAJAL` | Local scientific paper generation | Linked from research dossier and ecosystem map. |
+| `benchclaw` | Agent benchmarking workflow | Radar chart spec added for open issue #1. |
+| `PaperClaw` | IDE research-paper publishing client | README cleaned and web IDE support plan added for issue #1. |
+| `CognitionBoard` | Board-routed cognitive skills | README cleaned and new-skill guide added for issue #1. |
+| `EnigmAgent` | Local credential handling for AI agents | Security audit guide added for issue #1. |
+| `The-Living-Agent` | Autonomous research-agent reference line | Needs final link review. |
+
+## Satellite preparation completed on 2026-06-05
+
+- `paperclaw-extension`: cleaned the README and added `docs/VSCODE_WEB_CODESPACES.md`.
+- `EnigmAgent`: added `docs/security-audit.md`.
+- `benchclaw`: added `docs/RADAR_CHART_VISUALIZATION.md`.
+- `CognitionBoard`: cleaned the README and added `docs/NEW_COGNITIVE_SKILLS.md`.
+- Open issues in those repositories were updated with precise status comments and remaining implementation work.
 
 ## Verification checklist before tagging
 
@@ -54,14 +63,15 @@ This document prepares the first public release notes for OpenCLAW-P2P. It is in
 - [ ] `docs/DEMO.md` can be followed without private credentials.
 - [x] `CITATION.cff`, `CONTRIBUTING.md`, and `SECURITY.md` are present.
 - [x] `docs/STAR_INTEGRITY_POLICY.md` is present.
-- [ ] Satellite repositories point back to `OpenCLAW-P2P`.
+- [ ] All satellite repositories point back to `OpenCLAW-P2P`.
+- [x] Key satellite repositories have release-prep docs or README cleanup.
 - [x] Release notes avoid unverified claims.
 - [x] Research milestones, collaboration inventory, ecosystem map, profile, and publication pipeline are documented.
 - [ ] A screenshot or GIF of the live workflow is available or explicitly deferred.
 
 ## Release notes draft
 
-OpenCLAW-P2P v6.0 Research Preview publishes the current public entry point for the P2PCLAW decentralized research network. This preview links the protocol paper, live network, MCP gateway, citation metadata, contribution rules, security policy, star-integrity policy, no-credential demo walkthrough, verified milestone dossier, collaboration inventory, ecosystem map, and publication pipeline.
+OpenCLAW-P2P v6.0 Research Preview publishes the current public entry point for the P2PCLAW decentralized research network. This preview links the protocol paper, live network, MCP gateway, citation metadata, contribution rules, security policy, star-integrity policy, no-credential demo walkthrough, verified milestone dossier, collaboration inventory, ecosystem map, publication pipeline, and prepared satellite-repository work for PaperClaw, BenchClaw, CognitionBoard, and EnigmAgent.
 
 The goal of this release is to make the project easier to inspect, cite, and integrate. It also establishes a non-spam visibility process: future outreach should happen through useful documentation, reproducible demos, invited technical discussion, and guideline-compliant PRs only.
 
@@ -71,6 +81,7 @@ The goal of this release is to make the project easier to inspect, cite, and int
 - Some satellite repositories may need further README cleanup.
 - Repository topics and short descriptions should be reviewed in the GitHub UI or via authenticated API tooling.
 - Public wording should continue to distinguish arXiv/preprint/DOI records from peer-reviewed journal acceptance unless a journal page confirms acceptance.
+- Satellite issue docs added on 2026-06-05 still require implementation/tests before those individual issues should be closed.
 
 ## Non-goals
 
