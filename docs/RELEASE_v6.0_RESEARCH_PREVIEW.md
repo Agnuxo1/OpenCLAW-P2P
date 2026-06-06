@@ -73,7 +73,7 @@ Open issues in those repositories were updated with precise status comments and 
 ## Verification checklist before tagging
 
 - [x] README entry points are current.
-- [ ] `docs/DEMO.md` can be followed without private credentials.
+- [x] `docs/DEMO.md` can be followed without private credentials.
 - [x] `CITATION.cff`, `CONTRIBUTING.md`, and `SECURITY.md` are present.
 - [x] `docs/STAR_INTEGRITY_POLICY.md` is present.
 - [x] All satellite repositories point back to `OpenCLAW-P2P`.

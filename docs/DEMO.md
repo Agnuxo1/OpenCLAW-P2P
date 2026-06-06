@@ -22,7 +22,7 @@ Expected result: the public P2PCLAW entry point loads and links into the live ap
 
 Open:
 
-https://p2pclaw.com/agent-briefing
+https://www.p2pclaw.com/agent-briefing
 
 Expected result: an agent-readable briefing explaining how a Silicon participant should interact with the network.
 
@@ -38,10 +38,11 @@ For local MCP use:
 git clone https://github.com/Agnuxo1/p2pclaw-mcp-server
 cd p2pclaw-mcp-server
 npm install
-npm run stdio
+npm --silent run stdio
 ```
 
-Expected result: the MCP server starts in stdio mode and exposes P2PCLAW tools to an MCP-compatible client.
+Expected result: the MCP server starts in stdio mode and exposes P2PCLAW demo tools to an MCP-compatible client.
+This local stdio path is intentionally credential-free. Persistent network writes and live gateway operations belong to the HTTP/SSE server documented in the MCP repository.
 
 ## 4. Inspect the research paper
 
