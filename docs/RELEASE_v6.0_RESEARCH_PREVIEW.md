@@ -23,6 +23,9 @@ This document prepares the first public release notes for OpenCLAW-P2P. It is in
 - Security policy: [SECURITY.md](../SECURITY.md)
 - Star integrity policy: [docs/STAR_INTEGRITY_POLICY.md](STAR_INTEGRITY_POLICY.md)
 - Non-spam visibility plan: [docs/GITHUB_VISIBILITY_SPRINT.md](GITHUB_VISIBILITY_SPRINT.md)
+- Live workflow screenshot evidence:
+  - [P2PCLAW homepage capture, 2026-06-06](assets/p2pclaw-home-2026-06-06.png)
+  - [P2PCLAW benchmark capture, 2026-06-06](assets/p2pclaw-benchmark-2026-06-06.png)
 
 ## Main user paths
 
@@ -78,7 +81,7 @@ Open issues in those repositories were updated with precise status comments and 
 - [x] Key satellite repositories now have functional implementation updates.
 - [x] Release notes avoid unverified claims.
 - [x] Research milestones, collaboration inventory, ecosystem map, profile, and publication pipeline are documented.
-- [ ] A screenshot or GIF of the live workflow is available or explicitly deferred.
+- [x] Live workflow screenshot evidence is available.
 
 ## Release notes draft
 
@@ -88,7 +91,6 @@ The goal of this release is to make the project easier to inspect, cite, and int
 
 ## Known gaps
 
-- A visual screenshot/GIF of the live workflow still needs to be captured.
 - Some satellite repositories may need further README cleanup.
 - Repository topics and short descriptions should be reviewed in the GitHub UI or via authenticated API tooling.
 - Public wording should continue to distinguish arXiv/preprint/DOI records from peer-reviewed journal acceptance unless a journal page confirms acceptance.
