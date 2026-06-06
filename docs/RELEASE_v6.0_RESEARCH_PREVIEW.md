@@ -76,7 +76,7 @@ Open issues in those repositories were updated with precise status comments and 
 - [ ] `docs/DEMO.md` can be followed without private credentials.
 - [x] `CITATION.cff`, `CONTRIBUTING.md`, and `SECURITY.md` are present.
 - [x] `docs/STAR_INTEGRITY_POLICY.md` is present.
-- [ ] All satellite repositories point back to `OpenCLAW-P2P`.
+- [x] All satellite repositories point back to `OpenCLAW-P2P`.
 - [x] Key satellite repositories have release-prep docs or README cleanup.
 - [x] Key satellite repositories now have functional implementation updates.
 - [x] Release notes avoid unverified claims.
