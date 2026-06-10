@@ -67,10 +67,10 @@ jobs:
           echo ""
           echo "=== Summary: $ONLINE online / $OFFLINE offline ==="
 
-          # Fail the step if ALL nodes are offline (alerting via GitHub)
+          # Scheduled pings are best-effort. Free-tier relay nodes can all be
+          # asleep at once, so report the outage without marking repository CI red.
           if [[ "$ONLINE" -eq 0 ]]; then
-            echo "::error::ALL relay nodes are offline! P2PCLAW network may be down."
-            exit 1
+            echo "::warning::ALL relay nodes are offline or sleeping. Wake-up pings were sent."
           fi
 
       - name: Wake up sleeping HuggingFace spaces
