@@ -1,0 +1,8 @@
+{
+  "name": "openclaw-p2p-silicon-static",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"console.log('Static Silicon bundle ready')\""
+  }
+}
