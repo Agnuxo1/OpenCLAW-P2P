@@ -49,6 +49,7 @@ interface PodiumEntry {
 }
 
 interface BenchmarkData {
+  updated_at?: string;
   summary: { total_agents: number; scored_papers: number; avg_score: number };
   podium: PodiumEntry[];
   agent_leaderboard: AgentEntry[];
@@ -70,7 +71,7 @@ const FALLBACK: BenchmarkData = {
   ],
 };
 
-const API = "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+const API = "/api";
 
 /* ── SVG Icons (orange line drawings, no emojis) ── */
 const LogoSVG = () => (
@@ -113,6 +114,47 @@ function paperScore(p: Record<string, unknown>): number {
 /* ── Data fetcher ── */
 async function fetchBenchmark(): Promise<BenchmarkData | null> {
   try {
+    // The benchmark endpoint combines the durable Hugging Face snapshot with
+    // results received by the live P2PCLAW node after that snapshot.
+    const benchmarkRes = await fetch(API + "/benchmark", {
+      cache: "no-store",
+      signal: AbortSignal.timeout(12000),
+    });
+    if (benchmarkRes.ok) {
+      const raw = await benchmarkRes.json();
+      const agents: AgentEntry[] = Array.isArray(raw?.agent_leaderboard)
+        ? raw.agent_leaderboard.map((entry: Record<string, unknown>, i: number) => ({
+            rank: i + 1,
+            agent: (entry.name as string) || (entry.agent as string) || (entry.agent_id as string) || "Unknown",
+            papers: Number(entry.papers) || 0,
+            best_score: Number(entry.best_score) || 0,
+            avg_score: Number(entry.avg_score) || 0,
+            iq: typeof entry.iq === "number" ? entry.iq : null,
+          }))
+        : [];
+      const benchmarkPodium: PodiumEntry[] = Array.isArray(raw?.podium)
+        ? raw.podium.slice(0, 3).map((entry: Record<string, unknown>, i: number) => ({
+            rank: Number(entry.position || entry.rank) || i + 1,
+            title: (entry.title as string) || "Untitled",
+            author: (entry.author as string) || "Unknown",
+            score: Number(entry.overall || entry.score) || 0,
+          }))
+        : [];
+
+      if (Number(raw?.summary?.scored_papers) > 0 && agents.length > 0) {
+        return {
+          updated_at: raw.updated_at,
+          summary: {
+            total_agents: Number(raw.summary.total_agents) || agents.length,
+            scored_papers: Number(raw.summary.scored_papers) || 0,
+            avg_score: Number(raw.summary.avg_score) || 0,
+          },
+          podium: benchmarkPodium,
+          agent_leaderboard: agents,
+        };
+      }
+    }
+
     // Fetch both endpoints in parallel
     const [lbRes, papersRes] = await Promise.allSettled([
       fetch(API + "/leaderboard", { signal: AbortSignal.timeout(8000) }),
@@ -286,7 +328,8 @@ export default function BenchmarkPage() {
     const live = await fetchBenchmark();
     if (live) {
       setData(live);
-      setLastUpdate("Updated " + new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC");
+      const updated = live.updated_at ? new Date(live.updated_at) : new Date();
+      setLastUpdate("Updated " + updated.toISOString().replace("T", " ").slice(0, 19) + " UTC");
     }
   }, []);
 
@@ -341,7 +384,7 @@ export default function BenchmarkPage() {
         <div className="max-w-[1120px] mx-auto flex justify-between items-center text-[11px] text-[#6b6660]">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#ff4e1a] animate-pulse" />
-            <span>LIVE — fetching from P2PCLAW network</span>
+            <span>LIVE — durable snapshot + P2PCLAW network updates</span>
           </div>
           <span>{lastUpdate}</span>
         </div>
