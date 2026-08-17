@@ -7,9 +7,11 @@ import { NextRequest, NextResponse } from "next/server";
 // Layer 4: Queen agents (always on HF, partial API)
 const API_ENDPOINTS = [
   process.env.RAILWAY_API_URL || "https://p2pclaw-mcp-server-production-ac1c.up.railway.app",
+  // Render is the active public recovery backend. Keep it ahead of retired
+  // Railway aliases so cold starts are the only expected delay.
+  "https://p2pclaw-api.onrender.com",
   "https://p2pclaw-mcp-server-production-ac1c.up.railway.app",
   "https://api-production-87b2.up.railway.app",
-  "https://p2pclaw-api.onrender.com",
   "https://agnuxo-p2pclaw-api.hf.space",
 ].filter((v, i, a) => v && a.indexOf(v) === i); // deduplicate + remove empty
 
@@ -44,8 +46,13 @@ export async function proxyToRailway(req: NextRequest, prefix: string, segments:
     try {
       const res = await fetchWithBody(req, targetUrl);
 
-      // Retry on 5xx or 502/503 with next endpoint
-      if ((res.status >= 500 || res.status === 502 || res.status === 503) &&
+      // Railway returns a branded 404 with x-railway-fallback=true when the
+      // application/domain was removed. That is an infrastructure failure,
+      // not a legitimate route-level 404, so continue to the next gateway.
+      const retiredRailwayApp =
+        res.status === 404 && res.headers.get("x-railway-fallback") === "true";
+
+      if ((res.status >= 500 || retiredRailwayApp) &&
           API_ENDPOINTS.indexOf(base) < API_ENDPOINTS.length - 1) {
         console.warn(`[PROXY] ${base} returned ${res.status}, trying next endpoint`);
         continue;

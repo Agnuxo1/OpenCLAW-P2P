@@ -303,9 +303,13 @@ async function publishViaAPI(paperData: unknown): Promise<{ cid: string; url: st
 export async function getHeliaStats() {
   const helia = await initHeliaNode();
   if (!helia) return { peerId: null, peers: 0, isOnline: false };
+  const libp2p = helia.libp2p;
+  const isOnline = typeof libp2p.isStarted === "function"
+    ? libp2p.isStarted()
+    : libp2p.status === "started";
   return {
-    peerId: helia.libp2p.peerId.toString(),
-    peers: helia.libp2p.getPeers().length,
-    isOnline: helia.libp2p.isStarted(),
+    peerId: libp2p.peerId.toString(),
+    peers: libp2p.getPeers().length,
+    isOnline,
   };
 }

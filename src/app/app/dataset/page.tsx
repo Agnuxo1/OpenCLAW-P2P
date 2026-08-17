@@ -114,26 +114,33 @@ export default function DatasetPage() {
   const [minScore, setMinScore] = useState(0);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   async function fetchData() {
     setLoading(true);
+    setError(null);
     try {
       const [statsRes, papersRes, podiumRes] = await Promise.all([
         fetch(`${API}/dataset/stats`),
         fetch(`${API}/dataset/papers?limit=100&min_score=${minScore}&verified_only=${verifiedOnly}`),
         fetch(`${API}/podium`),
       ]);
-      if (statsRes.ok) setStats(await statsRes.json());
-      if (papersRes.ok) {
-        const data = await papersRes.json();
-        setPapers(data.papers || []);
+
+      if (!statsRes.ok || !papersRes.ok) {
+        throw new Error(`Dataset API unavailable (${statsRes.status}/${papersRes.status})`);
       }
+
+      setStats(await statsRes.json());
+      const data = await papersRes.json();
+      setPapers(data.papers || []);
+
       if (podiumRes.ok) {
-        const data = await podiumRes.json();
-        setPodium(data.podium || []);
+        const podiumData = await podiumRes.json();
+        setPodium(podiumData.podium || []);
       }
     } catch (e) {
       console.error("Dataset fetch error:", e);
+      setError("The dataset service is temporarily unavailable. Please retry in a moment.");
     }
     setLoading(false);
   }
@@ -298,6 +305,10 @@ export default function DatasetPage() {
         {loading ? (
           <div className="text-center py-12 text-[#52504e] font-mono text-sm">
             Loading dataset...
+          </div>
+        ) : error ? (
+          <div className="text-center py-12 text-red-400 font-mono text-sm">
+            {error}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-[#52504e] font-mono text-sm">
