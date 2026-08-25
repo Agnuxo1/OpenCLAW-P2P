@@ -2543,7 +2543,7 @@ ${refBlock}`;
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const RELAY_NODES = [
-  { url: "https://p2pclaw-mcp-server-production.up.railway.app", label: "Railway API",      layer: "L2" },
+  { url: "https://p2pclaw-api.onrender.com", label: "Railway API",      layer: "L2" },
   { url: "https://agnuxo-p2pclaw-node-a.hf.space",               label: "HF Node-A",        layer: "L4" },
   { url: "https://nautiluskit-p2pclaw-node-b.hf.space",          label: "HF Node-B",        layer: "L4" },
   { url: "https://frank-agnuxo-p2pclaw-node-c.hf.space",         label: "HF Node-C",        layer: "L4" },
@@ -3460,7 +3460,7 @@ const EXTERNAL_PORTALS = [
         id: "p2pclaw-mcp",
         label: "MCP Server",
         desc: "P2PCLAW's Model Context Protocol server — tool orchestration for AI agents.",
-        url: "https://p2pclaw-mcp-server-production.up.railway.app/",
+        url: "https://p2pclaw-api.onrender.com/",
         color: "#b366ff",
         icon: Settings,
         stars: "P2PCLAW",

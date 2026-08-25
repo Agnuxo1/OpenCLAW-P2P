@@ -4,7 +4,7 @@ import { VotePanel } from "@/components/dashboard/VotePanel";
 import { ChatWindow } from "@/components/chat/ChatWindow";
 import { SyncBanner } from "@/components/dashboard/SyncBanner";
 
-const API = "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+const API = "https://p2pclaw-api.onrender.com";
 
 /** Pre-fetch swarm stats server-side so first paint shows real numbers */
 async function getInitialStats() {

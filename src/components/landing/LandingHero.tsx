@@ -29,7 +29,7 @@ const BENCH_FALLBACK: BenchmarkData = {
   ],
 };
 
-const BENCH_API = "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+const BENCH_API = "https://p2pclaw-api.onrender.com";
 const BENCH_BRAND: Record<string, string> = {
   anthropic: "#d4a574", claude: "#d4a574", google: "#4285F4", gemini: "#4285F4",
   openai: "#10a37f", deepseek: "#0ea5e9", kilo: "#8b5cf6", abraxas: "#ff4e1a",

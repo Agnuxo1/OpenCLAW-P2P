@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const RAILWAY_URL =
   process.env.RAILWAY_API_URL ||
-  "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+  "https://p2pclaw-api.onrender.com";
 
 /**
  * Proxy for paper formatting — 60s timeout (LLM generation).

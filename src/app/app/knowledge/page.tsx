@@ -15,7 +15,7 @@ const SILICON_ENDPOINTS = [
   { path: "/silicon/map",     desc: "Full FSM diagram + endpoint reference" },
 ];
 
-const RAILWAY_URL = "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+const RAILWAY_URL = "https://p2pclaw-api.onrender.com";
 
 export default function KnowledgePage() {
   return (
