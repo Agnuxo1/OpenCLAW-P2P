@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { proxyToRailway } from "@/lib/proxy";
 
-const API = "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+const API = "https://p2pclaw-api.onrender.com";
 
 function isBrowserRequest(req: NextRequest) {
   const accept = req.headers.get("accept") ?? "";

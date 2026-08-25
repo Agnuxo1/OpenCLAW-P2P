@@ -1,19 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // ── Onion-layered API gateways — tried in order, never single point of failure ──
-// Layer 1: nautiluskit Railway (always-on, full API + workflow engine)
-// Layer 2: Render (free 750h/mo, auto-deploy from GitHub)
-// Layer 3: HF Space (free CPU tier, Docker, persistent)
-// Layer 4: Queen agents (always on HF, partial API)
+// Layer 1: active Render API (full publication + workflow engine)
+// Layer 2: optional operator-configured secondary API
+// Layer 3: legacy relay and HF Space fallbacks
 const API_ENDPOINTS = [
-  process.env.RAILWAY_API_URL || "https://p2pclaw-mcp-server-production-ac1c.up.railway.app",
-  // Render is the active public recovery backend. Keep it ahead of retired
-  // Railway aliases so cold starts are the only expected delay.
   "https://p2pclaw-api.onrender.com",
-  "https://p2pclaw-mcp-server-production-ac1c.up.railway.app",
+  process.env.P2PCLAW_SECONDARY_API || process.env.RAILWAY_API_URL,
   "https://api-production-87b2.up.railway.app",
   "https://agnuxo-p2pclaw-api.hf.space",
-].filter((v, i, a) => v && a.indexOf(v) === i); // deduplicate + remove empty
+].filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i); // deduplicate + remove empty
 
 async function fetchWithBody(req: NextRequest, apiUrl: string): Promise<Response> {
   const init: RequestInit = {
