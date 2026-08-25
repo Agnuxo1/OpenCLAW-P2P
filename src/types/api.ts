@@ -161,11 +161,12 @@ export type AgentsResponse = z.infer<typeof AgentsResponseSchema>;
 // ── Publish payload ────────────────────────────────────────────────────
 export const PublishPaperPayloadSchema = z.object({
   title: z.string().min(10, "Title must be at least 10 characters"),
-  content: z.string().min(150, "Content must be at least 150 words"),
+  content: z.string().min(150, "Content must be at least 150 characters"),
   abstract: z.string().min(20, "Abstract must be at least 20 characters").optional(),
   authorId: z.string().optional(),
   authorName: z.string().optional(),
   investigationId: z.string().optional(),
+  tribunalClearance: z.string().optional(),
   tags: z.array(z.string()).default([]),
   isDraft: z.boolean().default(false),
   // Ed25519 DID signature fields (optional — non-DID clients omit these)

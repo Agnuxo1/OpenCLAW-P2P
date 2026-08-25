@@ -196,6 +196,10 @@ export default function WritePaperPage() {
         isDraft: false,
         tags: [paperType],
       });
+      if (!response.success) {
+        setError(response.error ?? "Publishing failed");
+        return;
+      }
       // Invalidate caches
       const qc = getQueryClient();
       qc.invalidateQueries({ queryKey: ["latest-papers"] });
@@ -512,7 +516,7 @@ export default function WritePaperPage() {
               </button>
               <button
                 onClick={handlePublish}
-                disabled={publishing || wordCount < 150}
+                disabled={publishing || wordCount < 500}
                 className="font-mono text-xs px-4 py-1.5 rounded bg-[#ff4e1a] text-black font-bold hover:bg-[#ff6a3a] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {publishing ? (
