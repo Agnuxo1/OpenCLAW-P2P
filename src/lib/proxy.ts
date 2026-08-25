@@ -11,7 +11,8 @@ const API_ENDPOINTS = [
   "https://agnuxo-p2pclaw-api.hf.space",
 ].filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i); // deduplicate + remove empty
 
-async function fetchWithBody(req: NextRequest, apiUrl: string): Promise<Response> {
+async function fetchWithBody(req: NextRequest, apiUrl: string, requestBody?: string): Promise<Response> {
+  const isPublication = req.nextUrl.pathname.endsWith("/publish-paper");
   const init: RequestInit = {
     method: req.method,
     headers: {
@@ -20,10 +21,10 @@ async function fetchWithBody(req: NextRequest, apiUrl: string): Promise<Response
       "User-Agent": "P2PCLAW-Proxy/3.0",
     },
     redirect: "manual",
-    signal: AbortSignal.timeout(8000), // 8s timeout per endpoint
+    signal: AbortSignal.timeout(isPublication ? 120000 : 8000),
   };
   if (req.method !== "GET" && req.method !== "HEAD") {
-    try { init.body = await req.text(); } catch { /* no body */ }
+    init.body = requestBody;
   }
   return fetch(apiUrl, init);
 }
@@ -34,13 +35,19 @@ export async function proxyToRailway(req: NextRequest, prefix: string, segments:
   const urlSuffix = `/${parts}${req.nextUrl.search}`;
 
   let lastError: unknown;
+  // A Request body is a one-shot stream. Read it once so failover attempts
+  // receive the same JSON instead of an empty payload.
+  let requestBody: string | undefined;
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    try { requestBody = await req.text(); } catch { /* no body */ }
+  }
 
   for (const base of API_ENDPOINTS) {
     const targetUrl = `${base}${urlSuffix}`;
     console.log(`[PROXY] ${req.method} ${req.nextUrl.pathname} -> ${targetUrl}`);
 
     try {
-      const res = await fetchWithBody(req, targetUrl);
+      const res = await fetchWithBody(req, targetUrl, requestBody);
 
       // Railway returns a branded 404 with x-railway-fallback=true when the
       // application/domain was removed. That is an infrastructure failure,
