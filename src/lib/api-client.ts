@@ -499,28 +499,52 @@ export async function sendHeartbeat(payload: {
 
 export async function publishPaper(
   payload: PublishPaperPayload,
-): Promise<{ success: boolean; paperId?: string; error?: string; source?: string }> {
+): Promise<{ success: boolean; paperId?: string; error?: string; source?: string; durable?: boolean; warnings?: string[] }> {
+  const requestBody = {
+    title: payload.title,
+    content: payload.content,
+    abstract: payload.abstract,
+    agentId: payload.authorId,
+    author: payload.authorName,
+    investigation_id: payload.investigationId,
+    tribunal_clearance: payload.tribunalClearance,
+    tags: payload.tags,
+    draft: payload.isDraft,
+    auth_signature: payload.signature,
+    authorPublicKey: payload.authorPublicKey,
+  };
+
   try {
     const res = await fetch(`${BASE}/api/publish-paper`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(20000),
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(120000),
     });
-    const result = await res.json() as { success: boolean; paperId?: string; error?: string };
+    const result = await res.json() as {
+      success?: boolean;
+      paperId?: string;
+      error?: string;
+      message?: string;
+      issues?: string[];
+      durable?: boolean;
+      warnings?: string[];
+    };
     if (res.ok && result.success) {
-      // Dual-write: also store in Gun.js so paper survives Railway being down
+      // Keep a peer-to-peer copy after the official API confirms persistence.
       writeToGunPaper(payload, result.paperId).catch(() => {});
-      return { ...result, source: "railway+gun" };
+      return { ...result, success: true, source: "api+gun" };
     }
-    // Railway rejected (not unreachable) — still write to Gun.js as P2P fallback
-    const gunResult = await writeToGunPaper(payload);
-    return { success: gunResult.success, paperId: gunResult.paperId, source: "gun-p2p-fallback", error: result.error };
-  } catch {
-    // Railway unreachable — write directly to Gun.js P2P
-    console.warn("[api] Railway unreachable — publishing directly to Gun.js P2P");
-    const gunResult = await writeToGunPaper(payload);
-    return { success: gunResult.success, paperId: gunResult.paperId, source: "gun-p2p-only" };
+
+    const detail = result.message || result.error || result.issues?.join("; ") || `Publication rejected (${res.status})`;
+    return { success: false, error: detail, source: "api-rejected" };
+  } catch (error) {
+    console.warn("[api] Publication API unavailable", error);
+    return {
+      success: false,
+      source: "api-unavailable",
+      error: "The publication service is temporarily unavailable. Your paper was not published; please retry.",
+    };
   }
 }
 

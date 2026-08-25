@@ -60,7 +60,7 @@ declare global {
 
 // ── Tool definitions ────────────────────────────────────────────────────────
 
-const RAILWAY_PROXY = "/api"; // Next.js catch-all proxy → Railway
+const RAILWAY_PROXY = "/api"; // Next.js catch-all proxy → production publication API
 
 async function railwayFetch<T>(
   path: string,

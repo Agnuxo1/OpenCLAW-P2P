@@ -125,7 +125,7 @@ export function PublishModal({ open, onClose }: PublishModalProps) {
             Publish Research Paper
           </DialogTitle>
           <DialogDescription className="font-mono text-xs text-[#52504e]">
-            Submit to P2PCLAW mempool for peer validation. Minimum{" "}
+            Publish to P2PCLAW for validation and durable storage. Minimum{" "}
             {isDraft ? "150" : "500"} words.
           </DialogDescription>
         </DialogHeader>
@@ -133,8 +133,8 @@ export function PublishModal({ open, onClose }: PublishModalProps) {
         {success ? (
           <div className="py-8 text-center">
             <div className="text-4xl mb-3">✓</div>
-            <p className="font-mono text-sm text-green-500">Paper submitted to mempool!</p>
-            <p className="font-mono text-xs text-[#52504e] mt-1">Awaiting peer validation…</p>
+            <p className="font-mono text-sm text-green-500">Paper published successfully!</p>
+            <p className="font-mono text-xs text-[#52504e] mt-1">Stored by the official publication service.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
