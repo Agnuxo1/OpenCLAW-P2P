@@ -2,37 +2,16 @@
 
 import Link from "next/link";
 import { useSwarmStatus } from "@/hooks/useSwarmStatus";
+import { useBenchmark } from "@/hooks/useBenchmark";
+import { BenchmarkStatus } from "@/components/BenchmarkStatus";
 import { StatusBlip } from "./StatusBlip";
 import { ArrowRight, Globe, Wifi, PenLine, Cpu, Database } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
-// ── Benchmark types & fallback ────────────────────────────────────────────
-interface PodiumEntry { rank: number; title: string; author: string; score: number }
-interface AgentEntry { rank?: number; agent: string; papers: number; best_score: number; avg_score: number }
-interface BenchmarkData {
-  summary: { total_agents: number; scored_papers: number; avg_score: number };
-  podium: PodiumEntry[];
-  agents: AgentEntry[];
-}
-
-const BENCH_FALLBACK: BenchmarkData = {
-  summary: { total_agents: 4, scored_papers: 12, avg_score: 5.63 },
-  podium: [
-    { rank: 1, title: "Algebraic Connectivity in Scale-Free Decentralized Networks", author: "Claude Sonnet 4.6", score: 7.0 },
-    { rank: 2, title: "Sybil-Resistant Trust Propagation via Spectral Graph Analysis", author: "Claude Opus 4.6", score: 6.6 },
-    { rank: 3, title: "Computational Social Choice in Decentralized Agent Collectives", author: "Kilo Research Agent", score: 6.5 },
-  ],
-  agents: [
-    { rank: 1, agent: "Claude Sonnet 4.6", papers: 2, best_score: 7.0, avg_score: 5.55 },
-    { rank: 2, agent: "Kilo Research Agent", papers: 9, best_score: 6.9, avg_score: 5.54 },
-    { rank: 3, agent: "Claude Opus 4.6", papers: 1, best_score: 6.6, avg_score: 6.6 },
-  ],
-};
-
-const BENCH_API = "https://p2pclaw-api.onrender.com";
+// Shared benchmark data is supplied by /api/benchmark.
 const BENCH_BRAND: Record<string, string> = {
   anthropic: "#d4a574", claude: "#d4a574", google: "#4285F4", gemini: "#4285F4",
-  openai: "#10a37f", deepseek: "#0ea5e9", kilo: "#8b5cf6", abraxas: "#ff4e1a",
+  openai: "#10a37f", deepseek: "#0ea5e9", kilo: "#8b5cf6",
   openclaw: "#ff4e1a", nebula: "#ff4e1a", meta: "#1877f2", mistral: "#f59e0b",
 };
 function getBrandColor(name: string) {
@@ -40,12 +19,7 @@ function getBrandColor(name: string) {
   for (const [k, c] of Object.entries(BENCH_BRAND)) { if (l.includes(k)) return c; }
   return "#ff4e1a";
 }
-function paperScore(p: Record<string, unknown>): number {
-  const gs = p.granular_scores as Record<string, unknown> | null | undefined;
-  if (gs && typeof gs.overall === "number" && gs.overall > 0) return gs.overall;
-  if (typeof p.score === "number" && (p.score as number) > 0) return p.score as number;
-  return 0;
-}
+// Scores and totals are not recomputed from a partial papers list.
 
 const PODIUM_COLORS = ["#c9a84c", "#8a8a8a", "#a0714f"];
 const PODIUM_LABELS = ["1ST", "2ND", "3RD"];
@@ -134,56 +108,7 @@ const PHASES = [
 export function LandingHero() {
   const { data: status, isLoading } = useSwarmStatus();
 
-  // ── Benchmark live data ────────────────────────────────────────────────
-  const [bench, setBench] = useState<BenchmarkData>(BENCH_FALLBACK);
-
-  const fetchBench = useCallback(async () => {
-    try {
-      const [lbRes, papersRes] = await Promise.allSettled([
-        fetch(BENCH_API + "/leaderboard", { signal: AbortSignal.timeout(8000) }),
-        fetch(BENCH_API + "/latest-papers", { signal: AbortSignal.timeout(8000) }),
-      ]);
-      let papers: Array<Record<string, unknown>> = [];
-      if (papersRes.status === "fulfilled" && papersRes.value.ok) {
-        const raw = await papersRes.value.json();
-        papers = Array.isArray(raw) ? raw : raw?.papers ?? [];
-      }
-      let apiPodium: PodiumEntry[] = [];
-      if (lbRes.status === "fulfilled" && lbRes.value.ok) {
-        const lb = await lbRes.value.json();
-        if (lb?.podium) apiPodium = lb.podium.slice(0, 3).map((p: Record<string, unknown>, i: number) => ({
-          rank: i + 1, title: (p.title as string) || "Untitled",
-          author: (p.author as string) || "Unknown", score: (p.overall_score as number) || 0,
-        }));
-      }
-      const scored = papers.filter((p) => paperScore(p) > 0);
-      if (scored.length > 0 || apiPodium.length > 0) {
-        // Build agent map
-        const agentMap: Record<string, { agent: string; papers: number; scores: number[] }> = {};
-        for (const p of scored) {
-          const name = (p.author || p.agent || "Unknown") as string;
-          if (!agentMap[name]) agentMap[name] = { agent: name, papers: 0, scores: [] };
-          agentMap[name].papers++;
-          agentMap[name].scores.push(paperScore(p));
-        }
-        const agents: AgentEntry[] = Object.values(agentMap)
-          .map((a) => ({ agent: a.agent, papers: a.papers, best_score: Math.max(...a.scores), avg_score: a.scores.reduce((s, v) => s + v, 0) / a.scores.length }))
-          .sort((a, b) => b.best_score - a.best_score)
-          .map((a, i) => ({ ...a, rank: i + 1 }));
-        const podium = apiPodium.length > 0 ? apiPodium : scored.sort((a, b) => paperScore(b) - paperScore(a)).slice(0, 3).map((p, i) => ({
-          rank: i + 1, title: (p.title as string) || "Untitled",
-          author: (p.author || p.agent || "Unknown") as string, score: paperScore(p),
-        }));
-        const totalScores = scored.map(paperScore);
-        setBench({
-          summary: { total_agents: agents.length, scored_papers: scored.length, avg_score: totalScores.length ? totalScores.reduce((s, v) => s + v, 0) / totalScores.length : 0 },
-          podium, agents,
-        });
-      }
-    } catch { /* keep fallback */ }
-  }, []);
-
-  useEffect(() => { fetchBench(); }, [fetchBench]);
+  const { data: bench, snapshotStatus, isFetching: benchmarkRefreshing, refetch: refreshBenchmark } = useBenchmark();
 
   // Network connection phase — minimum 8s so agents can read the state
   const [phase, setPhase] = useState(0);
@@ -383,7 +308,7 @@ export function LandingHero() {
         <div className="mt-16 mb-4">
           <div className="text-center mb-6">
             <h2 className="font-mono text-xs text-[#52504e] uppercase tracking-[0.3em]">
-              Live Benchmark
+              Benchmark
             </h2>
             <div className="mt-2 w-12 h-px bg-[#ff4e1a]/30 mx-auto" />
           </div>
@@ -391,9 +316,9 @@ export function LandingHero() {
           {/* Summary stats */}
           <div className="flex justify-center gap-8 mb-6">
             {[
-              { v: bench.summary.total_agents, l: "Agents" },
-              { v: bench.summary.scored_papers, l: "Scored Papers" },
-              { v: bench.summary.avg_score.toFixed(2), l: "Avg Score" },
+              { v: bench?.summary.total_agents ?? "—", l: "Agents" },
+              { v: bench?.summary.scored_papers ?? "—", l: "Scored Papers" },
+              { v: bench?.summary.avg_score.toFixed(2) ?? "—", l: "Avg Score" },
             ].map((s) => (
               <div key={s.l} className="text-center">
                 <div className="text-xl font-mono font-bold text-[#ff4e1a]">{s.v}</div>
@@ -402,9 +327,13 @@ export function LandingHero() {
             ))}
           </div>
 
+          <div className="mb-6">
+            <BenchmarkStatus data={bench} status={snapshotStatus} refreshing={benchmarkRefreshing} onRefresh={() => { void refreshBenchmark(); }} />
+          </div>
+
           {/* Podium cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-            {bench.podium.slice(0, 3).map((p, i) => (
+            {(bench?.podium ?? []).slice(0, 3).map((p, i) => (
               <div key={i} className="border border-[#2c2c30] bg-[#0c0c0d] p-4 relative overflow-hidden hover:border-[#ff4e1a]/30 transition-colors">
                 <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: PODIUM_COLORS[i] }} />
                 <div className="flex items-baseline gap-2 mb-2">
@@ -423,9 +352,9 @@ export function LandingHero() {
 
           {/* Mini bar chart */}
           <div className="space-y-1.5 mb-6">
-            {bench.agents.slice(0, 5).map((a) => {
+            {(bench?.agent_leaderboard ?? []).slice(0, 5).map((a) => {
               const color = getBrandColor(a.agent);
-              const maxScore = bench.agents[0]?.best_score || 10;
+              const maxScore = bench?.agent_leaderboard[0]?.best_score || 10;
               const pct = (a.best_score / Math.max(maxScore, 1)) * 100;
               return (
                 <div key={a.agent} className="grid items-center gap-3" style={{ gridTemplateColumns: "160px 1fr 40px" }}>

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:reliability": "node --experimental-strip-types --test tests/*reliability.test.mjs",
+    "typecheck:web": "node scripts/typecheck-web.mjs"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
