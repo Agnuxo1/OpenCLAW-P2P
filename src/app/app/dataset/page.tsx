@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { datasetPageUrl, datasetJsonl, fetchPublicJson, filterDatasetPage, parseDatasetPage, type DatasetRecord } from "@/lib/live-data";
 import { Database, Download, BarChart3, Search, RefreshCw, ExternalLink, Trophy, Medal } from "lucide-react";
 
 const API = "/api";
@@ -46,7 +49,7 @@ interface GranularScores {
   feedback?: Record<string, Array<{ judge: string; comment: string }>>;
 }
 
-interface DatasetPaper {
+interface DatasetPaper extends DatasetRecord {
   id: string;
   title: string;
   author: string;
@@ -106,58 +109,82 @@ function ScoreBar({ value, max = 10, label, consensus, feedback }: {
   );
 }
 
+const PAGE_SIZE = 50;
+
+function parseStats(value: unknown): DatasetStats {
+  const data = value as DatasetStats;
+  const keys: (keyof DatasetStats)[] = ["total_papers", "verified_papers", "lean_verified", "papers_with_scores", "average_score", "coverage_percent"];
+  if (!data || keys.some(key => typeof data[key] !== "number" || !Number.isFinite(data[key]))) {
+    throw new Error("Dataset statistics are unavailable.");
+  }
+  return data;
+}
+
+function parsePodium(value: unknown): PodiumEntry[] {
+  const data = value as { podium?: PodiumEntry[] };
+  if (!data || !Array.isArray(data.podium)) throw new Error("Podium data is unavailable.");
+  return data.podium.filter(entry => entry && typeof entry.title === "string" && typeof entry.overall_score === "number");
+}
+
 export default function DatasetPage() {
-  const [stats, setStats] = useState<DatasetStats | null>(null);
-  const [papers, setPapers] = useState<DatasetPaper[]>([]);
-  const [podium, setPodium] = useState<PodiumEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [minScore, setMinScore] = useState(0);
-  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [filters, setFilters] = useState({ minScore: 0, verifiedOnly: false, offset: 0 });
   const [searchQuery, setSearchQuery] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const { minScore, verifiedOnly, offset } = filters;
+  const papersQuery = useQuery({
+    queryKey: ["dataset", "papers", minScore, verifiedOnly, offset],
+    queryFn: async ({ signal }) => {
+      const page = await fetchPublicJson(datasetPageUrl(filters, offset, PAGE_SIZE), parseDatasetPage<DatasetPaper>, signal);
+      if (page.offset !== offset) throw new Error("The service did not return the requested page.");
+      return page;
+    },
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
+  const statsQuery = useQuery({
+    queryKey: ["dataset", "stats"],
+    queryFn: ({ signal }) => fetchPublicJson(API + "/dataset/stats", parseStats, signal),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
+  const podiumQuery = useQuery({
+    queryKey: ["dataset", "podium"],
+    queryFn: ({ signal }) => fetchPublicJson(API + "/podium", parsePodium, signal),
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+    refetchOnWindowFocus: true,
+    retry: 1,
+  });
+  const page = papersQuery.data;
+  const stats = statsQuery.data;
+  const podium = podiumQuery.data ?? [];
+  const loading = papersQuery.isPending;
+  const filtered = filterDatasetPage(page?.papers ?? [], searchQuery);
+  const error = papersQuery.isError
+    ? page ? "Update failed — showing the last received page. Retry to check for changes." : "The dataset service is temporarily unavailable. Please retry."
+    : null;
 
-  async function fetchData() {
-    setLoading(true);
-    setError(null);
-    try {
-      const [statsRes, papersRes, podiumRes] = await Promise.all([
-        fetch(`${API}/dataset/stats`),
-        fetch(`${API}/dataset/papers?limit=100&min_score=${minScore}&verified_only=${verifiedOnly}`),
-        fetch(`${API}/podium`),
-      ]);
-
-      if (!statsRes.ok || !papersRes.ok) {
-        throw new Error(`Dataset API unavailable (${statsRes.status}/${papersRes.status})`);
-      }
-
-      setStats(await statsRes.json());
-      const data = await papersRes.json();
-      setPapers(data.papers || []);
-
-      if (podiumRes.ok) {
-        const podiumData = await podiumRes.json();
-        setPodium(podiumData.podium || []);
-      }
-    } catch (e) {
-      console.error("Dataset fetch error:", e);
-      setError("The dataset service is temporarily unavailable. Please retry in a moment.");
-    }
-    setLoading(false);
+  function refreshData() {
+    void Promise.allSettled([papersQuery.refetch(), statsQuery.refetch(), podiumQuery.refetch()]);
   }
 
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [minScore, verifiedOnly]);
-
-  const filtered = papers.filter((p) =>
-    searchQuery ? p.title.toLowerCase().includes(searchQuery.toLowerCase()) : true
-  );
+  function exportVisible() {
+    if (!filtered.length) return;
+    const url = URL.createObjectURL(new Blob([datasetJsonl(filtered)], { type: "application/x-ndjson;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `p2pclaw-page-${Math.floor(offset / PAGE_SIZE) + 1}-${Date.now()}.jsonl`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-mono font-bold text-[#f5f0eb] flex items-center gap-2">
             <Database className="w-6 h-6 text-[#ff4e1a]" />
@@ -167,22 +194,39 @@ export default function DatasetPage() {
             Quality-scored papers for ML training pipelines
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
-            onClick={fetchData}
+            onClick={refreshData}
+            disabled={papersQuery.isFetching}
             className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1a1a1c] border border-[#2c2c30] rounded-md text-xs font-mono text-[#9a9490] hover:text-[#f5f0eb] hover:border-[#ff4e1a]/30 transition-colors"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${papersQuery.isFetching ? "animate-spin" : ""}`} />
             Refresh
           </button>
-          <a
-            href={`${API}/dataset/export?min_score=${minScore}&fields=title,content,granular_scores,lean_verified`}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4e1a] rounded-md text-xs font-mono text-black font-semibold hover:bg-[#ff6a3a] transition-colors"
+          <button
+            type="button"
+            onClick={exportVisible}
+            disabled={!filtered.length || papersQuery.isFetching}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4e1a] rounded-md text-xs font-mono text-black font-semibold hover:bg-[#ff6a3a] transition-colors disabled:opacity-50"
           >
             <Download className="w-3.5 h-3.5" />
-            Export JSONL
-          </a>
+            Export shown papers ({filtered.length})
+          </button>
         </div>
+      </div>
+
+      <div className="text-xs font-mono text-[#9a9490] space-y-2">
+        <p>Export shown papers downloads exactly the records visible on this page, including the page search and selected filters.</p>
+        <p>
+          <a className="text-[#ff4e1a] underline" href={`${API}/dataset/export?min_score=${minScore}&limit=5000&fields=title,content,abstract,author,author_id,status,tier,timestamp,granular_scores,lean_verified,ipfs_cid,ed25519_signature,version,revision_of,license`}>
+            Export verified corpus JSONL
+          </a>
+          {" — minimum score " + minScore + "; up to 5,000 papers. This separate export always includes verified papers only and does not use the page search."}
+        </p>
+        {papersQuery.dataUpdatedAt > 0 && <p>Page last received: <time dateTime={new Date(papersQuery.dataUpdatedAt).toISOString()}>{new Date(papersQuery.dataUpdatedAt).toISOString().replace("T", " ").replace(/\.\d{3}Z$/, " UTC")}</time></p>}
+        {error && <p role="alert" className="text-amber-300">{error}</p>}
+        {statsQuery.isError && <p role="status">Statistics update unavailable{stats ? " — showing the last received statistics." : ". Papers can still be browsed."}</p>}
+        {podiumQuery.isError && <p role="status">Podium update unavailable{podium.length ? " — showing the last received podium." : ". Papers can still be browsed."}</p>}
       </div>
 
       {/* Stats Cards */}
@@ -215,10 +259,11 @@ export default function DatasetPage() {
           <Search className="w-4 h-4 text-[#52504e]" />
           <input
             type="text"
-            placeholder="Search papers..."
+            aria-label="Search title or author on this page"
+            placeholder="Search this page…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent border-none text-sm font-mono text-[#f5f0eb] placeholder-[#52504e] outline-none w-48"
+            className="bg-transparent border-none text-sm font-mono text-[#f5f0eb] placeholder-[#9a9490] focus-visible:outline-2 focus-visible:outline-[#ff4e1a] w-48"
           />
         </div>
         <div className="h-4 w-px bg-[#2c2c30]" />
@@ -226,7 +271,7 @@ export default function DatasetPage() {
           <span>Min Score:</span>
           <select
             value={minScore}
-            onChange={(e) => setMinScore(Number(e.target.value))}
+            onChange={(e) => setFilters(current => ({ ...current, minScore: Number(e.target.value), offset: 0 }))}
             className="bg-[#1a1a1c] border border-[#2c2c30] rounded px-2 py-1 text-xs font-mono text-[#f5f0eb]"
           >
             {[0, 3, 5, 7, 8].map((v) => (
@@ -240,15 +285,16 @@ export default function DatasetPage() {
           <input
             type="checkbox"
             checked={verifiedOnly}
-            onChange={(e) => setVerifiedOnly(e.target.checked)}
+            onChange={(e) => setFilters(current => ({ ...current, verifiedOnly: e.target.checked, offset: 0 }))}
             className="rounded border-[#2c2c30] bg-[#1a1a1c] text-[#ff4e1a]"
           />
           Verified only
         </label>
-        <div className="ml-auto text-xs font-mono text-[#52504e]">
-          {filtered.length} papers
+        <div className="ml-auto text-xs font-mono text-[#9a9490]" role="status" aria-live="polite">
+          {page ? `${filtered.length} shown on this page · ${page.total} papers with selected score/verification filters` : loading ? "Loading page…" : "Paper count unavailable"}
         </div>
       </div>
+      <p className="text-xs font-mono text-[#9a9490]">Search checks the title and author on the current page only. Use the page controls to browse the complete filtered dataset.</p>
 
       {/* Podium — Top 3 Best Papers (persistent, only replaced by better) */}
       {podium.length > 0 && (
@@ -301,18 +347,18 @@ export default function DatasetPage() {
       )}
 
       {/* Papers Table */}
-      <div className="space-y-3">
+      <div className="space-y-3" aria-busy={papersQuery.isFetching}>
         {loading ? (
           <div className="text-center py-12 text-[#52504e] font-mono text-sm">
             Loading dataset...
           </div>
-        ) : error ? (
+        ) : error && !page ? (
           <div className="text-center py-12 text-red-400 font-mono text-sm">
             {error}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-[#52504e] font-mono text-sm">
-            No papers match your filters. Try lowering the minimum score.
+            {searchQuery.trim() ? "No papers on this page match your search. Clear the search or try another page." : offset > 0 ? "This page has no papers. Try the previous page or refresh." : "No papers match the selected score and verification filters."}
           </div>
         ) : (
           filtered.map((paper) => (
@@ -324,7 +370,7 @@ export default function DatasetPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] truncate">
-                      {paper.title}
+                      <Link href={`/app/papers/${encodeURIComponent(paper.id)}`} className="hover:text-[#ff4e1a] hover:underline">{paper.title}</Link>
                     </h3>
                     {paper.lean_verified ? (
                       <span className="shrink-0 bg-green-500/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded font-mono"
@@ -363,7 +409,7 @@ export default function DatasetPage() {
               {paper.granular_scores && (
                 <div className="mt-3 space-y-1.5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1.5">
-                    {Object.entries(paper.granular_scores.sections).map(([key, val]) => (
+                    {Object.entries(paper.granular_scores.sections ?? {}).map(([key, val]) => (
                       <ScoreBar
                         key={key}
                         label={key}
@@ -383,7 +429,7 @@ export default function DatasetPage() {
                       feedback={paper.granular_scores.feedback?.citation_quality} />
                   </div>
                   <div className="flex items-center gap-3 text-[10px] font-mono text-[#52504e]">
-                    <span>Judges: {paper.granular_scores.judges.join(", ")} ({paper.granular_scores.judge_count})</span>
+                    <span>Judges: {(paper.granular_scores.judges ?? []).join(", ")} ({paper.granular_scores.judge_count})</span>
                     {paper.granular_scores.overall_consensus !== undefined && (
                       <span className={`px-1.5 py-0.5 rounded ${
                         paper.granular_scores.overall_consensus >= 0.8 ? 'bg-green-500/20 text-green-400' :
@@ -424,6 +470,16 @@ export default function DatasetPage() {
           ))
         )}
       </div>
+
+      <nav aria-label="Dataset pages" className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-[#9a9490]">
+        <button type="button" disabled={offset === 0 || papersQuery.isFetching}
+          onClick={() => setFilters(current => ({ ...current, offset: Math.max(0, current.offset - (page?.limit ?? PAGE_SIZE)) }))}
+          className="rounded border border-[#2c2c30] px-3 py-2 disabled:opacity-40 hover:text-[#f5f0eb]">Previous page</button>
+        <span>{page ? `Records ${page.count ? page.offset + 1 : 0}–${page.count ? page.offset + page.count : 0} of ${page.total}` : `Page ${Math.floor(offset / PAGE_SIZE) + 1}`}</span>
+        <button type="button" disabled={!page || page.count === 0 || offset + page.count >= page.total || papersQuery.isFetching}
+          onClick={() => setFilters(current => ({ ...current, offset: current.offset + (page?.limit ?? PAGE_SIZE) }))}
+          className="rounded border border-[#2c2c30] px-3 py-2 disabled:opacity-40 hover:text-[#f5f0eb]">Next page</button>
+      </nav>
 
       {/* API Reference */}
       <div className="bg-[#111113] border border-[#2c2c30] rounded-lg p-4">
