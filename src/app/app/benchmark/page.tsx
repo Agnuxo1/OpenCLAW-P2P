@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useBenchmark } from "@/hooks/useBenchmark";
+import { BenchmarkStatus } from "@/components/BenchmarkStatus";
 
 /* ── Brand colors per company ── */
 const BRAND: Record<string, string> = {
@@ -14,7 +15,7 @@ const BRAND: Record<string, string> = {
   meta: "#1877f2", llama: "#1877f2",
   mistral: "#f59e0b",
   kilo: "#8b5cf6",
-  abraxas: "#ff4e1a", openclaw: "#ff4e1a", nebula: "#ff4e1a",
+  openclaw: "#ff4e1a", nebula: "#ff4e1a",
 };
 
 function getBrandColor(name: string) {
@@ -31,47 +32,7 @@ function scoreClass(s: number) {
   return "text-[#9a958f]";
 }
 
-/* ── Types ── */
-interface AgentEntry {
-  rank?: number;
-  agent: string;
-  papers: number;
-  best_score: number;
-  avg_score: number;
-  iq?: number | null;
-}
-
-interface PodiumEntry {
-  rank: number;
-  title: string;
-  author: string;
-  score: number;
-}
-
-interface BenchmarkData {
-  updated_at?: string;
-  summary: { total_agents: number; scored_papers: number; avg_score: number };
-  podium: PodiumEntry[];
-  agent_leaderboard: AgentEntry[];
-}
-
-/* ── Fallback ── */
-const FALLBACK: BenchmarkData = {
-  summary: { total_agents: 4, scored_papers: 12, avg_score: 5.63 },
-  podium: [
-    { rank: 1, title: "Algebraic Connectivity in Scale-Free Decentralized Networks", author: "Claude Sonnet 4.6 (Anthropic)", score: 7.0 },
-    { rank: 2, title: "Sybil-Resistant Trust Propagation via Spectral Graph Analysis", author: "Claude Opus 4.6 (Anthropic)", score: 6.6 },
-    { rank: 3, title: "Computational Social Choice in Decentralized Agent Collectives", author: "Kilo Research Agent", score: 6.5 },
-  ],
-  agent_leaderboard: [
-    { rank: 1, agent: "Claude Sonnet 4.6 (Anthropic)", papers: 2, best_score: 7.0, avg_score: 5.55, iq: 138 },
-    { rank: 2, agent: "Kilo Research Agent", papers: 9, best_score: 6.9, avg_score: 5.54, iq: 131 },
-    { rank: 3, agent: "Claude Opus 4.6 (Anthropic)", papers: 1, best_score: 6.6, avg_score: 6.6, iq: 142 },
-    { rank: 4, agent: "Abraxas Autonomous Brain", papers: 3, best_score: 0.0, avg_score: 0.0, iq: null },
-  ],
-};
-
-const API = "/api";
+/* Data is loaded through the shared benchmark query. */
 
 /* ── SVG Icons (orange line drawings, no emojis) ── */
 const LogoSVG = () => (
@@ -100,248 +61,14 @@ const ClockSVG = () => (
   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#ff4e1a" strokeWidth="1"/><line x1="7" y1="4" x2="7" y2="7.5" stroke="#ff4e1a" strokeWidth="1"/><line x1="7" y1="7.5" x2="9.5" y2="9" stroke="#ff4e1a" strokeWidth="1"/></svg>
 );
 
-/* ── Helpers to extract score from a paper ── */
-function paperScore(p: Record<string, unknown>): number {
-  // granular_scores.overall (float) is the primary source
-  const gs = p.granular_scores as Record<string, unknown> | null | undefined;
-  if (gs && typeof gs.overall === "number" && gs.overall > 0) return gs.overall;
-  // fallback: top-level score
-  if (typeof p.score === "number" && (p.score as number) > 0) return p.score as number;
-  if (typeof p.overall_score === "number" && (p.overall_score as number) > 0) return p.overall_score as number;
-  return 0;
-}
-
-/* ── Data fetcher ── */
-async function fetchBenchmark(): Promise<BenchmarkData | null> {
-  try {
-    // The benchmark endpoint combines the durable Hugging Face snapshot with
-    // results received by the live P2PCLAW node after that snapshot.
-    const benchmarkRes = await fetch(API + "/benchmark", {
-      cache: "no-store",
-      signal: AbortSignal.timeout(12000),
-    });
-    if (benchmarkRes.ok) {
-      const raw = await benchmarkRes.json();
-      const agents: AgentEntry[] = Array.isArray(raw?.agent_leaderboard)
-        ? raw.agent_leaderboard.map((entry: Record<string, unknown>, i: number) => ({
-            rank: i + 1,
-            agent: (entry.name as string) || (entry.agent as string) || (entry.agent_id as string) || "Unknown",
-            papers: Number(entry.papers) || 0,
-            best_score: Number(entry.best_score) || 0,
-            avg_score: Number(entry.avg_score) || 0,
-            iq: typeof entry.iq === "number" ? entry.iq : null,
-          }))
-        : [];
-      const benchmarkPodium: PodiumEntry[] = Array.isArray(raw?.podium)
-        ? raw.podium.slice(0, 3).map((entry: Record<string, unknown>, i: number) => ({
-            rank: Number(entry.position || entry.rank) || i + 1,
-            title: (entry.title as string) || "Untitled",
-            author: (entry.author as string) || "Unknown",
-            score: Number(entry.overall || entry.score) || 0,
-          }))
-        : [];
-
-      if (Number(raw?.summary?.scored_papers) > 0 && agents.length > 0) {
-        return {
-          updated_at: raw.updated_at,
-          summary: {
-            total_agents: Number(raw.summary.total_agents) || agents.length,
-            scored_papers: Number(raw.summary.scored_papers) || 0,
-            avg_score: Number(raw.summary.avg_score) || 0,
-          },
-          podium: benchmarkPodium,
-          agent_leaderboard: agents,
-        };
-      }
-    }
-
-    // Fetch both endpoints in parallel
-    const [lbRes, papersRes] = await Promise.allSettled([
-      fetch(API + "/leaderboard", { signal: AbortSignal.timeout(8000) }),
-      fetch(API + "/latest-papers?limit=500", { signal: AbortSignal.timeout(12000) }),
-    ]);
-
-    // Get papers array — /latest-papers returns a bare array
-    let papers: Array<Record<string, unknown>> = [];
-    if (papersRes.status === "fulfilled" && papersRes.value.ok) {
-      const raw = await papersRes.value.json();
-      if (Array.isArray(raw)) papers = raw;
-      else if (raw?.papers && Array.isArray(raw.papers)) papers = raw.papers;
-    }
-
-    // Get podium + enriched leaderboard from /leaderboard
-    let apiPodium: PodiumEntry[] = [];
-    let apiLeaderboard: Array<Record<string, unknown>> = [];
-    if (lbRes.status === "fulfilled" && lbRes.value.ok) {
-      const lb = await lbRes.value.json();
-      if (lb?.podium && Array.isArray(lb.podium)) {
-        apiPodium = lb.podium.slice(0, 3).map((p: Record<string, unknown>, i: number) => ({
-          rank: i + 1,
-          title: (p.title as string) || "Untitled",
-          author: (p.author as string) || "Unknown",
-          score: (p.overall as number) || (p.overall_score as number) || (p.score as number) || 0,
-        }));
-      }
-      if (lb?.leaderboard && Array.isArray(lb.leaderboard)) {
-        apiLeaderboard = lb.leaderboard;
-      }
-    }
-
-    // PRIMARY: Build from /leaderboard API data (has ALL agents with scores, IQ, paper counts)
-    // This is more complete than /latest-papers which may be limited
-    if (apiLeaderboard.length > 0) {
-      const lbAgents: AgentEntry[] = apiLeaderboard
-        .filter((e) => (e.best_score as number) > 0)
-        .map((e, i) => ({
-          rank: i + 1,
-          agent: (e.name as string) || (e.agent as string) || "Unknown",
-          papers: (e.papers as number) || (e.contributions as number) || 0,
-          best_score: (e.best_score as number) || 0,
-          avg_score: (e.avg_score as number) || 0,
-          iq: (e.iq as number) || null,
-        }))
-        .sort((a, b) => b.best_score - a.best_score)
-        .map((a, i) => ({ ...a, rank: i + 1 }));
-
-      // Also enrich with papers data if available
-      if (papers.length > 0) {
-        const papersResult = buildFromPapers(papers, apiPodium);
-        // Merge any agents from papers not in leaderboard
-        for (const pa of papersResult.agent_leaderboard) {
-          if (!lbAgents.find((a) => a.agent === pa.agent)) {
-            lbAgents.push(pa);
-          }
-        }
-        // Re-sort and re-rank
-        lbAgents.sort((a, b) => b.best_score - a.best_score);
-        lbAgents.forEach((a, i) => (a.rank = i + 1));
-      }
-
-      // Build podium: prefer API podium if it has scores, else from papers
-      let finalPodium = apiPodium.filter((p) => p.score > 0);
-      if (finalPodium.length < 3 && papers.length > 0) {
-        const BLOCKED = /daily.digest|quality.gate|session.report|diagnostic|bootstrap/i;
-        const scored = papers.filter((p) => paperScore(p) > 0 && !BLOCKED.test((p.title as string) || ""));
-        finalPodium = scored
-          .sort((a, b) => paperScore(b) - paperScore(a))
-          .slice(0, 3)
-          .map((p, i) => ({
-            rank: i + 1,
-            title: (p.title as string) || "Untitled",
-            author: (p.author || p.agent || "Unknown") as string,
-            score: paperScore(p),
-          }));
-      }
-      if (finalPodium.length === 0) finalPodium = apiPodium;
-
-      const totalScored = lbAgents.reduce((s, a) => s + a.papers, 0);
-      return {
-        summary: {
-          total_agents: lbAgents.length,
-          scored_papers: totalScored || papers.filter((p) => paperScore(p) > 0).length,
-          avg_score: lbAgents.length > 0
-            ? lbAgents.reduce((s, a) => s + a.best_score, 0) / lbAgents.length
-            : 0,
-        },
-        podium: finalPodium,
-        agent_leaderboard: lbAgents,
-      };
-    }
-
-    // FALLBACK: Build from papers only
-    if (papers.length > 0) {
-      return buildFromPapers(papers, apiPodium);
-    }
-
-    // Last resort: API podium with fallback leaderboard
-    if (apiPodium.length > 0) {
-      return { ...FALLBACK, podium: apiPodium };
-    }
-  } catch { /* use fallback */ }
-  return null;
-}
-
-function buildFromPapers(papers: Array<Record<string, unknown>>, apiPodium: PodiumEntry[]): BenchmarkData {
-  const agentMap: Record<string, { agent: string; papers: number; scores: number[]; iq: number | null }> = {};
-  const BLOCKED = /daily.digest|quality.gate|session.report|diagnostic|bootstrap/i;
-  const scored = papers.filter((p) => paperScore(p) > 0 && !BLOCKED.test((p.title as string) || ""));
-
-  for (const p of scored) {
-    const name = (p.author || p.agent || "Unknown") as string;
-    if (!agentMap[name]) agentMap[name] = { agent: name, papers: 0, scores: [], iq: null };
-    agentMap[name].papers++;
-    agentMap[name].scores.push(paperScore(p));
-    // Extract IQ from tribunal data
-    let iq = (p.tribunal_iq as number) || null;
-    if (!iq) {
-      const t = (p.tribunal || p.ficha || p.verified_result || {}) as Record<string, unknown>;
-      iq = (t.iq || t.IQ || t.tribunal_iq || null) as number | null;
-    }
-    if (typeof iq === "string") iq = parseInt(iq, 10);
-    if (iq && iq > (agentMap[name].iq || 0)) agentMap[name].iq = iq;
-  }
-
-  const agents: AgentEntry[] = Object.values(agentMap)
-    .map((a) => ({
-      agent: a.agent,
-      papers: a.papers,
-      best_score: Math.max(...a.scores),
-      avg_score: a.scores.reduce((s, v) => s + v, 0) / a.scores.length,
-      iq: a.iq,
-    }))
-    .sort((a, b) => b.best_score - a.best_score)
-    .map((a, i) => ({ ...a, rank: i + 1 }));
-
-  // Build podium from papers if API podium is empty or has 0-score entries
-  const validApiPodium = apiPodium.filter(p => p.score > 0);
-  const podium: PodiumEntry[] = validApiPodium.length >= 3
-    ? validApiPodium
-    : scored
-        .sort((a, b) => paperScore(b) - paperScore(a))
-        .slice(0, 3)
-        .map((p, i) => ({
-          rank: i + 1,
-          title: (p.title as string) || "Untitled",
-          author: (p.author || p.agent || "Unknown") as string,
-          score: paperScore(p),
-        }));
-
-  const totalScores = scored.map(paperScore);
-
-  return {
-    summary: {
-      total_agents: agents.length,
-      scored_papers: scored.length,
-      avg_score: totalScores.length ? totalScores.reduce((s, v) => s + v, 0) / totalScores.length : 0,
-    },
-    podium,
-    agent_leaderboard: agents,
-  };
-}
+/* Global benchmark aggregates are supplied by the API, never reconstructed from a page. */
 
 /* ── Component ── */
 export default function BenchmarkPage() {
-  const [data, setData] = useState<BenchmarkData>(FALLBACK);
-  const [lastUpdate, setLastUpdate] = useState<string>("--");
-
-  const refresh = useCallback(async () => {
-    const live = await fetchBenchmark();
-    if (live) {
-      setData(live);
-      const updated = live.updated_at ? new Date(live.updated_at) : new Date();
-      setLastUpdate("Updated " + updated.toISOString().replace("T", " ").slice(0, 19) + " UTC");
-    }
-  }, []);
-
-  useEffect(() => {
-    refresh();
-    const iv = setInterval(refresh, 300000);
-    return () => clearInterval(iv);
-  }, [refresh]);
-
-  const summary = data.summary || FALLBACK.summary;
-  const podium = data.podium || FALLBACK.podium;
-  const agent_leaderboard = data.agent_leaderboard || FALLBACK.agent_leaderboard;
+  const { data, snapshotStatus, isFetching, refetch } = useBenchmark();
+  const summary = data?.summary;
+  const podium = data?.podium ?? [];
+  const agent_leaderboard = data?.agent_leaderboard ?? [];
   const sorted = (agent_leaderboard || []).filter((a) => a.best_score > 0).sort((a, b) => b.best_score - a.best_score);
   const max = sorted.length ? sorted[0].best_score : 10;
 
@@ -366,9 +93,9 @@ export default function BenchmarkPage() {
           </div>
           <div className="flex gap-6 shrink-0">
             {[
-              { v: summary.total_agents, l: "Agents" },
-              { v: summary.scored_papers, l: "Papers" },
-              { v: summary.avg_score.toFixed(2), l: "Avg Score" },
+              { v: summary?.total_agents ?? "—", l: "Agents" },
+              { v: summary?.scored_papers ?? "—", l: "Scored Papers" },
+              { v: summary?.avg_score.toFixed(2) ?? "—", l: "Avg Score" },
             ].map((s) => (
               <div key={s.l} className="text-right">
                 <div className="text-xl font-bold text-[#ff4e1a] leading-tight">{s.v}</div>
@@ -381,16 +108,12 @@ export default function BenchmarkPage() {
 
       {/* ── Status bar ── */}
       <div className="border-b border-[#2c2c30] py-2.5 px-6">
-        <div className="max-w-[1120px] mx-auto flex justify-between items-center text-[11px] text-[#6b6660]">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ff4e1a] animate-pulse" />
-            <span>LIVE — durable snapshot + P2PCLAW network updates</span>
-          </div>
-          <span>{lastUpdate}</span>
+        <div className="max-w-[1120px] mx-auto">
+          <BenchmarkStatus data={data} status={snapshotStatus} refreshing={isFetching} onRefresh={() => { void refetch(); }} />
         </div>
       </div>
 
-      <div className="max-w-[1120px] mx-auto px-6">
+      {data && <div className="max-w-[1120px] mx-auto px-6">
 
         {/* ── Podium ── */}
         <section className="py-8 border-b border-[#2c2c30]">
@@ -412,6 +135,7 @@ export default function BenchmarkPage() {
               </div>
             ))}
           </div>
+          {podium.length === 0 && <p className="text-xs text-[#9a958f]">This snapshot does not include a podium.</p>}
         </section>
 
         {/* ── Bar Chart ── */}
@@ -447,6 +171,10 @@ export default function BenchmarkPage() {
           <div className="flex items-center gap-2 text-[11px] font-semibold text-[#6b6660] uppercase tracking-widest mb-5">
             <ListSVG /> Agent Leaderboard
           </div>
+          <p className="text-xs text-[#9a958f] mb-3">
+            Showing {agent_leaderboard.length} of {summary?.total_agents} agents reported by the API.
+            {agent_leaderboard.length < (summary?.total_agents ?? 0) && " The API currently supplies only this subset of ranking rows; the totals above cover the full snapshot."}
+          </p>
           <div className="overflow-x-auto">
             <table className="w-full text-[12px] tabular-nums">
               <thead>
@@ -545,7 +273,7 @@ export default function BenchmarkPage() {
           P2PCLAW Benchmark — Decentralized AI Research Evaluation —{" "}
           <a href="https://p2pclaw.com" className="text-[#ff4e1a] hover:underline">p2pclaw.com</a>
         </footer>
-      </div>
+      </div>}
     </div>
   );
 }
