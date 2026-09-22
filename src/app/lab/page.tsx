@@ -14,6 +14,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import Link from "next/link";
+import { publishPaper } from "@/lib/api-client";
 import {
   FlaskConical, MessageSquare, BookOpen, Beaker, Cpu, Dna, GitBranch, Bot,
   Home, ChevronRight, Send, Search, Play, Pause, RotateCcw, Plus, CheckCircle2,
@@ -1167,21 +1168,21 @@ function ExperimentsTab() {
       `## References\n[1] P2PCLAW Pre-registration System, 2026\n[2] Open Science Framework — https://osf.io/\n[3] Autonomous Research Validation Network, arXiv:2026.xxxxx`,
     ].join("\n\n");
     try {
-      const res = await fetch(`${API}/api/publish-paper`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: exp.title,
-          content,
-          abstract: exp.hypothesis,
-          authorId: "lab-researcher",
-          authorName: "Lab Researcher",
-          isDraft: true,
-          tags: ["experiment", "pre-registered", exp.status],
-        }),
+      const d = await publishPaper({
+        title: exp.title,
+        content,
+        abstract: exp.hypothesis,
+        authorId: "lab-researcher",
+        authorName: "Lab Researcher",
+        isDraft: true,
+        tags: ["experiment", "pre-registered", exp.status],
       });
-      const d = await res.json() as { paperId?: string; success?: boolean };
-      setDraftMsg({ id: exp.id, text: d.paperId ? `Draft submitted — ID: ${d.paperId.slice(0, 8)}` : "Draft submitted to mempool." });
+      setDraftMsg({
+        id: exp.id,
+        text: d.success
+          ? (d.paperId ? `Draft submitted — ID: ${d.paperId.slice(0, 8)}` : "Draft submitted to mempool.")
+          : (d.error ?? "Draft submission rejected."),
+      });
     } catch { setDraftMsg({ id: exp.id, text: "Draft saved locally (API offline)." }); }
     setDrafting(null);
   };
@@ -2316,6 +2317,7 @@ function AIScientistTab() {
   const [paper, setPaper] = useState("");
   const [paperId, setPaperId] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [litPapers, setLitPapers] = useState<string[]>([]);
 
   const PAPER_TEMPLATE = (q: string, refs: string[] = []) => {
@@ -2361,6 +2363,7 @@ ${refBlock}`;
     setPaper("");
     setPaperId(null);
     setSubmitted(false);
+    setSubmitError(null);
     setLitPapers([]);
 
     // Stage 0: Literature Review — fetch real arXiv papers
@@ -2395,25 +2398,22 @@ ${refBlock}`;
 
   const submit = async () => {
     if (!paper || submitted) return;
+    setSubmitError(null);
     try {
-      const res = await fetch(`${API}/api/publish-paper`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: question,
-          content: paper,
-          abstract: paper.split("\n").find(l => l.startsWith("## Abstract"))
-            ? paper.split("## Abstract\n")[1]?.split("\n")[0] ?? "" : "",
-          authorId: "ai-scientist-lab",
-          authorName: "AI Scientist (P2PCLAW Lab)",
-          isDraft: false,
-          tags: ["ai-generated", "autonomous-research", "p2pclaw-lab"],
-        }),
+      const data = await publishPaper({
+        title: question,
+        content: paper,
+        abstract: paper.split("\n").find(l => l.startsWith("## Abstract"))
+          ? paper.split("## Abstract\n")[1]?.split("\n")[0] ?? "" : "",
+        authorId: "ai-scientist-lab",
+        authorName: "AI Scientist (P2PCLAW Lab)",
+        isDraft: false,
+        tags: ["ai-generated", "autonomous-research", "p2pclaw-lab"],
       });
-      const data = await res.json() as { paperId?: string; success?: boolean };
       setPaperId(data.paperId ?? null);
-      setSubmitted(true);
-    } catch { /* show error */ }
+      if (data.success) setSubmitted(true);
+      else setSubmitError(data.error ?? "Submission rejected by the publication service.");
+    } catch { setSubmitError("Publication service unavailable — your draft remains local."); }
   };
 
   return (
@@ -2529,6 +2529,9 @@ ${refBlock}`;
               </span>
             )}
           </div>
+          {submitError && (
+            <p className="px-4 pt-3 font-mono text-[10px] text-[#ff6b6b]">✗ {submitError}</p>
+          )}
           <div className="p-4 max-h-[500px] overflow-y-auto">
             <pre className="font-mono text-[10px] text-[#9a9490] whitespace-pre-wrap leading-relaxed">{paper}</pre>
           </div>
@@ -2930,13 +2933,22 @@ function PaperReviewerTab() {
     const title = content.split("\n")[0]?.replace(/^#+\s*/, "").trim() ?? "Untitled";
     const abMatch = content.match(/## Abstract\n([\s\S]*?)(?=\n##)/i);
     try {
-      const res = await fetch(`${API}/api/publish-paper`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, abstract: abMatch?.[1]?.trim() ?? "", authorId: "lab-reviewer", authorName: "Lab Reviewer", isDraft: false, tags: ["lab-reviewed"] }),
+      const d = await publishPaper({
+        title,
+        content,
+        abstract: abMatch?.[1]?.trim() ?? "",
+        authorId: "lab-reviewer",
+        authorName: "Lab Reviewer",
+        isDraft: false,
+        tags: ["lab-reviewed"],
       });
-      const d = await res.json() as { paperId?: string };
-      setSubmitted(true);
-      setSubmitMsg({ ok: true, text: d.paperId ? `✓ Submitted to mempool — ID: ${d.paperId.slice(0, 8)}` : "✓ Paper submitted to mempool" });
+      setSubmitted(Boolean(d.success));
+      setSubmitMsg({
+        ok: Boolean(d.success),
+        text: d.success
+          ? (d.paperId ? `✓ Submitted to mempool — ID: ${d.paperId.slice(0, 8)}` : "✓ Paper submitted to mempool")
+          : `✗ ${d.error ?? "Submission rejected"}`,
+      });
     } catch { setSubmitMsg({ ok: false, text: "✗ Submission failed — API offline. Try again later." }); }
     setSubmitting(false);
   };
