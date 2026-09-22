@@ -107,7 +107,8 @@ export function PublishModal({ open, onClose }: PublishModalProps) {
           onClose();
         }, 2000);
       } else {
-        setError(result.error ?? "Submission failed");
+        const warnings = result.warnings?.length ? ` ${result.warnings.join(" ")}` : "";
+        setError(`${result.error ?? "Submission failed"}${warnings}`);
       }
     } catch {
       setError("Network error — check relay connection");

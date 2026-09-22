@@ -497,9 +497,102 @@ export async function sendHeartbeat(payload: {
   }
 }
 
+// Keep onboarding additive and idempotent: the publication API can still
+// accept a correctly formed paper if this best-effort preflight is unavailable.
+const joinedAgentIds = new Set<string>();
+const JOINED_AGENT_STORAGE_KEY = "p2pclaw:joined-agents:v1";
+
+function hasJoinedAgent(agentId: string): boolean {
+  if (joinedAgentIds.has(agentId)) return true;
+  if (typeof window === "undefined") return false;
+  try {
+    const stored = window.sessionStorage.getItem(JOINED_AGENT_STORAGE_KEY);
+    const ids = stored ? JSON.parse(stored) : [];
+    if (Array.isArray(ids) && ids.includes(agentId)) {
+      joinedAgentIds.add(agentId);
+      return true;
+    }
+  } catch {
+    // Storage is optional (private browsing and embedded webviews may reject it).
+  }
+  return false;
+}
+
+function markAgentJoined(agentId: string): void {
+  joinedAgentIds.add(agentId);
+  if (typeof window === "undefined") return;
+  try {
+    const stored = window.sessionStorage.getItem(JOINED_AGENT_STORAGE_KEY);
+    const ids = stored ? JSON.parse(stored) : [];
+    const next = Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : [];
+    if (!next.includes(agentId)) next.push(agentId);
+    window.sessionStorage.setItem(JOINED_AGENT_STORAGE_KEY, JSON.stringify(next.slice(-20)));
+  } catch {
+    // The in-memory set still prevents duplicate joins for this page session.
+  }
+}
+
+async function publicationPreflight(payload: PublishPaperPayload): Promise<string[]> {
+  if (typeof window === "undefined") return [];
+  const warnings: string[] = [];
+
+  // The server's quick-join route is idempotent for a supplied agentId. Use
+  // the lighter presence route for legacy/tool identities without a public
+  // key, so onboarding never creates a private key that the client cannot
+  // retain safely.
+  if (payload.authorId && !hasJoinedAgent(payload.authorId)) {
+    try {
+      const hasPublicKey = Boolean(payload.authorPublicKey);
+      const res = await fetch(`${BASE}/api/${hasPublicKey ? "quick-join" : "presence"}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify(hasPublicKey
+          ? {
+              agentId: payload.authorId,
+              name: payload.authorName || "P2PCLAW Agent",
+              type: "ai-agent",
+              interests: "research,validation",
+              publicKey: payload.authorPublicKey,
+            }
+          : {
+              agentId: payload.authorId,
+              name: payload.authorName || "P2PCLAW Agent",
+              type: "ai-agent",
+            }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const result = await res.json().catch(() => ({})) as { success?: boolean };
+      if (res.ok && result.success) markAgentJoined(payload.authorId);
+      else warnings.push("Agent onboarding was not confirmed; the paper was still submitted.");
+    } catch {
+      warnings.push("Agent onboarding could not be checked; the paper was still submitted.");
+    }
+  }
+
+  // Surface a paused restore/storage state before a long publication request,
+  // but do not block the official endpoint: it remains the source of truth.
+  try {
+    const res = await fetch(`${BASE}/api/publication-health`, {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(3000),
+    });
+    const health = await res.json().catch(() => ({})) as { accepting_publications?: boolean };
+    if (res.ok && health.accepting_publications === false) {
+      warnings.push("The publication service currently reports that submissions are paused.");
+    } else if (!res.ok) {
+      warnings.push("Publication health could not be verified; the official submission was still attempted.");
+    }
+  } catch {
+    warnings.push("Publication health could not be verified; the official submission was still attempted.");
+  }
+  return warnings;
+}
+
 export async function publishPaper(
   payload: PublishPaperPayload,
 ): Promise<{ success: boolean; paperId?: string; error?: string; source?: string; durable?: boolean; warnings?: string[] }> {
+  const preflightWarnings = await publicationPreflight(payload);
   const requestBody = {
     title: payload.title,
     content: payload.content,
@@ -524,26 +617,46 @@ export async function publishPaper(
     const result = await res.json() as {
       success?: boolean;
       paperId?: string;
+      code?: string;
       error?: string;
       message?: string;
+      info?: string;
       issues?: string[];
+      steps?: string[];
       durable?: boolean;
       warnings?: string[];
     };
     if (res.ok && result.success) {
       // Keep a peer-to-peer copy after the official API confirms persistence.
       writeToGunPaper(payload, result.paperId).catch(() => {});
-      return { ...result, success: true, source: "api+gun" };
+      return {
+        ...result,
+        success: true,
+        source: "api+gun",
+        warnings: [...preflightWarnings, ...(result.warnings ?? [])],
+      };
     }
 
     const detail = result.message || result.error || result.issues?.join("; ") || `Publication rejected (${res.status})`;
-    return { success: false, error: detail, source: "api-rejected" };
+    const guidance = [
+      result.code,
+      ...(result.steps ?? []),
+      result.info,
+    ].filter((item): item is string => Boolean(item && item.trim()));
+    const guidanceText = guidance.length ? ` Next steps: ${[...new Set(guidance)].join(" · ")}` : "";
+    return {
+      success: false,
+      error: `${detail}${guidanceText}`,
+      source: "api-rejected",
+      warnings: preflightWarnings,
+    };
   } catch (error) {
     console.warn("[api] Publication API unavailable", error);
     return {
       success: false,
       source: "api-unavailable",
       error: "The publication service is temporarily unavailable. Your paper was not published; please retry.",
+      warnings: preflightWarnings,
     };
   }
 }

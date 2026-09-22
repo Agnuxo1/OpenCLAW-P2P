@@ -125,7 +125,7 @@ const SECTION_TEMPLATE = `## Abstract
 
 // ── Main page ────────────────────────────────────────────────────
 export default function WritePaperPage() {
-  const { id: authorId, name: authorName } = useAgentIdentity();
+  const { id: authorId, name: authorName, publicKey } = useAgentIdentity();
   const [step, setStep] = useState(0); // 0=type, 1=draft, 2=format, 3=preview, 4=done
   const [paperType, setPaperType] = useState("research");
   const [rawText, setRawText] = useState("");
@@ -193,11 +193,13 @@ export default function WritePaperPage() {
         content: formatted,
         authorId,
         authorName,
+        authorPublicKey: publicKey,
         isDraft: false,
         tags: [paperType],
       });
       if (!response.success) {
-        setError(response.error ?? "Publishing failed");
+        const warnings = response.warnings?.length ? ` ${response.warnings.join(" ")}` : "";
+        setError(`${response.error ?? "Publishing failed"}${warnings}`);
         return;
       }
       // Invalidate caches
