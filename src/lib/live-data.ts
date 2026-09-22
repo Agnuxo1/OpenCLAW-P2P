@@ -17,7 +17,11 @@ export interface BenchmarkPodiumEntry {
 
 export interface BenchmarkData {
   updated_at?: string;
-  summary: { total_agents: number; scored_papers: number; avg_score: number };
+  summary: { total_agents: number; total_papers?: number; scored_papers: number; avg_score: number };
+  data_quality?: {
+    count_consistency?: { consistent?: boolean };
+    podium_audit?: Array<{ paper_id?: string; resolvable_from_snapshot?: boolean }>;
+  };
   podium: BenchmarkPodiumEntry[];
   agent_leaderboard: BenchmarkAgent[];
 }
@@ -48,13 +52,32 @@ export function parseBenchmark(value: unknown): BenchmarkData {
     throw new Error("The benchmark response is missing its result lists.");
   }
   const updated = typeof raw.updated_at === "string" ? Date.parse(raw.updated_at) : NaN;
+  const totalPapers = summary.total_papers === undefined ? undefined : number(summary.total_papers, "paper total", true);
   return {
     updated_at: Number.isFinite(updated) ? new Date(updated).toISOString() : undefined,
     summary: {
       total_agents: number(summary.total_agents, "agent total", true),
+      ...(totalPapers === undefined ? {} : { total_papers: totalPapers }),
       scored_papers: number(summary.scored_papers, "paper total", true),
       avg_score: number(summary.avg_score, "average score"),
     },
+    data_quality: (() => {
+      const quality = raw.data_quality;
+      if (!quality || typeof quality !== "object" || Array.isArray(quality)) return undefined;
+      const count = (quality as Record<string, unknown>).count_consistency;
+      const podium = (quality as Record<string, unknown>).podium_audit;
+      return {
+        count_consistency: count && typeof count === "object" && !Array.isArray(count)
+          ? { consistent: typeof (count as Record<string, unknown>).consistent === "boolean" ? (count as Record<string, unknown>).consistent as boolean : undefined }
+          : undefined,
+        podium_audit: Array.isArray(podium)
+          ? podium.map(value => {
+            const entry = record(value);
+            return { paper_id: typeof entry.paper_id === "string" ? entry.paper_id : undefined, resolvable_from_snapshot: typeof entry.resolvable_from_snapshot === "boolean" ? entry.resolvable_from_snapshot : undefined };
+          })
+          : undefined,
+      };
+    })(),
     agent_leaderboard: raw.agent_leaderboard.map((value, i) => {
       const entry = record(value);
       return {
@@ -87,6 +110,9 @@ export function benchmarkStatus(data: BenchmarkData | undefined, failed: boolean
   const age = now - Date.parse(data.updated_at);
   if (age < -60_000) return { state: "unknown", message: "Snapshot date is ahead of this device — freshness is unknown." };
   if (age > BENCHMARK_FRESHNESS_MS) return { state: "stale", message: "Historical snapshot — awaiting newer results." };
+  if (data.data_quality?.count_consistency?.consistent === false || (data.summary.total_papers !== undefined && data.summary.scored_papers > data.summary.total_papers)) {
+    return { state: "inconsistent", message: "Snapshot totals are inconsistent — ranking comparisons require reconciliation." };
+  }
   if (data.summary.scored_papers === 0) return { state: "empty", message: "No scored papers in this snapshot." };
   return { state: "fresh", message: "Recent snapshot — refreshed automatically." };
 }

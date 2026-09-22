@@ -91,6 +91,16 @@ test("loading, error, recent, stale and failed refresh remain distinct", () => {
   assert.equal(data.updated_at, timestamp);
 });
 
+test("benchmark surfaces impossible paper totals as inconsistent", () => {
+  const data = parseBenchmark({
+    updated_at: timestamp,
+    summary: { total_agents: 2, total_papers: 10, scored_papers: 11, avg_score: 5 },
+    agent_leaderboard: [],
+    podium: [],
+  });
+  assert.equal(benchmarkStatus(data, false, now).state, "inconsistent");
+});
+
 test("dataset uses supported pagination and verification filters, with no fake global query", () => {
   const url = new URL(datasetPageUrl({ minScore: 7, verifiedOnly: true }, 100), "https://example.test");
   assert.equal(url.pathname, "/api/dataset/papers");
