@@ -5,6 +5,7 @@ import {
   datasetPageUrl, parseDatasetPage, filterDatasetPage, datasetJsonl, fetchPublicJson,
 } from "../src/lib/live-data.ts";
 import { proxyEndpoints, proxyLogUrl, proxyRequestHeaders } from "../src/lib/proxy-policy.ts";
+import { evaluateHybridGate } from "../src/lib/hybrid-research.ts";
 
 const timestamp = "2026-09-13T20:00:00.000Z";
 const now = Date.parse(timestamp);
@@ -18,6 +19,34 @@ const records = [
   { id: "paper-1", title: "Network science", author: "Ada", status: "VERIFIED", content: "## Methods\nA reproducible result.", license: "CC-BY-4.0", version: 3 },
   { id: "paper-2", title: "Algebra", author: "Emmy", status: "PENDING", content: "Text with \"quotes\" and\nnewlines." },
 ];
+
+test("hybrid gate fails closed when formal and reproducibility evidence are missing", () => {
+  const result = evaluateHybridGate({
+    preregistrationHash: "a".repeat(64),
+    primaryMetric: 0.04,
+    confidenceIntervalLower: 0.01,
+    negativeControlMetric: 0.52,
+    judgeCount: 10,
+  });
+  assert.equal(result.ready, false);
+  assert.equal(result.checks.formalProofAudited, false);
+  assert.equal(result.checks.rawArtifactsLinked, false);
+});
+
+test("hybrid gate accepts a fully evidenced candidate", () => {
+  const result = evaluateHybridGate({
+    preregistrationHash: "a".repeat(64),
+    primaryMetric: 0.04,
+    confidenceIntervalLower: 0.01,
+    negativeControlMetric: 0.52,
+    formalProofHash: "b".repeat(64),
+    formalProofPassed: true,
+    rawArtifactHash: "c".repeat(64),
+    judgeCount: 10,
+  });
+  assert.equal(result.ready, true);
+  assert.deepEqual(result.blockingReasons, []);
+});
 
 test("benchmark preserves global aggregates when only 50 of 348 agents are returned", () => {
   const data = parseBenchmark(benchmark());

@@ -15,6 +15,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import Link from "next/link";
 import { publishPaper } from "@/lib/api-client";
+import { evaluateHybridGate } from "@/lib/hybrid-research";
 import {
   FlaskConical, MessageSquare, BookOpen, Beaker, Cpu, Dna, GitBranch, Bot,
   Home, ChevronRight, Send, Search, Play, Pause, RotateCcw, Plus, CheckCircle2,
@@ -1157,15 +1158,20 @@ function ExperimentsTab() {
 
   const draftPaper = async (exp: Experiment) => {
     setDrafting(exp.id);
+    const hybridGate = evaluateHybridGate({
+      preregistrationHash: exp.preregHash,
+      status: exp.status,
+    });
     const content = [
       `# ${exp.title}`,
       `## Abstract\n${exp.hypothesis}`,
       `## Introduction\nThis experiment was pre-registered with hash \`${exp.preregHash.slice(0, 16)}\` on ${new Date(exp.createdAt).toISOString().slice(0, 10)} and reached ${exp.status} status via the P2PCLAW Experiment Tracker.`,
       `## Methodology\n${exp.method || "Systematic experimental approach as documented in the pre-registration."}`,
       `## Results\n${exp.notes || "Experimental results are documented in the experiment notes above."}`,
-      `## Discussion\nThe results ${exp.status === "verified" ? "confirm" : "are consistent with"} the initial hypothesis. Validation through the P2PCLAW consensus mechanism is recommended for broader acceptance.`,
-      `## Conclusion\nThis work contributes to the P2PCLAW knowledge base through systematic pre-registered experimentation with verifiable SHA-256 pre-registration.`,
-      `## References\n[1] P2PCLAW Pre-registration System, 2026\n[2] Open Science Framework — https://osf.io/\n[3] Autonomous Research Validation Network, arXiv:2026.xxxxx`,
+      `## Evidence ledger\nHybrid publication gate: ${hybridGate.ready ? "READY" : "BLOCKED"}.\n${hybridGate.blockingReasons.length ? hybridGate.blockingReasons.map(reason => `- ${reason}`).join("\n") : "All required evidence links are present."}`,
+      `## Discussion\nThis draft does not claim causal confirmation. The current tracker status is **${exp.status}**; conclusions remain conditional until the primary metric, negative controls, formal proof and raw artifacts are attached.`,
+      `## Conclusion\nThis is a transparent pre-registered draft. It must not be presented as a verified result while the hybrid publication gate is blocked.`,
+      `## References\nNo primary references are attached yet. Add only sources that were actually consulted before publishing.`,
     ].join("\n\n");
     try {
       const d = await publishPaper({
