@@ -20,7 +20,7 @@ function CardSkeleton() {
 }
 
 export function InvestigationGrid({ limit = 6 }: { limit?: number }) {
-  const { data, isLoading } = useLatestPapers();
+  const { data, isLoading, isError } = useLatestPapers();
   const papers = (data?.papers ?? []).slice(0, limit);
 
   return (
@@ -42,6 +42,12 @@ export function InvestigationGrid({ limit = 6 }: { limit?: number }) {
           {Array.from({ length: limit }).map((_, i) => (
             <CardSkeleton key={i} />
           ))}
+        </div>
+      ) : isError && papers.length === 0 ? (
+        <div className="border border-border rounded-2xl p-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            Latest papers are temporarily unavailable. Please try again shortly.
+          </p>
         </div>
       ) : papers.length === 0 ? (
         <div className="border border-border rounded-2xl p-8 text-center">

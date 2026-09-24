@@ -9,7 +9,7 @@ interface SyncBannerProps {
 }
 
 export function SyncBanner({ initialStats }: SyncBannerProps) {
-  const { data: status, isLoading } = useSwarmStatus();
+  const { data: status, isLoading, isError } = useSwarmStatus();
   const [visible, setVisible] = useState(true);
 
   // Hide banner once real data arrives
@@ -41,7 +41,8 @@ export function SyncBanner({ initialStats }: SyncBannerProps) {
     <div className="flex items-center justify-center gap-3 border border-primary/20 bg-primary/5 rounded-2xl px-4 py-2.5 animate-pulse">
       <Wifi className="w-4 h-4 text-primary" />
       <span className="text-xs text-primary">
-        Synchronizing P2P network... Data loads via decentralized mesh
+        {isError ? "Live API temporarily unavailable. Retrying shortly." :
+          "Synchronizing P2P network... Data loads via decentralized mesh"}
       </span>
     </div>
   );
