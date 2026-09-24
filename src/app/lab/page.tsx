@@ -8,8 +8,8 @@
  *
  * Tabs:
  *  Hub · Knowledge · Research Chat · Literature · Experiments · Simulation
- *  Genetic Lab · Workflows · AI Scientist · ✓ Formal Verify · 🔍 Reviewer
- *  ♟ Knowledge Grid · 📊 Analytics · ⬡ P2P Network · External Labs
+ *  Genetic Lab · Workflows · AI Scientist · Formal Verify · Reviewer
+ *  Knowledge Grid · Analytics · P2P Network · External Labs
  */
 
 import { useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
@@ -20,7 +20,7 @@ import {
   Clock, Loader2, Download, ArrowLeft, Zap, Network, FileText, Hash,
   BarChart3, Microscope, Atom, Brain, RefreshCw, AlertCircle, Star,
   TrendingUp, Shield, XCircle, Settings, Database, Globe, ExternalLink, Layers,
-  Grid3x3, Activity, Copy,
+  Grid3x3, Activity, Copy, Cloud, Ruler, Hexagon, Info,
 } from "lucide-react";
 
 const API = typeof window !== "undefined"
@@ -103,7 +103,7 @@ async function queryPubChem(smiles: string): Promise<string> {
     const p = d.PropertyTable?.Properties?.[0];
     if (!p) return "PubChem returned no data for this SMILES";
     return [
-      "✓ Valid SMILES — PubChem lookup complete",
+      "Valid SMILES — PubChem lookup complete",
       "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
       `Molecular Formula:  ${p.MolecularFormula}`,
       `Molecular Weight:   ${p.MolecularWeight} g/mol`,
@@ -345,10 +345,10 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
           { label: "Verified Papers", value: stats.papers, icon: Star, color: "#ffcb47" },
           { label: "In Mempool", value: stats.mempool, icon: Clock, color: "#52504e" },
         ].map(s => (
-          <div key={s.label} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
+          <div key={s.label} className="border border-border rounded-2xl p-4 bg-background">
             <div className="flex items-center gap-2 mb-2">
               <s.icon className="w-4 h-4" style={{ color: s.color }} />
-              <span className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider">{s.label}</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</span>
             </div>
             <div className="font-mono text-3xl font-bold tabular-nums" style={{ color: s.color }}>
               {s.value}
@@ -358,15 +358,15 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
       </div>
 
       {/* S²FSM Board */}
-      <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-4">
+      <div className="border border-border rounded-2xl bg-background p-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-mono text-sm font-bold text-[#ff4e1a]">S²FSM Research Board</h2>
-            <p className="font-mono text-[10px] text-[#52504e]">5×8 State-Space Finite State Machine — click to advance state</p>
+            <h2 className="text-sm font-semibold tracking-tight text-primary">S²FSM Research Board</h2>
+            <p className="text-[10px] text-muted-foreground">5×8 State-Space Finite State Machine — click to advance state</p>
           </div>
           <button
             onClick={() => setBoard(Array.from({ length: 5 }, () => Array(8).fill("∅") as CellState[]))}
-            className="font-mono text-[10px] text-[#52504e] hover:text-[#9a9490] border border-[#2c2c30] rounded px-2 py-1 flex items-center gap-1"
+            className="text-[10px] text-muted-foreground hover:text-muted-foreground border border-border rounded px-2 py-1 flex items-center gap-1"
           >
             <RotateCcw className="w-3 h-3" /> Reset
           </button>
@@ -380,7 +380,7 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
                 key={`${r}-${c}`}
                 onClick={() => { cycle(r, c); setSelected([r, c]); }}
                 title={STATE_LABEL[cell]}
-                className="aspect-square rounded flex items-center justify-center font-mono text-xs font-bold border transition-all"
+                className="aspect-square rounded flex items-center justify-center text-xs font-bold border transition-all"
                 style={{
                   backgroundColor: STATE_COLOR[cell],
                   borderColor: selected?.[0] === r && selected?.[1] === c ? "#ff4e1a" : "#2c2c30",
@@ -398,8 +398,8 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
           {STATES.map(s => (
             <div key={s} className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded" style={{ backgroundColor: STATE_COLOR[s], border: "1px solid #2c2c30" }} />
-              <span className="font-mono text-[10px] text-[#52504e]">
-                <span className="text-[#9a9490]">{s}</span> {STATE_LABEL[s]}
+              <span className="text-[10px] text-muted-foreground">
+                <span className="text-muted-foreground">{s}</span> {STATE_LABEL[s]}
               </span>
             </div>
           ))}
@@ -407,9 +407,9 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
 
         {/* Trace vector */}
         <div className="mt-4 flex gap-2 flex-wrap">
-          <span className="font-mono text-[10px] text-[#52504e]">Trace:</span>
+          <span className="text-[10px] text-muted-foreground">Trace:</span>
           {(Object.entries(traceVec) as [CellState, number][]).filter(([, v]) => v > 0).map(([k, v]) => (
-            <span key={k} className="font-mono text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: STATE_COLOR[k], color: "#f5f0eb" }}>
+            <span key={k} className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: STATE_COLOR[k], color: "#f5f0eb" }}>
               {k}:{v}
             </span>
           ))}
@@ -422,22 +422,22 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
           <button
             key={tab.id}
             onClick={() => onTabChange?.(tab.id)}
-            className="border border-[#2c2c30] rounded-lg p-3 bg-[#0c0c0d] hover:border-[#ff4e1a]/40 transition-colors text-left group"
+            className="border border-border rounded-lg p-3 bg-background hover:border-primary/40 transition-colors text-left group"
           >
-            <tab.icon className="w-5 h-5 text-[#52504e] group-hover:text-[#ff4e1a] mb-2 transition-colors" />
-            <div className="font-mono text-xs text-[#9a9490] group-hover:text-[#f5f0eb] transition-colors">{tab.label}</div>
+            <tab.icon className="w-5 h-5 text-muted-foreground group-hover:text-primary mb-2 transition-colors" />
+            <div className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">{tab.label}</div>
           </button>
         ))}
       </div>
 
       {/* Kanban Research Pipeline */}
-      <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-4">
+      <div className="border border-border rounded-2xl bg-background p-4">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="font-mono text-sm font-bold text-[#ff4e1a]">Research Pipeline</h2>
-            <p className="font-mono text-[10px] text-[#52504e]">Track ideas through the full research lifecycle</p>
+            <h2 className="text-sm font-semibold tracking-tight text-primary">Research Pipeline</h2>
+            <p className="text-[10px] text-muted-foreground">Track ideas through the full research lifecycle</p>
           </div>
-          <span className="font-mono text-[9px] text-[#52504e]">{kanban.length} card{kanban.length !== 1 ? "s" : ""}</span>
+          <span className="text-[9px] text-muted-foreground">{kanban.length} card{kanban.length !== 1 ? "s" : ""}</span>
         </div>
         <div className="flex gap-2 mb-4">
           <input
@@ -445,10 +445,10 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
             onChange={e => setKanbanInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addCard()}
             placeholder="New research idea…"
-            className="flex-1 bg-[#121214] border border-[#2c2c30] rounded px-3 py-1.5 font-mono text-xs text-[#f5f0eb] placeholder:text-[#2c2c30] focus:border-[#ff4e1a]/40 focus:outline-none"
+            className="flex-1 bg-popover border border-border rounded px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
           />
           <button onClick={addCard} disabled={!kanbanInput.trim()}
-            className="px-3 py-1.5 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded disabled:opacity-40">
+            className="px-3 py-1.5 bg-primary hover:bg-accent text-black text-xs font-bold rounded disabled:opacity-40">
             + Add
           </button>
         </div>
@@ -456,22 +456,22 @@ function HubTab({ onTabChange }: { onTabChange?: (id: TabId) => void }) {
           {KANBAN_COLS.map(col => {
             const cards = kanban.filter(c => c.col === col.id);
             return (
-              <div key={col.id} className="border border-[#2c2c30] rounded-lg overflow-hidden">
+              <div key={col.id} className="border border-border rounded-lg overflow-hidden">
                 <div className="px-3 py-2 flex items-center justify-between" style={{ backgroundColor: col.bgColor }}>
-                  <span className="font-mono text-[9px] font-bold uppercase tracking-wider" style={{ color: col.textColor }}>{col.label}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: col.textColor }}>{col.label}</span>
                   <span className="font-mono text-[9px] font-bold tabular-nums" style={{ color: col.textColor }}>{cards.length}</span>
                 </div>
                 <div className="p-2 space-y-1.5 min-h-[48px]">
                   {cards.map(card => (
-                    <div key={card.id} className="border border-[#2c2c30] rounded bg-[#121214] p-2 group">
-                      <p className="font-mono text-[10px] text-[#f5f0eb] leading-snug mb-1.5">{card.title}</p>
+                    <div key={card.id} className="border border-border rounded bg-popover p-2 group">
+                      <p className="text-[10px] text-foreground leading-snug mb-1.5">{card.title}</p>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => moveCard(card.id, -1)} disabled={col.id === "idea"}
-                          className="font-mono text-[8px] px-1.5 py-0.5 border border-[#2c2c30] text-[#52504e] rounded hover:text-[#f5f0eb] disabled:opacity-20">←</button>
+                          className="text-[8px] px-1.5 py-0.5 border border-border text-muted-foreground rounded hover:text-foreground disabled:opacity-20">←</button>
                         <button onClick={() => moveCard(card.id, 1)} disabled={col.id === "published"}
-                          className="font-mono text-[8px] px-1.5 py-0.5 border border-[#2c2c30] text-[#52504e] rounded hover:text-[#f5f0eb] disabled:opacity-20">→</button>
+                          className="text-[8px] px-1.5 py-0.5 border border-border text-muted-foreground rounded hover:text-foreground disabled:opacity-20">→</button>
                         <button onClick={() => removeCard(card.id)}
-                          className="font-mono text-[8px] px-1.5 py-0.5 border border-[#3b001a] text-[#ff5252] rounded hover:bg-[#3b001a] ml-auto">×</button>
+                          className="text-[8px] px-1.5 py-0.5 border border-[#3b001a] text-[#ff5252] rounded hover:bg-[#3b001a] ml-auto">×</button>
                       </div>
                     </div>
                   ))}
@@ -554,11 +554,11 @@ function SearchTab() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
-          <Search className="w-4 h-4 text-[#ffcb47]" />
+        <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+          <Search className="w-4 h-4 text-chart-3" />
           Knowledge Search
         </h2>
-        <p className="font-mono text-[10px] text-[#52504e]">
+        <p className="text-[10px] text-muted-foreground">
           Search the P2PCLAW network AND real scientific literature via Semantic Scholar (200M+ papers, Allen AI).
         </p>
       </div>
@@ -566,29 +566,29 @@ function SearchTab() {
       <div className="flex gap-2">
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <Search className="w-4 h-4 text-[#52504e]" />
+            <Search className="w-4 h-4 text-muted-foreground" />
           </div>
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             onKeyDown={e => e.key === "Enter" && submitSearch()}
             placeholder='e.g. "distributed consensus Byzantine fault tolerance"'
-            className="w-full bg-[#121214] border border-[#2c2c30] rounded-lg pl-9 pr-3 py-3 font-mono text-xs text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
+            className="w-full bg-popover border border-border rounded-lg pl-9 pr-3 py-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
           />
         </div>
         <button onClick={submitSearch} disabled={!query.trim() || (loading && ssLoading)}
-          className="px-6 py-3 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-2 shrink-0">
+          className="px-6 py-3 bg-primary hover:bg-accent text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-2 shrink-0">
           {(loading || ssLoading) ? <Loader2 className="w-4 h-4 animate-spin" /> : "Search"}
         </button>
       </div>
 
-      <div className="flex gap-2 border-b border-[#2c2c30] pb-2">
+      <div className="flex gap-2 border-b border-border pb-2">
         <button onClick={() => setActiveTab("science")}
-          className={`font-mono text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${activeTab === "science" ? "bg-[#2c2c30] text-[#f5f0eb]" : "text-[#52504e] hover:text-[#9a9490]"}`}>
+          className={`text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${activeTab === "science" ? "bg-border text-foreground" : "text-muted-foreground hover:text-muted-foreground"}`}>
           Scientific Literature {ssResults.length > 0 && `(${ssResults.length})`}
         </button>
         <button onClick={() => setActiveTab("network")}
-          className={`font-mono text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${activeTab === "network" ? "bg-[#2c2c30] text-[#f5f0eb]" : "text-[#52504e] hover:text-[#9a9490]"}`}>
+          className={`text-[10px] px-3 py-1 rounded-full uppercase tracking-wider transition-colors ${activeTab === "network" ? "bg-border text-foreground" : "text-muted-foreground hover:text-muted-foreground"}`}>
           P2PCLAW Network {networkResults.length > 0 && `(${networkResults.length})`}
         </button>
       </div>
@@ -598,17 +598,17 @@ function SearchTab() {
           {ssLoading && (
             <div className="flex items-center gap-2 py-4">
               <Loader2 className="w-4 h-4 animate-spin text-[#52c4ff]" />
-              <span className="font-mono text-xs text-[#52504e]">Querying Semantic Scholar (Allen AI)…</span>
+              <span className="text-xs text-muted-foreground">Querying Semantic Scholar (Allen AI)…</span>
             </div>
           )}
           {ssError && (
-            <div className="border border-[#3b0a00] bg-[#1a0a00] rounded-lg p-3 font-mono text-xs text-[#ff5252]">
+            <div className="border border-[#3b0a00] bg-[#1a0a00] rounded-lg p-3 text-xs text-[#ff5252]">
               {ssError}
             </div>
           )}
           {ssResults.length > 0 && !ssLoading && (
             <div className="space-y-3">
-              <div className="font-mono text-[9px] text-[#52504e] uppercase tracking-wider">
+              <div className="text-[9px] text-muted-foreground uppercase tracking-wider">
                 Semantic Scholar · {ssResults.length} results · Source: api.semanticscholar.org
               </div>
               {ssResults.map(p => {
@@ -618,7 +618,7 @@ function SearchTab() {
                 const arxivUrl = p.externalIds?.ArXiv ? `https://arxiv.org/abs/${p.externalIds.ArXiv}` : null;
                 const url = pdfUrl ?? doiUrl ?? arxivUrl;
                 return (
-                  <div key={p.paperId} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] hover:border-[#52c4ff]/40 transition-colors">
+                  <div key={p.paperId} className="border border-border rounded-2xl p-4 bg-background hover:border-[#52c4ff]/40 transition-colors">
                     <div className="flex gap-3">
                       <div className="w-8 h-8 rounded bg-[#0a1a2a] flex items-center justify-center shrink-0 mt-0.5">
                         <BookOpen className="w-4 h-4 text-[#52c4ff]" />
@@ -626,20 +626,20 @@ function SearchTab() {
                       <div className="flex-1 min-w-0">
                         {url ? (
                           <a href={url} target="_blank" rel="noopener noreferrer"
-                            className="font-mono text-xs font-bold text-[#52c4ff] hover:underline block leading-snug">
+                            className="text-xs font-bold text-[#52c4ff] hover:underline block leading-snug">
                             {p.title}
                           </a>
                         ) : (
-                          <div className="font-mono text-xs font-bold text-[#f5f0eb] leading-snug">{p.title}</div>
+                          <div className="text-xs font-bold text-foreground leading-snug">{p.title}</div>
                         )}
-                        <div className="font-mono text-[9px] text-[#52504e] mt-1">
+                        <div className="text-[9px] text-muted-foreground mt-1">
                           {authors}{p.year ? ` · ${p.year}` : ""} · {p.citationCount} citations
                           {pdfUrl && <span className="ml-2 text-[#7fff52]">· PDF</span>}
-                          {p.externalIds?.DOI && <span className="ml-1 text-[#ffcb47]">· DOI</span>}
+                          {p.externalIds?.DOI && <span className="ml-1 text-chart-3">· DOI</span>}
                           {p.externalIds?.ArXiv && <span className="ml-1 text-[#ff9a52]">· arXiv</span>}
                         </div>
                         {p.abstract && (
-                          <p className="font-mono text-[9px] text-[#9a9490] mt-1 leading-relaxed line-clamp-3">
+                          <p className="text-[9px] text-muted-foreground mt-1 leading-relaxed line-clamp-3">
                             {p.abstract}
                           </p>
                         )}
@@ -651,15 +651,15 @@ function SearchTab() {
             </div>
           )}
           {!ssLoading && ssResults.length === 0 && !ssError && query && (
-            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
-              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
-              <p className="font-mono text-xs text-[#52504e]">No papers found on Semantic Scholar for this query.</p>
+            <div className="text-center py-12 border border-border border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-border mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">No papers found on Semantic Scholar for this query.</p>
             </div>
           )}
           {!query && (
-            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
-              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
-              <p className="font-mono text-xs text-[#52504e]">Enter a query to search 200M+ scientific papers from Semantic Scholar.</p>
+            <div className="text-center py-12 border border-border border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-border mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">Enter a query to search 200M+ scientific papers from Semantic Scholar.</p>
             </div>
           )}
         </>
@@ -670,13 +670,13 @@ function SearchTab() {
           {networkResults.length > 0 && !loading && (
             <div className="space-y-2">
               {networkResults.map(r => (
-                <div key={r.id} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] hover:border-[#ffcb47]/40 transition-colors flex gap-4 items-center">
-                  <div className="w-10 h-10 rounded bg-[#1a1a1c] flex items-center justify-center shrink-0">
+                <div key={r.id} className="border border-border rounded-2xl p-4 bg-background hover:border-chart-3/40 transition-colors flex gap-4 items-center">
+                  <div className="w-10 h-10 rounded bg-card flex items-center justify-center shrink-0">
                     {r.type === "paper" ? <FileText className="w-5 h-5 text-[#7fff52]" /> : <Bot className="w-5 h-5 text-[#52c4ff]" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-mono text-xs font-bold text-[#f5f0eb] truncate">{r.title}</div>
-                    <div className="font-mono text-[10px] text-[#52504e] mt-1">{r.type.toUpperCase()} · {r.author} · {r.date}</div>
+                    <div className="text-xs font-bold text-foreground truncate">{r.title}</div>
+                    <div className="text-[10px] text-muted-foreground mt-1">{r.type.toUpperCase()} · {r.author} · {r.date}</div>
                   </div>
                 </div>
               ))}
@@ -684,20 +684,20 @@ function SearchTab() {
           )}
           {loading && (
             <div className="flex items-center gap-2 py-4">
-              <Loader2 className="w-4 h-4 animate-spin text-[#ff4e1a]" />
-              <span className="font-mono text-xs text-[#52504e]">Searching P2PCLAW network…</span>
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Searching P2PCLAW network…</span>
             </div>
           )}
           {networkResults.length === 0 && !loading && query && (
-            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
-              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
-              <p className="font-mono text-xs text-[#52504e]">No P2PCLAW network results for this query.</p>
+            <div className="text-center py-12 border border-border border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-border mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">No P2PCLAW network results for this query.</p>
             </div>
           )}
           {!query && (
-            <div className="text-center py-12 border border-[#2c2c30] border-dashed rounded-lg">
-              <Search className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
-              <p className="font-mono text-xs text-[#52504e]">Enter a query to search papers and agents in the P2PCLAW network.</p>
+            <div className="text-center py-12 border border-border border-dashed rounded-lg">
+              <Search className="w-8 h-8 text-border mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">Enter a query to search papers and agents in the P2PCLAW network.</p>
             </div>
           )}
         </>
@@ -829,10 +829,10 @@ function ResearchChatTab({ onTabChange }: { onTabChange?: (id: TabId) => void })
           <button
             key={ch}
             onClick={() => setChannel(ch)}
-            className={`font-mono text-xs px-3 py-1 rounded border transition-colors ${
+            className={`text-xs px-3 py-1 rounded border transition-colors ${
               channel === ch
-                ? "bg-[#ff4e1a]/10 border-[#ff4e1a]/40 text-[#ff4e1a]"
-                : "border-[#2c2c30] text-[#52504e] hover:text-[#9a9490]"
+                ? "bg-primary/10 border-primary/40 text-primary"
+                : "border-border text-muted-foreground hover:text-muted-foreground"
             }`}
           >
             #{ch}
@@ -841,29 +841,29 @@ function ResearchChatTab({ onTabChange }: { onTabChange?: (id: TabId) => void })
       </div>
 
       {/* Messages */}
-      <div className="flex-1 border border-[#2c2c30] rounded-lg bg-[#0c0c0d] overflow-y-auto p-4 space-y-3 min-h-0">
+      <div className="flex-1 border border-border rounded-2xl bg-background overflow-y-auto p-4 space-y-3 min-h-0">
         {messages.length === 0 && (
-          <p className="font-mono text-xs text-[#52504e] text-center py-8">
+          <p className="text-xs text-muted-foreground text-center py-8">
             No messages in #{channel}. Start the conversation.
           </p>
         )}
         {messages.map(m => (
           <div key={m.id} className="flex gap-3">
-            <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] font-mono font-bold"
+            <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[8px] font-bold"
               style={{ backgroundColor: typeColor[m.authorType] + "22", color: typeColor[m.authorType] }}>
               {m.authorType === "SILICON" ? "AI" : m.authorType === "SYSTEM" ? "SY" : "H"}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2 mb-0.5">
-                <span className="font-mono text-xs font-bold" style={{ color: typeColor[m.authorType] }}>{m.author}</span>
-                <span className="font-mono text-[9px] text-[#2c2c30]">
+                <span className="text-xs font-bold" style={{ color: typeColor[m.authorType] }}>{m.author}</span>
+                <span className="text-[9px] text-border">
                   {new Date(m.ts).toLocaleTimeString()}
                 </span>
               </div>
-              <p className="font-mono text-xs text-[#9a9490] break-words">{m.text}</p>
+              <p className="text-xs text-muted-foreground break-words">{m.text}</p>
               {m.authorType === "SILICON" && detectIntent(m.text).map(([tag, action]) => (
                 <button key={tag} onClick={() => onTabChange?.(action.tab)}
-                  className="mt-1 mr-1 font-mono text-[9px] px-2 py-0.5 border border-[#ff4e1a]/30 text-[#ff4e1a] rounded hover:bg-[#ff4e1a]/10 transition-colors">
+                  className="mt-1 mr-1 text-[9px] px-2 py-0.5 border border-primary/30 text-primary rounded hover:bg-primary/10 transition-colors">
                   → {action.label}
                 </button>
               ))}
@@ -880,13 +880,13 @@ function ResearchChatTab({ onTabChange }: { onTabChange?: (id: TabId) => void })
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
           placeholder={`Message #${channel}…`}
-          className="flex-1 bg-[#0c0c0d] border border-[#2c2c30] rounded-lg px-3 py-2 font-mono text-xs text-[#f5f0eb] placeholder:text-[#2c2c30] focus:border-[#ff4e1a]/40 focus:outline-none"
+          className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
         />
         <button
           onClick={askSwarm}
           disabled={!input.trim() || loading || broadcasting}
           title="Broadcast to ALL channels simultaneously"
-          className="px-3 py-2 border border-[#ff4e1a]/40 text-[#ff4e1a] font-mono text-[10px] font-bold rounded-lg hover:bg-[#ff4e1a]/10 disabled:opacity-40 flex items-center gap-1 shrink-0"
+          className="px-3 py-2 border border-primary/40 text-primary text-[10px] font-bold rounded-lg hover:bg-primary/10 disabled:opacity-40 flex items-center gap-1 shrink-0"
         >
           {broadcasting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Network className="w-3 h-3" />}
           <span className="hidden sm:inline">Swarm</span>
@@ -894,7 +894,7 @@ function ResearchChatTab({ onTabChange }: { onTabChange?: (id: TabId) => void })
         <button
           onClick={send}
           disabled={!input.trim() || loading}
-          className="px-4 py-2 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-1"
+          className="px-4 py-2 bg-primary hover:bg-accent text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-1"
         >
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
         </button>
@@ -994,12 +994,12 @@ function LiteratureTab() {
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => e.key === "Enter" && search()}
           placeholder="Search arXiv: quantum computing, CRISPR, neural scaling…"
-          className="flex-1 bg-[#0c0c0d] border border-[#2c2c30] rounded-lg px-3 py-2 font-mono text-xs text-[#f5f0eb] placeholder:text-[#2c2c30] focus:border-[#ff4e1a]/40 focus:outline-none"
+          className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
         />
         <button
           onClick={search}
           disabled={!query.trim() || loading}
-          className="px-4 py-2 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-1"
+          className="px-4 py-2 bg-primary hover:bg-accent text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-1"
         >
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3" />}
           Search
@@ -1012,7 +1012,7 @@ function LiteratureTab() {
           <button
             key={q}
             onClick={() => { setQuery(q); }}
-            className="font-mono text-[10px] text-[#52504e] hover:text-[#9a9490] border border-[#2c2c30] rounded px-2 py-0.5 transition-colors"
+            className="text-[10px] text-muted-foreground hover:text-muted-foreground border border-border rounded px-2 py-0.5 transition-colors"
           >
             {q}
           </button>
@@ -1021,31 +1021,31 @@ function LiteratureTab() {
 
       {saved.size > 0 && (
         <div className="flex items-center gap-2">
-          <Star className="w-3 h-3 text-[#ffcb47]" />
-          <span className="font-mono text-[10px] text-[#52504e]">{saved.size} paper{saved.size !== 1 ? "s" : ""} saved to library</span>
+          <Star className="w-3 h-3 text-chart-3" />
+          <span className="text-[10px] text-muted-foreground">{saved.size} paper{saved.size !== 1 ? "s" : ""} saved to library</span>
         </div>
       )}
 
       {/* Results */}
       {loading && (
         <div className="flex items-center gap-2 py-8 justify-center">
-          <Loader2 className="w-4 h-4 animate-spin text-[#ff4e1a]" />
-          <span className="font-mono text-xs text-[#52504e]">Searching arXiv…</span>
+          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+          <span className="text-xs text-muted-foreground">Searching arXiv…</span>
         </div>
       )}
       <div className="space-y-3">
         {papers.map(p => (
-          <div key={p.id} className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-4 hover:border-[#ff4e1a]/20 transition-colors">
+          <div key={p.id} className="border border-border rounded-2xl bg-background p-4 hover:border-primary/20 transition-colors">
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <h3 className="font-mono text-xs font-bold text-[#f5f0eb] mb-1 leading-relaxed">{p.title}</h3>
+                <h3 className="text-xs font-semibold tracking-tight text-foreground mb-1 leading-relaxed">{p.title}</h3>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="font-mono text-[10px] text-[#52504e]">{p.authors.slice(0, 3).join(", ")}{p.authors.length > 3 ? " et al." : ""}</span>
-                  <span className="font-mono text-[10px] text-[#2c2c30]">·</span>
-                  <span className="font-mono text-[10px] text-[#52504e]">{p.published}</span>
+                  <span className="text-[10px] text-muted-foreground">{p.authors.slice(0, 3).join(", ")}{p.authors.length > 3 ? " et al." : ""}</span>
+                  <span className="text-[10px] text-border">·</span>
+                  <span className="text-[10px] text-muted-foreground">{p.published}</span>
                 </div>
                 {expanded === p.id && (
-                  <p className="font-mono text-[10px] text-[#9a9490] leading-relaxed mb-2">
+                  <p className="text-[10px] text-muted-foreground leading-relaxed mb-2">
                     {p.summary.slice(0, 500)}{p.summary.length > 500 ? "…" : ""}
                   </p>
                 )}
@@ -1053,14 +1053,14 @@ function LiteratureTab() {
               <div className="flex gap-1 shrink-0">
                 <button
                   onClick={() => toggleSave(p.id)}
-                  className={`p-1.5 rounded border transition-colors ${saved.has(p.id) ? "border-[#ffcb47]/40 text-[#ffcb47]" : "border-[#2c2c30] text-[#52504e] hover:text-[#ffcb47]"}`}
+                  className={`p-1.5 rounded border transition-colors ${saved.has(p.id) ? "border-chart-3/40 text-chart-3" : "border-border text-muted-foreground hover:text-chart-3"}`}
                   title="Save to library"
                 >
                   <Star className="w-3 h-3" />
                 </button>
                 <button
                   onClick={() => { navigator.clipboard?.writeText(toBibTeX(p)); }}
-                  className="p-1.5 rounded border border-[#2c2c30] text-[#52504e] hover:text-[#b366ff] hover:border-[#b366ff]/40 transition-colors"
+                  className="p-1.5 rounded border border-border text-muted-foreground hover:text-[#b366ff] hover:border-[#b366ff]/40 transition-colors"
                   title="Copy BibTeX"
                 >
                   <Copy className="w-3 h-3" />
@@ -1068,7 +1068,7 @@ function LiteratureTab() {
                 <button
                   onClick={() => importToCorpus(p)}
                   disabled={imported.has(p.id)}
-                  className={`p-1.5 rounded border transition-colors ${imported.has(p.id) ? "border-[#1a3b00] text-[#7fff52]" : "border-[#2c2c30] text-[#52504e] hover:text-[#7fff52] hover:border-[#7fff52]/40"}`}
+                  className={`p-1.5 rounded border transition-colors ${imported.has(p.id) ? "border-[#1a3b00] text-[#7fff52]" : "border-border text-muted-foreground hover:text-[#7fff52] hover:border-[#7fff52]/40"}`}
                   title={imported.has(p.id) ? "Imported to corpus" : "Import to P2PCLAW corpus"}
                 >
                   <Database className="w-3 h-3" />
@@ -1077,7 +1077,7 @@ function LiteratureTab() {
                   href={p.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded border border-[#2c2c30] text-[#52504e] hover:text-[#ff4e1a] hover:border-[#ff4e1a]/40 transition-colors"
+                  className="p-1.5 rounded border border-border text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
                   title="Open PDF"
                 >
                   <Download className="w-3 h-3" />
@@ -1086,7 +1086,7 @@ function LiteratureTab() {
             </div>
             <button
               onClick={() => setExpanded(expanded === p.id ? null : p.id)}
-              className="font-mono text-[10px] text-[#52504e] hover:text-[#9a9490] transition-colors mt-1"
+              className="text-[10px] text-muted-foreground hover:text-muted-foreground transition-colors mt-1"
             >
               {expanded === p.id ? "▲ hide abstract" : "▼ show abstract"}
             </button>
@@ -1094,7 +1094,7 @@ function LiteratureTab() {
         ))}
       </div>
       {papers.length === 0 && !loading && query && (
-        <p className="font-mono text-xs text-[#52504e] text-center py-8">No results. Try a different query.</p>
+        <p className="text-xs text-muted-foreground text-center py-8">No results. Try a different query.</p>
       )}
     </div>
   );
@@ -1232,44 +1232,44 @@ function ExperimentsTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-mono text-sm font-bold text-[#f5f0eb]">Experiment Tracker</h2>
-          <p className="font-mono text-[10px] text-[#52504e]">Pre-register hypotheses · Track status · Log evidence</p>
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">Experiment Tracker</h2>
+          <p className="text-[10px] text-muted-foreground">Pre-register hypotheses · Track status · Log evidence</p>
         </div>
         <button
           onClick={() => setShowNew(v => !v)}
-          className="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-bold rounded-lg"
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary hover:bg-accent text-black font-bold rounded-lg"
         >
           <Plus className="w-3 h-3" /> New Experiment
         </button>
       </div>
 
       {showNew && (
-        <div className="border border-[#ff4e1a]/30 rounded-lg bg-[#0c0c0d] p-4 space-y-3">
-          <h3 className="font-mono text-xs font-bold text-[#ff4e1a]">New Pre-Registered Experiment</h3>
+        <div className="border border-primary/30 rounded-2xl bg-background p-4 space-y-3">
+          <h3 className="text-xs font-semibold tracking-tight text-primary">New Pre-Registered Experiment</h3>
           {[
             { key: "title", label: "Title", placeholder: "e.g. Effect of network topology on consensus speed" },
             { key: "hypothesis", label: "Hypothesis", placeholder: "State your falsifiable prediction…" },
             { key: "method", label: "Method", placeholder: "Describe how you will test this…" },
           ].map(f => (
             <div key={f.key}>
-              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">{f.label}</label>
+              <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">{f.label}</label>
               <textarea
                 value={form[f.key as keyof typeof form]}
                 onChange={e => setForm(v => ({ ...v, [f.key]: e.target.value }))}
                 placeholder={f.placeholder}
                 rows={f.key === "title" ? 1 : 2}
-                className="w-full bg-[#121214] border border-[#2c2c30] rounded px-3 py-2 font-mono text-xs text-[#f5f0eb] placeholder:text-[#2c2c30] focus:border-[#ff4e1a]/40 focus:outline-none resize-none"
+                className="w-full bg-popover border border-border rounded px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none resize-none"
               />
             </div>
           ))}
           <div className="flex gap-2">
             <button onClick={create} disabled={!form.title || !form.hypothesis || creating}
-              className="flex-1 py-2 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-1">
+              className="flex-1 py-2 bg-primary hover:bg-accent text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-1">
               {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Shield className="w-3 h-3" />}
               Pre-Register with SHA-256
             </button>
             <button onClick={() => setShowNew(false)}
-              className="px-4 py-2 border border-[#2c2c30] text-[#52504e] font-mono text-xs rounded-lg hover:text-[#9a9490]">
+              className="px-4 py-2 border border-border text-muted-foreground text-xs rounded-lg hover:text-muted-foreground">
               Cancel
             </button>
           </div>
@@ -1278,64 +1278,64 @@ function ExperimentsTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {experiments.length === 0 && (
-          <div className="col-span-2 border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-8 text-center">
-            <Beaker className="w-8 h-8 text-[#2c2c30] mx-auto mb-2" />
-            <p className="font-mono text-xs text-[#52504e]">No experiments yet. Create your first pre-registered experiment.</p>
+          <div className="col-span-2 border border-border rounded-2xl bg-background p-8 text-center">
+            <Beaker className="w-8 h-8 text-border mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">No experiments yet. Create your first pre-registered experiment.</p>
           </div>
         )}
         {experiments.map(exp => (
           <div key={exp.id}
-            className={`border rounded-lg bg-[#0c0c0d] p-4 cursor-pointer transition-all ${activeExp?.id === exp.id ? "border-[#ff4e1a]/40" : "border-[#2c2c30] hover:border-[#2c2c30]/80"}`}
+            className={`border rounded-2xl bg-background p-4 cursor-pointer transition-all ${activeExp?.id === exp.id ? "border-primary/40" : "border-border hover:border-border/80"}`}
             onClick={() => setActiveExp(activeExp?.id === exp.id ? null : exp)}
           >
             <div className="flex items-start justify-between gap-2 mb-2">
-              <h3 className="font-mono text-xs font-bold text-[#f5f0eb] flex-1">{exp.title}</h3>
-              <span className="font-mono text-[9px] px-2 py-0.5 rounded uppercase shrink-0"
+              <h3 className="text-xs font-semibold tracking-tight text-foreground flex-1">{exp.title}</h3>
+              <span className="text-[9px] px-2 py-0.5 rounded uppercase shrink-0"
                 style={{ backgroundColor: EXP_STATUS_COLOR[exp.status], color: EXP_STATUS_TEXT[exp.status] }}>
                 {exp.status}
               </span>
             </div>
-            <p className="font-mono text-[10px] text-[#52504e] mb-3 leading-relaxed">{exp.hypothesis}</p>
+            <p className="text-[10px] text-muted-foreground mb-3 leading-relaxed">{exp.hypothesis}</p>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-[9px] text-[#2c2c30] flex items-center gap-1">
+              <span className="text-[9px] text-border flex items-center gap-1">
                 <Hash className="w-2.5 h-2.5" />
                 {exp.preregHash.slice(0, 12)}…
               </span>
               {exp.status !== "verified" && exp.status !== "refuted" && (
                 <>
                   <button onClick={e => { e.stopPropagation(); advance(exp.id); }}
-                    className="font-mono text-[9px] px-2 py-0.5 bg-[#1a3b00] text-[#7fff52] rounded hover:bg-[#1a3b00]/80 flex items-center gap-0.5">
+                    className="text-[9px] px-2 py-0.5 bg-[#1a3b00] text-[#7fff52] rounded hover:bg-[#1a3b00]/80 flex items-center gap-0.5">
                     <ChevronRight className="w-2.5 h-2.5" /> Advance
                   </button>
                   <button onClick={e => { e.stopPropagation(); refute(exp.id); }}
-                    className="font-mono text-[9px] px-2 py-0.5 bg-[#3b001a] text-[#ff5252] rounded hover:bg-[#3b001a]/80 flex items-center gap-0.5">
+                    className="text-[9px] px-2 py-0.5 bg-[#3b001a] text-[#ff5252] rounded hover:bg-[#3b001a]/80 flex items-center gap-0.5">
                     <XCircle className="w-2.5 h-2.5" /> Refute
                   </button>
                 </>
               )}
               {exp.status === "verified" && draftMsg?.id === exp.id ? (
-                <span className="font-mono text-[9px] text-[#7fff52] flex items-center gap-0.5">
+                <span className="text-[9px] text-[#7fff52] flex items-center gap-0.5">
                   <CheckCircle2 className="w-2.5 h-2.5" /> {draftMsg.text}
                 </span>
               ) : exp.status === "verified" && (
                 <button onClick={e => { e.stopPropagation(); draftPaper(exp); }} disabled={drafting === exp.id}
-                  className="font-mono text-[9px] px-2 py-0.5 bg-[#002f3b] text-[#52c4ff] rounded hover:bg-[#002f3b]/80 flex items-center gap-0.5 disabled:opacity-40">
+                  className="text-[9px] px-2 py-0.5 bg-[#002f3b] text-[#52c4ff] rounded hover:bg-[#002f3b]/80 flex items-center gap-0.5 disabled:opacity-40">
                   {drafting === exp.id ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <FileText className="w-2.5 h-2.5" />}
                   Draft Paper
                 </button>
               )}
             </div>
             {activeExp?.id === exp.id && (
-              <div className="mt-3 pt-3 border-t border-[#2c2c30] space-y-2">
-                <p className="font-mono text-[10px] text-[#52504e]"><strong className="text-[#9a9490]">Method:</strong> {exp.method || "—"}</p>
+              <div className="mt-3 pt-3 border-t border-border space-y-2">
+                <p className="text-[10px] text-muted-foreground"><strong className="text-muted-foreground">Method:</strong> {exp.method || "—"}</p>
                 {exp.notes && (
-                  <pre className="font-mono text-[9px] text-[#52504e] whitespace-pre-wrap bg-[#121214] rounded p-2 max-h-32 overflow-y-auto">{exp.notes}</pre>
+                  <pre className="font-mono text-[9px] text-muted-foreground whitespace-pre-wrap bg-popover rounded p-2 max-h-32 overflow-y-auto">{exp.notes}</pre>
                 )}
                 <div className="flex gap-2">
                   <input value={note} onChange={e => setNote(e.target.value)} onKeyDown={e => e.key === "Enter" && addNote()}
                     placeholder="Add observation or result…"
-                    className="flex-1 bg-[#121214] border border-[#2c2c30] rounded px-2 py-1 font-mono text-[10px] text-[#f5f0eb] placeholder:text-[#2c2c30] focus:outline-none" />
-                  <button onClick={addNote} className="px-2 py-1 bg-[#ff4e1a]/10 border border-[#ff4e1a]/30 text-[#ff4e1a] rounded font-mono text-[10px]">
+                    className="flex-1 bg-popover border border-border rounded px-2 py-1 text-[10px] text-foreground placeholder:text-muted-foreground focus:outline-none" />
+                  <button onClick={addNote} className="px-2 py-1 bg-primary/10 border border-primary/30 text-primary rounded text-[10px]">
                     Log
                   </button>
                 </div>
@@ -1371,11 +1371,11 @@ interface LocalJob {
   elapsed: number; ts: number;
 }
 
-const ENGINE_BADGE: Record<SimEngine, { label: string; color: string }> = {
-  local:    { label: "🔬 Runs In Your Browser", color: "#7fff52" },
-  pubchem:  { label: "🧬 NIH PubChem",          color: "#52c4ff" },
-  lean4web: { label: "📐 Lean4Web Playground",  color: "#b366ff" },
-  hpc:      { label: "☁ External HPC",          color: "#ffcb47" },
+const ENGINE_BADGE: Record<SimEngine, { label: string; color: string; icon: typeof Microscope }> = {
+  local:    { label: "Runs In Your Browser", color: "#7fff52", icon: Microscope },
+  pubchem:  { label: "NIH PubChem",          color: "#52c4ff", icon: Dna },
+  lean4web: { label: "Lean4Web Playground",  color: "#b366ff", icon: Ruler },
+  hpc:      { label: "External HPC",         color: "#ffcb47", icon: Cloud },
 };
 
 function SimulationTab() {
@@ -1440,20 +1440,20 @@ function SimulationTab() {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
-          <Cpu className="w-4 h-4 text-[#ff4e1a]" /> Scientific Compute
+        <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+          <Cpu className="w-4 h-4 text-primary" /> Scientific Compute
         </h2>
-        <p className="font-mono text-[10px] text-[#52504e]">
+        <p className="text-[10px] text-muted-foreground">
           Python runs on <strong className="text-[#7fff52]">YOUR hardware</strong> via WebAssembly (Pyodide) — no server needed.
           Molecular data via NIH PubChem. Heavy simulation → real HPC platforms.
         </p>
       </div>
 
       <div className="flex gap-1.5 flex-wrap">
-        {(Object.entries(ENGINE_BADGE) as [SimEngine, { label: string; color: string }][]).map(([k, v]) => (
-          <span key={k} className="font-mono text-[8px] px-1.5 py-0.5 rounded border"
+        {(Object.entries(ENGINE_BADGE) as [SimEngine, { label: string; color: string; icon: typeof Microscope }][]).map(([k, v]) => (
+          <span key={k} className="text-[8px] px-1.5 py-0.5 rounded border flex items-center gap-1"
             style={{ color: v.color, borderColor: `${v.color}40`, backgroundColor: `${v.color}0a` }}>
-            {v.label}
+            <v.icon className="w-2.5 h-2.5" /> {v.label}
           </span>
         ))}
       </div>
@@ -1467,12 +1467,12 @@ function SimulationTab() {
               return (
                 <button key={t.id}
                   onClick={() => { setTool(t.id); setParams(JSON.stringify(t.example, null, 2)); }}
-                  className={`text-left p-2.5 rounded-lg border transition-colors ${tool === t.id ? "border-[#ff4e1a]/40 bg-[#ff4e1a]/5" : "border-[#2c2c30] bg-[#0c0c0d] hover:border-[#2c2c30]/60"}`}>
-                  <div className="font-mono text-xs font-bold text-[#f5f0eb] mb-0.5">{t.label}</div>
-                  <div className="font-mono text-[9px] text-[#52504e] mb-1">{t.desc}</div>
-                  <span className="font-mono text-[7px] px-1 py-0.5 rounded"
+                  className={`text-left p-2.5 rounded-lg border transition-colors ${tool === t.id ? "border-primary/40 bg-primary/5" : "border-border bg-background hover:border-border/60"}`}>
+                  <div className="text-xs font-bold text-foreground mb-0.5">{t.label}</div>
+                  <div className="text-[9px] text-muted-foreground mb-1">{t.desc}</div>
+                  <span className="text-[7px] px-1 py-0.5 rounded inline-flex items-center gap-1"
                     style={{ color: badge.color, backgroundColor: `${badge.color}18` }}>
-                    {badge.label}
+                    <badge.icon className="w-2.5 h-2.5" /> {badge.label}
                   </span>
                 </button>
               );
@@ -1482,72 +1482,72 @@ function SimulationTab() {
           {/* Params area — context-aware */}
           {sel.engine === "local" && tool !== "generic_python" && (
             <div>
-              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">
+              <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">
                 Parameters (JSON)
               </label>
               <textarea value={params} onChange={e => setParams(e.target.value)}
                 rows={5} spellCheck={false}
-                className="w-full font-mono text-xs bg-[#0c0c0d] border border-[#2c2c30] rounded-lg p-3 text-[#f5f0eb] focus:border-[#7fff52]/30 focus:outline-none resize-none" />
+                className="w-full text-xs bg-background border border-border rounded-lg p-3 text-foreground focus:border-[#7fff52]/30 focus:outline-none resize-none" />
             </div>
           )}
 
           {tool === "generic_python" && (
             <div>
-              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">
+              <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">
                 Python Code — runs in your browser
               </label>
               <textarea value={codeValue ?? ""} onChange={e => setCodeValue(e.target.value)}
                 rows={8} spellCheck={false}
                 placeholder="import numpy as np&#10;# Your Python code here..."
-                className="w-full font-mono text-xs bg-[#0a0a0b] border border-[#7fff52]/20 rounded-lg p-3 text-[#f5f0eb] focus:border-[#7fff52]/40 focus:outline-none resize-none" />
+                className="w-full text-xs bg-[#0a0a0b] border border-[#7fff52]/20 rounded-lg p-3 text-foreground focus:border-[#7fff52]/40 focus:outline-none resize-none" />
             </div>
           )}
 
           {sel.engine === "pubchem" && (
             <div>
-              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-1">
+              <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">
                 SMILES String
               </label>
               <textarea value={params} onChange={e => setParams(e.target.value)}
                 rows={3} spellCheck={false}
-                className="w-full font-mono text-xs bg-[#0c0c0d] border border-[#52c4ff]/20 rounded-lg p-3 text-[#f5f0eb] focus:border-[#52c4ff]/40 focus:outline-none resize-none" />
+                className="w-full text-xs bg-background border border-[#52c4ff]/20 rounded-lg p-3 text-foreground focus:border-[#52c4ff]/40 focus:outline-none resize-none" />
             </div>
           )}
 
           {sel.engine === "lean4web" && (
-            <div className="border border-[#b366ff]/30 rounded-lg p-3 bg-[#0c0c0d] space-y-2">
-              <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block">
+            <div className="border border-[#b366ff]/30 rounded-lg p-3 bg-background space-y-2">
+              <label className="text-[10px] text-muted-foreground uppercase tracking-wider block">
                 Lean 4 Proof
               </label>
               <textarea
                 value={String((() => { try { return JSON.parse(params).proof ?? ""; } catch { return ""; } })())}
                 onChange={e => setParams(JSON.stringify({ proof: e.target.value }, null, 2))}
                 rows={4} spellCheck={false}
-                className="w-full font-mono text-xs bg-[#0a0a0b] border border-[#b366ff]/30 rounded p-3 text-[#f5f0eb] focus:outline-none resize-none" />
-              <p className="font-mono text-[9px] text-[#52504e]">
+                className="w-full text-xs bg-[#0a0a0b] border border-[#b366ff]/30 rounded p-3 text-foreground focus:outline-none resize-none" />
+              <p className="text-[9px] text-muted-foreground">
                 Will open in <strong>live.lean-lang.org</strong> (official Lean 4 playground) with your proof pre-loaded.
               </p>
             </div>
           )}
 
           {sel.engine === "hpc" && (
-            <div className="border border-[#ffcb47]/30 rounded-lg p-4 bg-[#0c0c0d] space-y-2">
-              <p className="font-mono text-[10px] text-[#ffcb47] font-bold">☁ External HPC Required</p>
-              <p className="font-mono text-[10px] text-[#52504e] leading-relaxed">
+            <div className="border border-chart-3/30 rounded-2xl p-4 bg-background space-y-2">
+              <p className="text-[10px] text-chart-3 font-semibold flex items-center gap-1"><Cloud className="w-3 h-3" /> External HPC Required</p>
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
                 {sel.label} requires dedicated computational hardware (GPU/CPU cluster).
-                Clicking the button opens <strong className="text-[#ffcb47]">{sel.hpcLabel}</strong>,
+                Clicking the button opens <strong className="text-chart-3">{sel.hpcLabel}</strong>,
                 a free/accessible scientific computing platform where you can run this simulation.
               </p>
-              <p className="font-mono text-[9px] text-[#2c2c30]">Reference params:</p>
+              <p className="text-[9px] text-border">Reference params:</p>
               <textarea value={params} onChange={e => setParams(e.target.value)} rows={3}
                 spellCheck={false}
-                className="w-full font-mono text-[10px] bg-[#0a0a0b] border border-[#2c2c30] rounded p-2 text-[#52504e] resize-none" />
+                className="w-full text-[10px] bg-[#0a0a0b] border border-border rounded p-2 text-muted-foreground resize-none" />
             </div>
           )}
 
           <button onClick={runJob} disabled={running}
-            className={`w-full py-2.5 font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2 transition-colors ${
-              sel.engine === "hpc"      ? "bg-[#ffcb47] hover:bg-[#ffd870] text-black" :
+            className={`w-full py-2.5 text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2 transition-colors ${
+              sel.engine === "hpc"      ? "bg-chart-3 hover:bg-[#ffd870] text-black" :
               sel.engine === "lean4web" ? "bg-[#b366ff] hover:bg-[#c47fff] text-black" :
               sel.engine === "pubchem"  ? "bg-[#52c4ff] hover:bg-[#7fd4ff] text-black" :
               "bg-[#7fff52] hover:bg-[#a0ff80] text-black"
@@ -1563,28 +1563,28 @@ function SimulationTab() {
 
         {/* Right: results */}
         <div>
-          <h3 className="font-mono text-xs font-bold text-[#9a9490] mb-3">Results</h3>
+          <h3 className="text-xs font-semibold tracking-tight text-muted-foreground mb-3">Results</h3>
           <div className="space-y-2 max-h-[600px] overflow-y-auto">
             {jobs.length === 0 && (
-              <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-6 text-center">
-                <Cpu className="w-6 h-6 text-[#2c2c30] mx-auto mb-2" />
-                <p className="font-mono text-[10px] text-[#52504e]">No results yet — select a tool and run</p>
-                <p className="font-mono text-[9px] text-[#2c2c30] mt-1">Python tools run entirely on your hardware via WebAssembly</p>
+              <div className="border border-border rounded-2xl bg-background p-6 text-center">
+                <Cpu className="w-6 h-6 text-border mx-auto mb-2" />
+                <p className="text-[10px] text-muted-foreground">No results yet — select a tool and run</p>
+                <p className="text-[9px] text-border mt-1">Python tools run entirely on your hardware via WebAssembly</p>
               </div>
             )}
             {jobs.map(job => {
               const badge = ENGINE_BADGE[job.engine];
               return (
-                <div key={job.id} className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-3">
+                <div key={job.id} className="border border-border rounded-lg bg-background p-3">
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="font-mono text-xs text-[#9a9490]">
+                    <span className="text-xs text-muted-foreground">
                       {SIM_TOOLS.find(t => t.id === job.tool)?.label ?? job.tool}
                     </span>
                     <div className="flex items-center gap-2">
                       {job.elapsed > 0 && (
-                        <span className="font-mono text-[9px] text-[#2c2c30]">{job.elapsed}ms</span>
+                        <span className="text-[9px] text-border">{job.elapsed}ms</span>
                       )}
-                      <span className="font-mono text-[10px] flex items-center gap-1"
+                      <span className="text-[10px] flex items-center gap-1"
                         style={{ color: job.status === "done" ? "#7fff52" : job.status === "error" ? "#ff5252" : "#ffcb47" }}>
                         {job.status === "running"
                           ? <Loader2 className="w-3 h-3 animate-spin" />
@@ -1595,17 +1595,17 @@ function SimulationTab() {
                       </span>
                     </div>
                   </div>
-                  <div className="font-mono text-[8px] text-[#2c2c30] mb-2 flex gap-2">
+                  <div className="text-[8px] text-border mb-2 flex gap-2">
                     <span>{new Date(job.ts).toLocaleTimeString()}</span>
                     <span>·</span>
                     <span>{job.id.slice(0, 8)}</span>
                     <span>·</span>
-                    <span style={{ color: badge.color }}>{badge.label}</span>
+                    <span className="inline-flex items-center gap-1" style={{ color: badge.color }}><badge.icon className="w-2.5 h-2.5" /> {badge.label}</span>
                   </div>
                   {(job.output || job.error) && (
                     <pre className={`font-mono text-[10px] p-2.5 rounded border overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-[350px] overflow-y-auto ${
                       job.status === "error"
-                        ? "border-[#3b001a] bg-[#0c0c0d] text-[#ff5252]"
+                        ? "border-[#3b001a] bg-background text-[#ff5252]"
                         : "border-[#1a3b00] bg-[#0a1a0a] text-[#7fff52]"
                     }`}>
                       {job.error ? `ERROR:\n${job.error}\n\nOutput:\n${job.output}` : job.output}
@@ -1720,15 +1720,15 @@ function GeneticLabTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-mono text-sm font-bold text-[#f5f0eb]">Genetic Lab</h2>
-          <p className="font-mono text-[10px] text-[#52504e]">Evolutionary Protocol Tuning & Network Parameter Optimization.</p>
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">Genetic Lab</h2>
+          <p className="text-[10px] text-muted-foreground">Evolutionary Protocol Tuning & Network Parameter Optimization.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={seed} className="font-mono text-[10px] px-3 py-1.5 border border-[#2c2c30] text-[#f5f0eb] hover:bg-[#2c2c30] rounded flex items-center gap-1 font-bold uppercase">
+          <button onClick={seed} className="text-[10px] px-3 py-1.5 border border-border text-foreground hover:bg-border rounded flex items-center gap-1 font-bold uppercase">
             Seed Population
           </button>
           <button onClick={() => { setAutoRun(!autoRun); if (!autoRun) step(); }}
-            className={`font-mono text-[10px] px-4 py-1.5 rounded flex items-center gap-1 font-bold uppercase transition-colors ${autoRun ? "bg-[#ff4e1a] text-black hover:bg-[#ff7020]" : "bg-[#ff4e1a] text-black hover:bg-[#ff7020]"}`}>
+            className={`text-[10px] px-4 py-1.5 rounded flex items-center gap-1 font-bold uppercase transition-colors ${autoRun ? "bg-primary text-black hover:bg-accent" : "bg-primary text-black hover:bg-accent"}`}>
             {autoRun ? "Stop Evolution" : "Start Evolution"}
           </button>
         </div>
@@ -1736,43 +1736,43 @@ function GeneticLabTab() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Controls */}
-        <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 space-y-4">
-          <h3 className="font-mono text-[10px] text-[#52c4ff] uppercase tracking-widest font-bold">Evolution Parameters</h3>
+        <div className="border border-border rounded-2xl bg-background p-4 space-y-4">
+          <h3 className="text-[10px] text-[#52c4ff] font-medium">Evolution Parameters</h3>
           
           <div>
-            <label className="block font-mono text-[9px] text-[#52504e] mb-2 uppercase">Population Size: {popSize}</label>
-            <input type="range" min="10" max="500" value={popSize} onChange={e => setPopSize(parseInt(e.target.value))} className="w-full h-1 bg-[#2c2c30] rounded-lg appearance-none cursor-pointer accent-[#ff4e1a]" />
-            <div className="flex justify-between font-mono text-[8px] text-[#52c4ff] mt-1"><span>10</span><span>500</span></div>
+            <label className="block text-[9px] text-muted-foreground mb-2 uppercase">Population Size: {popSize}</label>
+            <input type="range" min="10" max="500" value={popSize} onChange={e => setPopSize(parseInt(e.target.value))} className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-primary" />
+            <div className="flex justify-between text-[8px] text-[#52c4ff] mt-1"><span>10</span><span>500</span></div>
           </div>
 
           <div>
-            <label className="block font-mono text-[9px] text-[#52504e] mb-2 uppercase">Mutation Rate: {(mutationRate * 100).toFixed(0)}%</label>
-            <input type="range" min="0" max="100" value={mutationRate * 100} onChange={e => setMutationRate(parseInt(e.target.value) / 100)} className="w-full h-1 bg-[#2c2c30] rounded-lg appearance-none cursor-pointer accent-[#ff4e1a]" />
-            <div className="flex justify-between font-mono text-[8px] text-[#52c4ff] mt-1"><span>0%</span><span>100%</span></div>
+            <label className="block text-[9px] font-medium text-muted-foreground mb-2">Mutation Rate: {(mutationRate * 100).toFixed(0)}%</label>
+            <input type="range" min="0" max="100" value={mutationRate * 100} onChange={e => setMutationRate(parseInt(e.target.value) / 100)} className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-primary" />
+            <div className="flex justify-between text-[8px] text-[#52c4ff] mt-1"><span>0%</span><span>100%</span></div>
           </div>
 
           <div>
-            <label className="block font-mono text-[9px] text-[#52504e] mb-1 uppercase">Crossover Points</label>
-            <select value={crossoverStrategy} onChange={e => setCrossoverStrategy(e.target.value)} className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded p-2 font-mono text-[10px] text-[#f5f0eb] focus:border-[#ff4e1a] focus:outline-none">
+            <label className="block text-[9px] text-muted-foreground mb-1 uppercase">Crossover Points</label>
+            <select value={crossoverStrategy} onChange={e => setCrossoverStrategy(e.target.value)} className="w-full bg-card border border-border rounded p-2 text-[10px] text-foreground focus:border-primary focus:outline-none">
               <option>Single Point</option>
               <option>Two Point</option>
               <option>Uniform</option>
             </select>
           </div>
 
-          <div className="pt-4 border-t border-[#2c2c30]">
-            <div className="font-mono text-[9px] text-[#52504e] uppercase mb-1">Current Generation</div>
-            <div className="font-mono text-2xl font-bold text-[#f5f0eb]">{gen}</div>
-            <div className="font-mono text-[9px] mt-1">
-              Best fitness <span className="text-[#7fff52]">{(bestFit * 100).toFixed(1)}%</span> · Avg <span className="text-[#52504e]">{(avgFit * 100).toFixed(1)}%</span>
+          <div className="pt-4 border-t border-border">
+            <div className="text-[9px] text-muted-foreground uppercase mb-1">Current Generation</div>
+            <div className="text-2xl font-bold text-foreground">{gen}</div>
+            <div className="text-[9px] mt-1">
+              Best fitness <span className="text-[#7fff52]">{(bestFit * 100).toFixed(1)}%</span> · Avg <span className="text-muted-foreground">{(avgFit * 100).toFixed(1)}%</span>
             </div>
           </div>
         </div>
 
         {/* Visualization */}
-        <div className="md:col-span-2 border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 flex flex-col">
-          <h3 className="font-mono text-[10px] text-[#b366ff] uppercase tracking-widest font-bold mb-4">Fitness Profile</h3>
-          <div className="flex-1 bg-[#0a0a0b] rounded-lg border border-[#1a1a1c] relative overflow-hidden min-h-[150px]">
+        <div className="md:col-span-2 border border-border rounded-2xl bg-background p-4 flex flex-col">
+          <h3 className="text-[10px] text-[#b366ff] font-medium mb-4">Fitness Profile</h3>
+          <div className="flex-1 bg-[#0a0a0b] rounded-lg border border-card relative overflow-hidden min-h-[150px]">
             {history.length > 1 && (
               <svg width="100%" height="100%" viewBox={`0 0 ${history.length - 1} 1`} preserveAspectRatio="none" className="overflow-visible absolute inset-0">
                 <polygon points={`0,1 ${history.map((h, i) => `${i},${1 - h.avg}`).join(" ")} ${history.length - 1},1`} fill="rgba(82, 196, 255, 0.05)" />
@@ -1785,21 +1785,21 @@ function GeneticLabTab() {
               </svg>
             )}
             <div className="absolute bottom-2 left-2 flex gap-4">
-              <span className="font-mono text-[9px] text-[#7fff52] flex items-center gap-1 bg-[#00000080] px-1 rounded"><span className="w-2 h-0.5 bg-[#7fff52]" /> Best</span>
-              <span className="font-mono text-[9px] text-[#52c4ff] flex items-center gap-1 bg-[#00000080] px-1 rounded"><span className="w-2 h-0.5 bg-[#52c4ff]" /> Avg</span>
+              <span className="text-[9px] text-[#7fff52] flex items-center gap-1 bg-[#00000080] px-1 rounded"><span className="w-2 h-0.5 bg-[#7fff52]" /> Best</span>
+              <span className="text-[9px] text-[#52c4ff] flex items-center gap-1 bg-[#00000080] px-1 rounded"><span className="w-2 h-0.5 bg-[#52c4ff]" /> Avg</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-        <h3 className="font-mono text-xs font-bold text-[#f5f0eb] mb-3">Elite Genome Pool</h3>
+      <div className="border border-border rounded-2xl bg-background p-4">
+        <h3 className="text-xs font-semibold tracking-tight text-foreground mb-3">Elite Genome Pool</h3>
         
         <div className="grid gap-1 mb-2 px-1" style={{ gridTemplateColumns: "30px 1fr" }}>
           <div />
           <div className="grid" style={{ gridTemplateColumns: `repeat(${GENE_NAMES.length}, 1fr)` }}>
             {GENE_NAMES.map(n => (
-              <div key={n} className="font-mono text-[8px] text-[#52504e] text-center truncate uppercase">{n}</div>
+              <div key={n} className="text-[8px] text-muted-foreground text-center truncate uppercase">{n}</div>
             ))}
           </div>
         </div>
@@ -1809,14 +1809,14 @@ function GeneticLabTab() {
           {pop.map((g, i) => ({ genome: g, originalIdx: i })).sort((a,b) => fitness(b.genome) - fitness(a.genome)).slice(0, 15).map(({ genome, originalIdx }, rank) => (
             <div key={originalIdx}
               onClick={() => setSelectedIdx(selectedIdx === originalIdx ? null : originalIdx)}
-              className={`grid gap-2 items-center cursor-pointer rounded p-1 transition-all ${selectedIdx === originalIdx ? "bg-[#ff4e1a]/10 border border-[#ff4e1a]/30" : "bg-[#1a1a1c] border border-[#2c2c30] hover:border-[#52504e]"}`}
+              className={`grid gap-2 items-center cursor-pointer rounded p-1 transition-all ${selectedIdx === originalIdx ? "bg-primary/10 border border-primary/30" : "bg-card border border-border hover:border-muted-foreground"}`}
               style={{ gridTemplateColumns: "30px 1fr" }}>
-              <div className="font-mono text-[9px] text-[#52504e] text-right">
+              <div className="text-[9px] text-muted-foreground text-right">
                 #{rank + 1}
               </div>
               <div className="grid h-6 rounded overflow-hidden" style={{ gridTemplateColumns: `repeat(${genome.length}, 1fr)` }}>
                 {genome.map((val, j) => (
-                  <div key={j} className="h-full border-r border-[#0c0c0d] last:border-0 relative group" style={{ backgroundColor: geneColor(val) }}>
+                  <div key={j} className="h-full border-r border-background last:border-0 relative group" style={{ backgroundColor: geneColor(val) }}>
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 transition-opacity">
                       <span className="font-mono text-[8px] text-white">{(val * 100).toFixed(0)}%</span>
                     </div>
@@ -1826,7 +1826,7 @@ function GeneticLabTab() {
             </div>
           ))}
           {pop.length > 15 && (
-            <div className="text-center font-mono text-[9px] text-[#52504e] py-2">
+            <div className="text-center text-[9px] text-muted-foreground py-2">
               ... and {pop.length - 15} more genomes hidden for performance
             </div>
           )}
@@ -1835,23 +1835,23 @@ function GeneticLabTab() {
 
       {/* Selected genome inspector */}
       {selectedIdx !== null && pop[selectedIdx] && (
-        <div className="border border-[#ff4e1a]/30 rounded-xl bg-[#0c0c0d] p-4 mt-4 shadow-[0_0_15px_rgba(255,78,26,0.1)]">
-          <div className="flex items-center justify-between mb-3 border-b border-[#2c2c30] pb-2">
-            <h3 className="font-mono text-xs font-bold text-[#ff4e1a] uppercase">
+        <div className="border border-primary/30 rounded-2xl bg-background p-4 mt-4 shadow-[0_0_15px_rgba(255,78,26,0.1)]">
+          <div className="flex items-center justify-between mb-3 border-b border-border pb-2">
+            <h3 className="text-xs font-semibold tracking-tight text-primary uppercase">
               Genome G{gen}-{selectedIdx}
             </h3>
-            <span className="font-mono text-xs text-[#7fff52] font-bold">
+            <span className="text-xs text-[#7fff52] font-bold">
               Fitness: {(fitness(pop[selectedIdx]) * 100).toFixed(1)}%
             </span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             {GENE_NAMES.map((name, j) => (
-              <div key={name} className="text-center bg-[#1a1a1c] border border-[#2c2c30] rounded p-2">
-                <div className="font-mono text-[8px] text-[#52504e] mb-2 uppercase">{name}</div>
-                <div className="w-full h-12 rounded bg-[#0c0c0d] border border-[#2c2c30] flex items-end justify-center relative overflow-hidden">
+              <div key={name} className="text-center bg-card border border-border rounded p-2">
+                <div className="text-[8px] text-muted-foreground mb-2 uppercase">{name}</div>
+                <div className="w-full h-12 rounded bg-background border border-border flex items-end justify-center relative overflow-hidden">
                   <div className="w-full transition-all duration-300" style={{ height: `${pop[selectedIdx][j] * 100}%`, backgroundColor: geneColor(pop[selectedIdx][j]) }} />
                 </div>
-                <div className="font-mono text-[10px] text-[#f5f0eb] mt-2 font-bold">{(pop[selectedIdx][j] * 100).toFixed(0)}%</div>
+                <div className="font-mono text-[10px] text-foreground mt-2 font-bold">{(pop[selectedIdx][j] * 100).toFixed(0)}%</div>
               </div>
             ))}
           </div>
@@ -1988,14 +1988,14 @@ function WorkflowsTab() {
         });
         const d = await res.json() as { jobId?: string; id?: string };
         const jobId = (d.jobId ?? d.id ?? "?").slice(0, 8);
-        setRunLog(l => [...l, `[${ts()}] ✓ Queued as job ${jobId}`]);
+        setRunLog(l => [...l, `[${ts()}] OK: Queued as job ${jobId}`]);
       } catch {
-        setRunLog(l => [...l, `[${ts()}] ⚠ Step ${i + 1} queued locally (API offline)`]);
+        setRunLog(l => [...l, `[${ts()}] Warning: Step ${i + 1} queued locally (API offline)`]);
       }
       setPipeline(p => p.map(s => s.id === step.id ? { ...s, status: "done" } : s));
       if (i < pipeline.length - 1) await new Promise(r => setTimeout(r, 800));
     }
-    setRunLog(l => [...l, `[${ts()}] ✓ All steps submitted. Monitor results in the Simulation tab.`]);
+    setRunLog(l => [...l, `[${ts()}] OK: All steps submitted. Monitor results in the Simulation tab.`]);
     setIsRunning(false);
   };
 
@@ -2021,13 +2021,13 @@ function WorkflowsTab() {
     <div className="flex flex-col h-full gap-4 min-h-[500px]">
       {/* Header & Main Tabs */}
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb]">Workflow Management</h2>
-        <p className="font-mono text-[10px] text-[#52504e] mb-3">Build, version, and orchestrate computational pipelines</p>
+        <h2 className="text-sm font-semibold tracking-tight text-foreground">Workflow Management</h2>
+        <p className="text-[10px] text-muted-foreground mb-3">Build, version, and orchestrate computational pipelines</p>
         
-        <div className="flex border-b border-[#2c2c30]">
+        <div className="flex border-b border-border">
           {(["builder", "pipelines", "versioning", "sweep"] as WorkflowSubTab[]).map(t => (
             <button key={t} onClick={() => setSubTab(t)}
-              className={`px-4 py-2 font-mono text-xs capitalize transition-colors ${subTab === t ? "text-[#ff4e1a] border-b-2 border-[#ff4e1a] font-bold" : "text-[#52504e] hover:text-[#9a9490]"}`}>
+              className={`px-4 py-2 text-xs capitalize transition-colors ${subTab === t ? "text-primary border-b-2 border-primary font-bold" : "text-muted-foreground hover:text-muted-foreground"}`}>
               {t === "builder" ? "Pipeline Builder" : t === "pipelines" ? "My Pipelines" : t === "versioning" ? "DVC Versioning" : "Parameter Sweep"}
             </button>
           ))}
@@ -2039,34 +2039,34 @@ function WorkflowsTab() {
         {subTab === "builder" && (
           <div className="space-y-4 pb-10">
             {/* Canvas Area */}
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 min-h-[140px] flex items-center overflow-x-auto overflow-y-hidden">
+            <div className="border border-border rounded-2xl bg-background p-4 min-h-[140px] flex items-center overflow-x-auto overflow-y-hidden">
               {pipeline.length === 0 ? (
-                <div className="w-full text-center font-mono text-[10px] text-[#52504e]">
+                <div className="w-full text-center text-[10px] text-muted-foreground">
                   No steps. Click "+ Add Step" to begin.
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
                   {pipeline.map((step, i) => (
                     <Fragment key={step.id}>
-                      {i > 0 && <ChevronRight className="w-4 h-4 text-[#52504e] flex-shrink-0" />}
+                      {i > 0 && <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />}
                       <div 
                         onClick={() => setSelectedStepId(step.id)}
-                        className={`flex flex-col w-40 p-3 rounded-lg border cursor-pointer transition-colors flex-shrink-0 ${selectedStepId === step.id ? "border-[#ff4e1a] bg-[#ff4e1a]/5" : "border-[#2c2c30] bg-[#1a1a1c] hover:border-[#52504e]"}`}
+                        className={`flex flex-col w-40 p-3 rounded-lg border cursor-pointer transition-colors flex-shrink-0 ${selectedStepId === step.id ? "border-primary bg-primary/5" : "border-border bg-card hover:border-muted-foreground"}`}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <div className={`w-5 h-5 rounded flex items-center justify-center font-mono text-[9px] font-bold ${selectedStepId === step.id ? "bg-[#ff4e1a] text-black" : "bg-[#2c2c30] text-[#f5f0eb]"}`}>
+                          <div className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-bold ${selectedStepId === step.id ? "bg-primary text-black" : "bg-border text-foreground"}`}>
                             {(i + 1).toString().padStart(2, '0')}
                           </div>
-                          <span className={`font-mono text-[10px] font-bold truncate ${selectedStepId === step.id ? "text-[#ff4e1a]" : "text-[#f5f0eb]"}`}>{step.name}</span>
+                          <span className={`text-[10px] font-bold truncate ${selectedStepId === step.id ? "text-primary" : "text-foreground"}`}>{step.name}</span>
                         </div>
-                        <div className="font-mono text-[9px] text-[#52504e] truncate mb-1">Tool: {step.tool || "None"}</div>
-                        <div className="font-mono text-[8px] text-[#9a9490] flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full border border-[#52504e]" /> Draft
+                        <div className="text-[9px] text-muted-foreground truncate mb-1">Tool: {step.tool || "None"}</div>
+                        <div className="text-[8px] text-muted-foreground flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full border border-muted-foreground" /> Draft
                         </div>
                       </div>
                     </Fragment>
                   ))}
-                  <button onClick={addStep} className="w-10 h-10 ml-2 rounded-full border border-dashed border-[#52504e] flex items-center justify-center text-[#52504e] hover:text-[#ff4e1a] hover:border-[#ff4e1a] transition-colors flex-shrink-0">
+                  <button onClick={addStep} className="w-10 h-10 ml-2 rounded-full border border-dashed border-muted-foreground flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors flex-shrink-0">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
@@ -2075,51 +2075,51 @@ function WorkflowsTab() {
 
             {/* Config Panel */}
             {selectedStep && (
-              <div className="border border-[#ff4e1a]/30 rounded-lg p-4 bg-[#ff4e1a]/5">
-                <div className="font-mono text-[9px] font-bold text-[#ff4e1a] uppercase tracking-widest mb-3">Configure Step: {selectedStep.name}</div>
+              <div className="border border-primary/30 rounded-2xl p-4 bg-primary/5">
+                <div className="text-[9px] font-medium text-primary mb-3">Configure Step: {selectedStep.name}</div>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Step Name</label>
-                    <input type="text" value={selectedStep.name} onChange={e => updateStep(selectedStep.id, "name", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                    <label className="block text-[10px] text-muted-foreground mb-1">Step Name</label>
+                    <input type="text" value={selectedStep.name} onChange={e => updateStep(selectedStep.id, "name", e.target.value)} className="w-full bg-background border border-border rounded focus:border-primary focus:outline-none p-2 text-xs text-foreground" />
                   </div>
                   <div>
-                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Tool Executable</label>
-                    <input type="text" placeholder="e.g. lammps, python, dvc" value={selectedStep.tool} onChange={e => updateStep(selectedStep.id, "tool", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                    <label className="block text-[10px] text-muted-foreground mb-1">Tool Executable</label>
+                    <input type="text" placeholder="e.g. lammps, python, dvc" value={selectedStep.tool} onChange={e => updateStep(selectedStep.id, "tool", e.target.value)} className="w-full bg-background border border-border rounded focus:border-primary focus:outline-none p-2 text-xs text-foreground" />
                   </div>
                   <div>
-                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Input Source</label>
-                    <input type="text" placeholder="CID or path" value={selectedStep.input} onChange={e => updateStep(selectedStep.id, "input", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                    <label className="block text-[10px] text-muted-foreground mb-1">Input Source</label>
+                    <input type="text" placeholder="CID or path" value={selectedStep.input} onChange={e => updateStep(selectedStep.id, "input", e.target.value)} className="w-full bg-background border border-border rounded focus:border-primary focus:outline-none p-2 font-mono text-xs text-foreground" />
                   </div>
                   <div>
-                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Output Target</label>
-                    <input type="text" placeholder="Filename or CID" value={selectedStep.output} onChange={e => updateStep(selectedStep.id, "output", e.target.value)} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb]" />
+                    <label className="block text-[10px] text-muted-foreground mb-1">Output Target</label>
+                    <input type="text" placeholder="Filename or CID" value={selectedStep.output} onChange={e => updateStep(selectedStep.id, "output", e.target.value)} className="w-full bg-background border border-border rounded focus:border-primary focus:outline-none p-2 font-mono text-xs text-foreground" />
                   </div>
                 </div>
                 <div>
-                  <label className="block font-mono text-[10px] text-[#52504e] mb-1">Command String</label>
-                  <textarea value={selectedStep.cmd} onChange={e => updateStep(selectedStep.id, "cmd", e.target.value)} placeholder="e.g., lammps -in sim.in" rows={2} className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded focus:border-[#ff4e1a] focus:outline-none p-2 font-mono text-xs text-[#f5f0eb] resize-none" />
+                  <label className="block text-[10px] text-muted-foreground mb-1">Command String</label>
+                  <textarea value={selectedStep.cmd} onChange={e => updateStep(selectedStep.id, "cmd", e.target.value)} placeholder="e.g., lammps -in sim.in" rows={2} className="w-full bg-background border border-border rounded focus:border-primary focus:outline-none p-2 font-mono text-xs text-foreground resize-none" />
                 </div>
                 <div className="mt-3 flex gap-2 justify-end">
-                  <button onClick={removeStep} className="px-3 py-1 font-mono text-[10px] text-[#ff4e1a] border border-[#ff4e1a]/30 rounded hover:bg-[#ff4e1a]/10">Remove Step</button>
-                  <button onClick={() => setSelectedStepId(null)} className="px-3 py-1 font-mono text-[10px] text-[#f5f0eb] border border-[#2c2c30] rounded hover:bg-[#2c2c30]">Done</button>
+                  <button onClick={removeStep} className="px-3 py-1 text-[10px] text-primary border border-primary/30 rounded hover:bg-primary/10">Remove Step</button>
+                  <button onClick={() => setSelectedStepId(null)} className="px-3 py-1 text-[10px] text-foreground border border-border rounded hover:bg-border">Done</button>
                 </div>
               </div>
             )}
 
             {/* Actions & DAG Preview */}
             <div className="flex gap-2 items-center">
-              <button onClick={addStep} className="px-4 py-2 font-mono text-[10px] bg-[#1a1a1c] border border-[#2c2c30] text-[#f5f0eb] rounded-lg hover:bg-[#2c2c30] transition-colors flex items-center gap-1">+ Add Step</button>
-              <button onClick={clearPipeline} className="px-4 py-2 font-mono text-[10px] bg-[#1a1a1c] border border-[#2c2c30] text-[#f5f0eb] rounded-lg hover:bg-[#2c2c30] transition-colors">Clear</button>
+              <button onClick={addStep} className="px-4 py-2 text-[10px] bg-card border border-border text-foreground rounded-lg hover:bg-border transition-colors flex items-center gap-1">+ Add Step</button>
+              <button onClick={clearPipeline} className="px-4 py-2 text-[10px] bg-card border border-border text-foreground rounded-lg hover:bg-border transition-colors">Clear</button>
               <div className="flex-1" />
-              <button onClick={savePipeline} className="px-4 py-2 font-mono text-[10px] text-[#ff4e1a] border border-[#ff4e1a]/30 hover:bg-[#ff4e1a]/10 rounded-lg transition-colors">Save Pipeline</button>
-              <button onClick={runPipeline} disabled={isRunning || pipeline.length === 0} className="px-4 py-2 font-mono text-[10px] bg-[#ff4e1a] text-black font-bold rounded-lg hover:bg-[#ff7020] disabled:opacity-40 transition-colors flex items-center gap-1">
+              <button onClick={savePipeline} className="px-4 py-2 text-[10px] text-primary border border-primary/30 hover:bg-primary/10 rounded-lg transition-colors">Save Pipeline</button>
+              <button onClick={runPipeline} disabled={isRunning || pipeline.length === 0} className="px-4 py-2 text-[10px] bg-primary text-black font-bold rounded-lg hover:bg-accent disabled:opacity-40 transition-colors flex items-center gap-1">
                 {isRunning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />}
                 {isRunning ? "Running…" : "Run on Swarm"}
               </button>
             </div>
 
             <div>
-              <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase mb-2">Snakemake YAML Preview</div>
+              <div className="text-[10px] font-bold text-muted-foreground uppercase mb-2">Snakemake YAML Preview</div>
               <pre className="p-3 bg-[#0a1a0f] border border-[#1a3b22] text-[#7fff52] rounded-lg font-mono text-[10px] overflow-auto max-h-[250px] leading-relaxed">
                 {dagYaml}
               </pre>
@@ -2127,11 +2127,11 @@ function WorkflowsTab() {
 
             {runLog.length > 0 && (
               <div>
-                <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase mb-2 flex items-center gap-2">
+                <div className="text-[10px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
                   Execution Log
-                  {isRunning && <Loader2 className="w-3 h-3 animate-spin text-[#ff4e1a]" />}
+                  {isRunning && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
                 </div>
-                <pre className="p-3 bg-[#0a0a0b] border border-[#2c2c30] text-[#9a9490] rounded-lg font-mono text-[10px] overflow-auto max-h-[180px] leading-relaxed">
+                <pre className="p-3 bg-[#0a0a0b] border border-border text-muted-foreground rounded-lg font-mono text-[10px] overflow-auto max-h-[180px] leading-relaxed">
                   {runLog.join("\n")}
                 </pre>
               </div>
@@ -2143,19 +2143,19 @@ function WorkflowsTab() {
         {subTab === "pipelines" && (
           <div className="space-y-3">
             {savedPipelines.length === 0 ? (
-              <div className="text-center py-10 font-mono text-xs text-[#52504e] border border-[#2c2c30] rounded-xl border-dashed">
+              <div className="text-center py-10 text-xs text-muted-foreground border border-border rounded-2xl border-dashed">
                 No saved pipelines. Build one in the Pipeline Builder.
               </div>
             ) : (
               savedPipelines.map(p => (
-                <div key={p.id} className="flex items-center justify-between p-4 bg-[#0c0c0d] border border-[#2c2c30] rounded-xl group hover:border-[#ff4e1a]/50 transition-colors">
+                <div key={p.id} className="flex items-center justify-between p-4 bg-background border border-border rounded-2xl group hover:border-primary/50 transition-colors">
                   <div>
-                    <div className="font-mono text-sm font-bold text-[#f5f0eb] group-hover:text-[#ff4e1a] transition-colors">{p.name}</div>
-                    <div className="font-mono text-[10px] text-[#52504e]">{p.steps} steps · Created {new Date(p.created_at).toLocaleString()}</div>
+                    <div className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{p.name}</div>
+                    <div className="text-[10px] text-muted-foreground">{p.steps} steps · Created {new Date(p.created_at).toLocaleString()}</div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => { setPipeline(p.steps_data); setSubTab("builder"); }} className="px-3 py-1.5 font-mono text-[10px] bg-[#1a1a1c] border border-[#2c2c30] text-[#f5f0eb] rounded hover:border-[#ff4e1a] transition-colors">Load</button>
-                    <button onClick={() => { const u = savedPipelines.filter(x => x.id !== p.id); setSavedPipelines(u); saveToLocal("p2pclaw_pipelines", u); }} className="px-2 py-1.5 font-mono text-[10px] border border-[#2c2c30] text-[#ff4e1a] rounded hover:bg-[#ff4e1a]/10 transition-colors"><XCircle className="w-3 h-3" /></button>
+                    <button onClick={() => { setPipeline(p.steps_data); setSubTab("builder"); }} className="px-3 py-1.5 text-[10px] bg-card border border-border text-foreground rounded hover:border-primary transition-colors">Load</button>
+                    <button onClick={() => { const u = savedPipelines.filter(x => x.id !== p.id); setSavedPipelines(u); saveToLocal("p2pclaw_pipelines", u); }} className="px-2 py-1.5 text-[10px] border border-border text-primary rounded hover:bg-primary/10 transition-colors"><XCircle className="w-3 h-3" /></button>
                   </div>
                 </div>
               ))
@@ -2166,16 +2166,16 @@ function WorkflowsTab() {
         {/* ================= VERSIONING TAB ================= */}
         {subTab === "versioning" && (
           <div className="space-y-4">
-            <div className="border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d]">
-              <div className="font-mono text-[10px] text-[#ff4e1a] uppercase font-bold tracking-widest mb-3">Commit Run</div>
+            <div className="border border-border rounded-2xl p-4 bg-background">
+              <div className="text-[10px] text-primary font-medium mb-3">Commit Run</div>
               <div className="flex gap-3 items-end">
                 <div className="flex-1">
-                  <label className="block font-mono text-[10px] text-[#52504e] mb-1">Pipeline Name</label>
-                  <input id="vc-pipeline" type="text" className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-xs text-[#f5f0eb]" placeholder="e.g. baseline-run-01" />
+                  <label className="block text-[10px] text-muted-foreground mb-1">Pipeline Name</label>
+                  <input id="vc-pipeline" type="text" className="w-full bg-card border border-border rounded focus:border-primary p-2 text-xs text-foreground" placeholder="e.g. baseline-run-01" />
                 </div>
                 <div className="flex-1">
-                  <label className="block font-mono text-[10px] text-[#52504e] mb-1">Result Metrics</label>
-                  <input id="vc-metrics" type="text" className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-xs text-[#f5f0eb]" placeholder="e.g. loss=0.032, acc=0.981" />
+                  <label className="block text-[10px] text-muted-foreground mb-1">Result Metrics</label>
+                  <input id="vc-metrics" type="text" className="w-full bg-card border border-border rounded focus:border-primary p-2 text-xs text-foreground" placeholder="e.g. loss=0.032, acc=0.981" />
                 </div>
                 <button onClick={() => {
                   const pipe = (document.getElementById("vc-pipeline") as HTMLInputElement).value;
@@ -2185,32 +2185,32 @@ function WorkflowsTab() {
                   setVersions(u); saveToLocal("p2pclaw_versions", u);
                   (document.getElementById("vc-pipeline") as HTMLInputElement).value = "";
                   (document.getElementById("vc-metrics") as HTMLInputElement).value = "";
-                }} className="px-4 py-2 bg-[#ff4e1a] text-black font-mono text-[10px] font-bold rounded hover:bg-[#ff7020] h-[34px]">Commit to DVC</button>
+                }} className="px-4 py-2 bg-primary text-black text-[10px] font-bold rounded hover:bg-accent h-[34px]">Commit to DVC</button>
               </div>
             </div>
 
-            <div className="border border-[#2c2c30] rounded-xl overflow-hidden">
+            <div className="border border-border rounded-2xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#1a1a1c] border-b border-[#2c2c30]">
-                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Version</th>
-                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Pipeline</th>
-                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Git/DVC Hash</th>
-                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Metrics</th>
-                    <th className="p-3 font-mono text-[10px] text-[#52504e] font-normal uppercase">Date</th>
+                  <tr className="bg-card border-b border-border">
+                    <th className="p-3 text-[10px] text-muted-foreground font-normal uppercase">Version</th>
+                    <th className="p-3 text-[10px] text-muted-foreground font-normal uppercase">Pipeline</th>
+                    <th className="p-3 text-[10px] text-muted-foreground font-normal uppercase">Git/DVC Hash</th>
+                    <th className="p-3 text-[10px] text-muted-foreground font-normal uppercase">Metrics</th>
+                    <th className="p-3 text-[10px] text-muted-foreground font-normal uppercase">Date</th>
                   </tr>
                 </thead>
-                <tbody className="bg-[#0c0c0d]">
+                <tbody className="bg-background">
                   {versions.length === 0 ? (
-                    <tr><td colSpan={5} className="p-6 text-center font-mono text-xs text-[#52504e]">No versioned runs.</td></tr>
+                    <tr><td colSpan={5} className="p-6 text-center text-xs text-muted-foreground">No versioned runs.</td></tr>
                   ) : (
                     versions.map((v, i) => (
-                      <tr key={v.id} className="border-b border-[#2c2c30] hover:bg-[#1a1a1c]/50 transition-colors">
-                        <td className="p-3 font-mono text-xs text-[#f5f0eb]">v{versions.length - i}</td>
-                        <td className="p-3 font-mono text-xs text-[#9a9490]">{v.pipeline}</td>
-                        <td className="p-3 font-mono text-[10px] text-[#ff4e1a]">{v.hash}</td>
-                        <td className="p-3 font-mono text-[10px] text-[#7fff52]">{v.metrics || "—"}</td>
-                        <td className="p-3 font-mono text-[10px] text-[#52504e]">{new Date(v.date).toLocaleString()}</td>
+                      <tr key={v.id} className="border-b border-border hover:bg-card/50 transition-colors">
+                        <td className="p-3 text-xs text-foreground">v{versions.length - i}</td>
+                        <td className="p-3 text-xs text-muted-foreground">{v.pipeline}</td>
+                        <td className="p-3 font-mono text-[10px] text-primary">{v.hash}</td>
+                        <td className="p-3 text-[10px] text-[#7fff52]">{v.metrics || "—"}</td>
+                        <td className="p-3 text-[10px] text-muted-foreground">{new Date(v.date).toLocaleString()}</td>
                       </tr>
                     ))
                   )}
@@ -2224,47 +2224,47 @@ function WorkflowsTab() {
         {subTab === "sweep" && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d]">
-                <div className="font-mono text-[10px] text-[#ff4e1a] uppercase font-bold tracking-widest mb-3">Hyperparameters</div>
+              <div className="border border-border rounded-2xl p-4 bg-background">
+                <div className="text-[10px] text-primary font-medium mb-3">Hyperparameters</div>
                 <div className="space-y-2 mb-3">
                   {sweepParams.map((p, i) => (
-                    <div key={p.id} className="flex gap-2 items-center bg-[#1a1a1c] p-2 rounded border border-[#2c2c30]">
-                      <input value={p.name} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, name: e.target.value} : s))} placeholder="Param" className="w-1/3 bg-transparent font-mono text-[10px] focus:outline-none" />
-                      <input value={p.min} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, min: e.target.value} : s))} placeholder="Min" className="w-1/4 bg-transparent font-mono text-[10px] focus:outline-none border-l border-[#2c2c30] pl-2" />
-                      <input value={p.max} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, max: e.target.value} : s))} placeholder="Max" className="w-1/4 bg-transparent font-mono text-[10px] focus:outline-none border-l border-[#2c2c30] pl-2" />
-                      <button onClick={() => setSweepParams(sp => sp.filter((_, idx) => idx !== i))} className="text-[#ff4e1a] hover:text-[#ff7020] px-1"><XCircle className="w-3 h-3" /></button>
+                    <div key={p.id} className="flex gap-2 items-center bg-card p-2 rounded border border-border">
+                      <input value={p.name} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, name: e.target.value} : s))} placeholder="Param" className="w-1/3 bg-transparent text-[10px] focus:outline-none" />
+                      <input value={p.min} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, min: e.target.value} : s))} placeholder="Min" className="w-1/4 bg-transparent text-[10px] focus:outline-none border-l border-border pl-2" />
+                      <input value={p.max} onChange={e => setSweepParams(sp => sp.map((s, idx) => idx===i ? {...s, max: e.target.value} : s))} placeholder="Max" className="w-1/4 bg-transparent text-[10px] focus:outline-none border-l border-border pl-2" />
+                      <button onClick={() => setSweepParams(sp => sp.filter((_, idx) => idx !== i))} className="text-primary hover:text-accent px-1"><XCircle className="w-3 h-3" /></button>
                     </div>
                   ))}
-                  <button onClick={() => setSweepParams(sp => [...sp, {id: crypto.randomUUID(), name:"", min:"", max:""}])} className="w-full py-2 border border-dashed border-[#52504e] rounded text-[#52504e] font-mono text-[10px] hover:text-[#9a9490] hover:border-[#9a9490] transition-colors">+ Add Parameter</button>
+                  <button onClick={() => setSweepParams(sp => [...sp, {id: crypto.randomUUID(), name:"", min:"", max:""}])} className="w-full py-2 border border-dashed border-muted-foreground rounded text-muted-foreground text-[10px] hover:text-muted-foreground hover:border-muted-foreground transition-colors">+ Add Parameter</button>
                 </div>
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Strategy</label>
-                    <select className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-[10px] text-[#f5f0eb]">
+                    <label className="block text-[10px] text-muted-foreground mb-1">Strategy</label>
+                    <select className="w-full bg-card border border-border rounded focus:border-primary p-2 text-[10px] text-foreground">
                       <option>Grid search</option><option>Random search</option><option>TPE (Optuna)</option><option>ASHA (Ray Tune)</option>
                     </select>
                   </div>
                   <div className="w-24">
-                    <label className="block font-mono text-[10px] text-[#52504e] mb-1">Max Trials</label>
-                    <input type="number" defaultValue={20} className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-[10px] text-[#f5f0eb]" />
+                    <label className="block text-[10px] text-muted-foreground mb-1">Max Trials</label>
+                    <input type="number" defaultValue={20} className="w-full bg-card border border-border rounded focus:border-primary p-2 text-[10px] text-foreground" />
                   </div>
                 </div>
               </div>
 
-              <div className="border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d]">
-                <div className="font-mono text-[10px] text-[#ff4e1a] uppercase font-bold tracking-widest mb-3">Optimization Target</div>
-                <div className="flex gap-2 items-center bg-[#1a1a1c] p-2 rounded border border-[#2c2c30] mb-4">
-                  <span className="font-mono text-xs font-bold w-1/3 pl-2">loss</span>
-                  <span className="font-mono text-[10px] text-[#52504e] border-l border-[#2c2c30] pl-2">minimize</span>
+              <div className="border border-border rounded-2xl p-4 bg-background">
+                <div className="text-[10px] text-primary font-medium mb-3">Optimization Target</div>
+                <div className="flex gap-2 items-center bg-card p-2 rounded border border-border mb-4">
+                  <span className="text-xs font-bold w-1/3 pl-2">loss</span>
+                  <span className="text-[10px] text-muted-foreground border-l border-border pl-2">minimize</span>
                 </div>
                 
-                <label className="block font-mono text-[10px] text-[#52504e] mb-1 mt-4">Pipeline to Sweep</label>
-                <select className="w-full bg-[#1a1a1c] border border-[#2c2c30] rounded focus:border-[#ff4e1a] p-2 font-mono text-xs text-[#f5f0eb] mb-4">
+                <label className="block text-[10px] text-muted-foreground mb-1 mt-4">Pipeline to Sweep</label>
+                <select className="w-full bg-card border border-border rounded focus:border-primary p-2 text-xs text-foreground mb-4">
                   <option value="">— Select pipeline —</option>
                   {savedPipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
 
-                <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase mb-1">Sweep Config Preview</div>
+                <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Sweep Config Preview</div>
                 <pre className="p-3 bg-[#0a1a0f] border border-[#1a3b22] text-[#7fff52] rounded flex-1 font-mono text-[10px] whitespace-pre-wrap leading-relaxed max-h-[120px] overflow-auto">
 {`sweep:
   strategy: ${sweepParams.length ? 'grid' : 'none'}
@@ -2283,10 +2283,10 @@ ${sweepParams.map(p => `    ${p.name || 'param'}: [${p.min || '0'}, ${p.max || '
                   body: JSON.stringify({ tool: "generic_python", params: { sweep: sweepParams, strategy: "grid", target: "loss" }, requester: "workflow-sweep" }),
                 });
                 const d = await res.json() as { jobId?: string; id?: string };
-                setSweepMsg(`✓ Sweep queued — job ${(d.jobId ?? d.id ?? "?").slice(0, 8)}`);
-              } catch { setSweepMsg("⚠ Sweep queued locally (API offline)."); }
+                setSweepMsg(`Sweep queued — job ${(d.jobId ?? d.id ?? "?").slice(0, 8)}`);
+              } catch { setSweepMsg("Sweep queued locally (API offline)."); }
               setTimeout(() => setSweepMsg(""), 6000);
-            }} className="w-full py-3 bg-[#ff4e1a] text-black font-mono text-xs font-bold rounded-lg hover:bg-[#ff7020] transition-colors flex items-center justify-center gap-2 mt-2">
+            }} className="w-full py-3 bg-primary text-black text-xs font-bold rounded-lg hover:bg-accent transition-colors flex items-center justify-center gap-2 mt-2">
               <Play className="w-4 h-4" /> {sweepMsg || "Start Distributed Sweep"}
             </button>
           </div>
@@ -2324,7 +2324,7 @@ function AIScientistTab() {
       : `[1] P2PCLAW Autonomous Research Network, 2026\n[2] — (add real references from your literature review)`;
     return `# ${q}
 
-> ⚠️ **DRAFT OUTLINE — NOT A COMPLETE PAPER**
+> WARNING: **DRAFT OUTLINE — NOT A COMPLETE PAPER**
 > This template was generated by the AI Scientist pipeline as a structured starting point.
 > All sections marked \`[FILL IN]\` must be completed with real experimental data before submission.
 > Do NOT submit placeholders as a finished paper — the peer review system will reject it.
@@ -2419,20 +2419,20 @@ ${refBlock}`;
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
-          <Bot className="w-4 h-4 text-[#ff4e1a]" />
+        <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+          <Bot className="w-4 h-4 text-primary" />
           AI Scientist — Research Draft Generator
         </h2>
-        <p className="font-mono text-[10px] text-[#52504e]">
+        <p className="text-[10px] text-muted-foreground">
           Based on Sakana AI-Scientist v2, Agent Laboratory, and Kosmos autonomous research pipelines
         </p>
       </div>
 
       {/* Scientific integrity notice */}
       <div className="border border-[#3b2200] rounded-lg bg-[#1a0e00] p-3 flex gap-2">
-        <AlertCircle className="w-4 h-4 text-[#ffcb47] shrink-0 mt-0.5" />
-        <div className="font-mono text-[9px] text-[#b89050] leading-relaxed">
-          <strong className="text-[#ffcb47]">Scientific Integrity Notice:</strong> This tool generates a structured DRAFT outline with placeholder sections.
+        <AlertCircle className="w-4 h-4 text-chart-3 shrink-0 mt-0.5" />
+        <div className="text-[9px] text-[#b89050] leading-relaxed">
+          <strong className="text-chart-3">Scientific Integrity Notice:</strong> This tool generates a structured DRAFT outline with placeholder sections.
           It does NOT invent data, statistics, or experimental results. All{" "}
           <code className="text-[#ff9a52]">[FILL IN]</code> sections must be completed with real measurements before the paper can be submitted.
           The Literature Review stage fetches real papers from arXiv; all other stages scaffold structure only.
@@ -2440,8 +2440,8 @@ ${refBlock}`;
       </div>
 
       {/* Input */}
-      <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-4">
-        <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block mb-2">
+      <div className="border border-border rounded-2xl bg-background p-4">
+        <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-2">
           Research Question
         </label>
         <div className="flex gap-2">
@@ -2451,10 +2451,10 @@ ${refBlock}`;
             onKeyDown={e => e.key === "Enter" && run()}
             disabled={running}
             placeholder="e.g. How does network topology affect consensus latency in P2P systems?"
-            className="flex-1 bg-[#121214] border border-[#2c2c30] rounded-lg px-3 py-2 font-mono text-xs text-[#f5f0eb] placeholder:text-[#2c2c30] focus:border-[#ff4e1a]/40 focus:outline-none disabled:opacity-60"
+            className="flex-1 bg-popover border border-border rounded-lg px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none disabled:opacity-60"
           />
           <button onClick={run} disabled={!question.trim() || running}
-            className="px-4 py-2 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-1.5 shrink-0">
+            className="px-4 py-2 bg-primary hover:bg-accent text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center gap-1.5 shrink-0">
             {running ? <Loader2 className="w-3 h-3 animate-spin" /> : <Microscope className="w-3 h-3" />}
             {running ? "Researching…" : "Run AI Scientist"}
           </button>
@@ -2467,7 +2467,7 @@ ${refBlock}`;
             "What drives agent cooperation in distributed AI?",
           ].map(q => (
             <button key={q} onClick={() => setQuestion(q)} disabled={running}
-              className="font-mono text-[9px] text-[#52504e] hover:text-[#9a9490] border border-[#2c2c30] rounded px-1.5 py-0.5 transition-colors disabled:opacity-40">
+              className="text-[9px] text-muted-foreground hover:text-muted-foreground border border-border rounded px-1.5 py-0.5 transition-colors disabled:opacity-40">
               {q}
             </button>
           ))}
@@ -2481,12 +2481,12 @@ ${refBlock}`;
             const isDone = !running && paper ? true : stage > i;
             const isCurrent = stage === i && running;
             return (
-              <div key={s.id} className={`border rounded-lg p-3 transition-all ${isCurrent ? "border-[#ff4e1a]/60 bg-[#ff4e1a]/5" : isDone ? "border-[#1a3b00] bg-[#0a1a0a]" : "border-[#2c2c30] bg-[#0c0c0d] opacity-40"}`}>
-                <s.icon className={`w-4 h-4 mb-1.5 ${isCurrent ? "text-[#ff4e1a]" : isDone ? "text-[#7fff52]" : "text-[#52504e]"}`} />
-                <div className={`font-mono text-[10px] font-bold ${isCurrent ? "text-[#ff4e1a]" : isDone ? "text-[#7fff52]" : "text-[#52504e]"}`}>
+              <div key={s.id} className={`border rounded-lg p-3 transition-all ${isCurrent ? "border-primary/60 bg-primary/5" : isDone ? "border-[#1a3b00] bg-[#0a1a0a]" : "border-border bg-background opacity-40"}`}>
+                <s.icon className={`w-4 h-4 mb-1.5 ${isCurrent ? "text-primary" : isDone ? "text-[#7fff52]" : "text-muted-foreground"}`} />
+                <div className={`text-[10px] font-bold ${isCurrent ? "text-primary" : isDone ? "text-[#7fff52]" : "text-muted-foreground"}`}>
                   {s.label}
                 </div>
-                {isCurrent && <div className="font-mono text-[8px] text-[#52504e] mt-0.5">{s.desc}</div>}
+                {isCurrent && <div className="text-[8px] text-muted-foreground mt-0.5">{s.desc}</div>}
               </div>
             );
           })}
@@ -2495,14 +2495,14 @@ ${refBlock}`;
 
       {/* Literature findings during research */}
       {running && litPapers.length > 0 && (
-        <div className="border border-[#1a2a3b] rounded-lg bg-[#0c0c0d] p-4">
-          <div className="font-mono text-[10px] font-bold text-[#52c4ff] uppercase tracking-widest mb-2">
-            ✓ Found {litPapers.length} related papers on arXiv
+        <div className="border border-[#1a2a3b] rounded-2xl bg-background p-4">
+          <div className="text-[10px] font-medium text-[#52c4ff] mb-2 flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" /> Found {litPapers.length} related papers on arXiv
           </div>
           <div className="space-y-1">
             {litPapers.map((p, i) => (
-              <div key={i} className="font-mono text-[9px] text-[#52504e] flex gap-2">
-                <span className="text-[#2c2c30] shrink-0">[{i + 1}]</span>
+              <div key={i} className="text-[9px] text-muted-foreground flex gap-2">
+                <span className="text-border shrink-0">[{i + 1}]</span>
                 <span className="leading-relaxed">{p}</span>
               </div>
             ))}
@@ -2514,23 +2514,23 @@ ${refBlock}`;
       {paper && !running && (
         <div className="border border-[#1a3b00] rounded-lg bg-[#0a1a0a]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a3b00]">
-            <span className="font-mono text-xs font-bold text-[#7fff52] flex items-center gap-2">
+            <span className="text-xs font-bold text-[#7fff52] flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4" /> Paper Generated
             </span>
             {!submitted ? (
               <button onClick={submit}
-                className="font-mono text-xs px-3 py-1 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-bold rounded flex items-center gap-1">
+                className="text-xs px-3 py-1 bg-primary hover:bg-accent text-black font-bold rounded flex items-center gap-1">
                 <Send className="w-3 h-3" /> Submit to Mempool
               </button>
             ) : (
-              <span className="font-mono text-xs text-[#7fff52] flex items-center gap-1">
+              <span className="text-xs text-[#7fff52] flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
                 {paperId ? `Submitted #${paperId.slice(0, 8)}` : "Submitted"}
               </span>
             )}
           </div>
           <div className="p-4 max-h-[500px] overflow-y-auto">
-            <pre className="font-mono text-[10px] text-[#9a9490] whitespace-pre-wrap leading-relaxed">{paper}</pre>
+            <pre className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap leading-relaxed">{paper}</pre>
           </div>
         </div>
       )}
@@ -2609,16 +2609,16 @@ function HiveLabTab() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
             <Network className="w-4 h-4 text-[#52c4ff]" />
             P2P Network Lab
           </h2>
-          <p className="font-mono text-[10px] text-[#52504e]">
+          <p className="text-[10px] text-muted-foreground">
             5-layer resilience mesh — {online}/{RELAY_NODES.length} relays online · {stats.active} agents active
           </p>
         </div>
         <button onClick={ping} disabled={pinging}
-          className="flex items-center gap-1.5 font-mono text-[10px] px-3 py-1.5 border border-[#2c2c30] hover:bg-[#2c2c30] text-[#f5f0eb] rounded disabled:opacity-40">
+          className="flex items-center gap-1.5 text-[10px] px-3 py-1.5 border border-border hover:bg-border text-foreground rounded disabled:opacity-40">
           {pinging ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Ping All
         </button>
       </div>
@@ -2631,16 +2631,16 @@ function HiveLabTab() {
           { label: "Papers Verified", value: stats.papers,  color: "#ffcb47" },
           { label: "Mempool",         value: stats.mempool, color: "#52c4ff" },
         ].map(s => (
-          <div key={s.label} className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] p-3 text-center">
+          <div key={s.label} className="border border-border rounded-lg bg-background p-3 text-center">
             <div className="font-mono text-2xl font-bold tabular-nums" style={{ color: s.color }}>{s.value}</div>
-            <div className="font-mono text-[9px] text-[#52504e] mt-1 uppercase tracking-wider">{s.label}</div>
+            <div className="text-[9px] text-muted-foreground mt-1 uppercase tracking-wider">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* 5-layer architecture */}
-      <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-        <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase tracking-widest mb-3">5-Layer Resilience Architecture</div>
+      <div className="border border-border rounded-2xl bg-background p-4">
+        <div className="text-[10px] font-medium text-muted-foreground mb-3">5-Layer Resilience Architecture</div>
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
           {LAYER_INFO.map(l => {
             const layerRelays = relays.filter(r => r.layer === l.id);
@@ -2648,10 +2648,10 @@ function HiveLabTab() {
             const dynamicStatus = layerRelays.length > 0 ? (layerOnline > 0 ? "active" : "offline") : l.status;
             return (
               <div key={l.id} className="rounded-lg p-3 text-center border" style={{ borderColor: `${l.color}30`, backgroundColor: `${l.color}08` }}>
-                <div className="font-mono text-[10px] font-bold mb-1" style={{ color: l.color }}>{l.id}</div>
-                <div className="font-mono text-[10px] text-[#f5f0eb] font-bold mb-0.5">{l.label}</div>
-                <div className="font-mono text-[9px] text-[#52504e] mb-2">{l.desc}</div>
-                <span className="font-mono text-[8px] px-1.5 py-0.5 rounded uppercase" style={{
+                <div className="text-[10px] font-bold mb-1" style={{ color: l.color }}>{l.id}</div>
+                <div className="text-[10px] text-foreground font-bold mb-0.5">{l.label}</div>
+                <div className="text-[9px] text-muted-foreground mb-2">{l.desc}</div>
+                <span className="text-[8px] px-1.5 py-0.5 rounded uppercase" style={{
                   backgroundColor: dynamicStatus === "active" ? "#1a3b00" : dynamicStatus === "offline" ? "#3b001a" : "#1a1a1c",
                   color: dynamicStatus === "active" ? "#7fff52" : dynamicStatus === "offline" ? "#ff5252" : "#52504e",
                 }}>
@@ -2665,22 +2665,22 @@ function HiveLabTab() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Relay health table */}
-        <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-          <div className="font-mono text-[10px] font-bold text-[#52c4ff] uppercase tracking-widest mb-3">
+        <div className="border border-border rounded-2xl bg-background p-4">
+          <div className="text-[10px] font-medium text-[#52c4ff] mb-3">
             Relay Nodes {relays.length > 0 && `— ${online}/${relays.length} online`}
           </div>
           {relays.length === 0 ? (
-            <div className="text-center py-6 font-mono text-[10px] text-[#52504e]">
+            <div className="text-center py-6 text-[10px] text-muted-foreground">
               {pinging ? "Pinging all nodes…" : "Press Ping All"}
             </div>
           ) : (
             <div className="space-y-1.5">
               {relays.map((r, i) => (
-                <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded bg-[#1a1a1c] border border-[#2c2c30]">
+                <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded bg-card border border-border">
                   <div className={`w-2 h-2 rounded-full shrink-0 ${r.online ? "bg-[#7fff52]" : "bg-[#ff5252]"}`} />
-                  <span className="font-mono text-[9px] text-[#2c2c30]">{r.layer}</span>
-                  <span className="font-mono text-[10px] text-[#9a9490] flex-1 truncate">{r.label}</span>
-                  <span className="font-mono text-[10px]" style={{ color: r.online ? "#7fff52" : "#52504e" }}>
+                  <span className="text-[9px] text-border">{r.layer}</span>
+                  <span className="text-[10px] text-muted-foreground flex-1 truncate">{r.label}</span>
+                  <span className="text-[10px]" style={{ color: r.online ? "#7fff52" : "#52504e" }}>
                     {r.online ? `${r.ms}ms` : "offline"}
                   </span>
                 </div>
@@ -2690,18 +2690,18 @@ function HiveLabTab() {
         </div>
 
         {/* Connected agents */}
-        <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-          <div className="font-mono text-[10px] font-bold text-[#ff4e1a] uppercase tracking-widest mb-3">
+        <div className="border border-border rounded-2xl bg-background p-4">
+          <div className="text-[10px] font-medium text-primary mb-3">
             Network Agents {agents.length > 0 && `(${agents.length})`}
           </div>
           <div className="space-y-1 max-h-[260px] overflow-y-auto">
             {agents.length === 0 ? (
-              <div className="text-center py-6 font-mono text-[10px] text-[#52504e]">Loading agents…</div>
+              <div className="text-center py-6 text-[10px] text-muted-foreground">Loading agents…</div>
             ) : agents.map(a => (
-              <div key={a.id} className="flex items-center gap-2 px-2 py-1.5 rounded bg-[#1a1a1c] border border-[#2c2c30]">
-                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${a.status === "ACTIVE" ? "bg-[#7fff52]" : "bg-[#2c2c30]"}`} />
-                <span className="font-mono text-[10px] text-[#f5f0eb] flex-1 truncate">{a.name}</span>
-                <span className="font-mono text-[9px] text-[#52504e]">{a.type}</span>
+              <div key={a.id} className="flex items-center gap-2 px-2 py-1.5 rounded bg-card border border-border">
+                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${a.status === "ACTIVE" ? "bg-[#7fff52]" : "bg-border"}`} />
+                <span className="text-[10px] text-foreground flex-1 truncate">{a.name}</span>
+                <span className="text-[9px] text-muted-foreground">{a.type}</span>
               </div>
             ))}
           </div>
@@ -2710,14 +2710,14 @@ function HiveLabTab() {
 
       {/* Live event log */}
       {log.length > 0 && (
-        <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-          <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase tracking-widest mb-2 flex items-center gap-2">
+        <div className="border border-border rounded-2xl bg-background p-4">
+          <div className="text-[10px] font-medium text-muted-foreground mb-2 flex items-center gap-2">
             Ping Log <span className="w-1.5 h-1.5 rounded-full bg-[#7fff52] animate-pulse" />
           </div>
           <div className="space-y-0.5 max-h-[120px] overflow-y-auto">
             {log.slice().reverse().map((e, i) => (
-              <div key={i} className="font-mono text-[9px]">
-                <span className="text-[#2c2c30]">{new Date(e.ts).toLocaleTimeString()} </span>
+              <div key={i} className="text-[9px]">
+                <span className="text-border">{new Date(e.ts).toLocaleTimeString()} </span>
                 <span style={{ color: e.color }}>{e.text}</span>
               </div>
             ))}
@@ -2742,7 +2742,7 @@ function FormalVerifyTab() {
 
   const checkFormula = () => {
     const vars = Array.from(new Set((formula.match(/\b[A-D]\b/g) ?? []))).slice(0, 4);
-    if (vars.length === 0) { setHeytingResult("⚠ No variables found (use A B C D)"); return; }
+    if (vars.length === 0) { setHeytingResult("WARNING: No variables found (use A B C D)"); return; }
     const rows = 2 ** vars.length;
     let counterex: Record<string, boolean> | null = null;
     for (let i = 0; i < rows; i++) {
@@ -2758,13 +2758,13 @@ function FormalVerifyTab() {
         // eslint-disable-next-line no-new-func
         const val = Function('"use strict"; return (' + e + ')')();
         if (!val) { counterex = asgn; break; }
-      } catch { setHeytingResult("⚠ Parse error — check syntax"); return; }
+      } catch { setHeytingResult("WARNING: Parse error — check syntax"); return; }
     }
     if (!counterex) {
-      setHeytingResult(`✓ TAUTOLOGY — valid in all ${rows} truth assignments (${vars.join(", ")})`);
+      setHeytingResult(`TAUTOLOGY — valid in all ${rows} truth assignments (${vars.join(", ")})`);
     } else {
       const ex = Object.entries(counterex).map(([k, v]) => `${k}=${v}`).join(", ");
-      setHeytingResult(`✗ NOT a tautology — counterexample: {${ex}}`);
+      setHeytingResult(`NOT a tautology — counterexample: {${ex}}`);
     }
   };
 
@@ -2802,37 +2802,37 @@ function FormalVerifyTab() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
+        <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
           <Shield className="w-4 h-4 text-[#b366ff]" />
           Formal Verification Lab
         </h2>
-        <p className="font-mono text-[10px] text-[#52504e]">
+        <p className="text-[10px] text-muted-foreground">
           The feature that makes P2PCLAW unique. Heyting tautology checker (client-side) + Lean 4 via distributed swarm.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Lean 4 proof verifier */}
-        <div className="border border-[#b366ff]/30 rounded-xl bg-[#0c0c0d] p-4 space-y-3">
-          <div className="font-mono text-[10px] font-bold text-[#b366ff] uppercase tracking-widest">Lean 4 Proof Verifier</div>
-          <p className="font-mono text-[9px] text-[#52504e]">Submit a Lean 4 proof to the P2PCLAW worker swarm for verification. Results appear when a worker picks it up.</p>
+        <div className="border border-[#b366ff]/30 rounded-2xl bg-background p-4 space-y-3">
+          <div className="text-[10px] font-medium text-[#b366ff]">Lean 4 Proof Verifier</div>
+          <p className="text-[9px] text-muted-foreground">Submit a Lean 4 proof to the P2PCLAW worker swarm for verification. Results appear when a worker picks it up.</p>
           <textarea value={proof} onChange={e => setProof(e.target.value)} rows={8} spellCheck={false}
-            className="w-full font-mono text-xs bg-[#0a0a0b] border border-[#2c2c30] rounded p-3 text-[#f5f0eb] focus:border-[#b366ff]/40 focus:outline-none resize-none" />
+            className="w-full text-xs bg-[#0a0a0b] border border-border rounded p-3 text-foreground focus:border-[#b366ff]/40 focus:outline-none resize-none" />
           <div className="flex flex-wrap gap-1">
             {["#check Nat.add_comm", "#eval [1,2,3].length", "theorem t : 1+1=2 := rfl"].map(ex => (
               <button key={ex} onClick={() => setProof(ex)}
-                className="font-mono text-[9px] text-[#52504e] border border-[#2c2c30] rounded px-1.5 py-0.5 hover:text-[#b366ff] transition-colors">{ex.slice(0, 28)}</button>
+                className="text-[9px] text-muted-foreground border border-border rounded px-1.5 py-0.5 hover:text-[#b366ff] transition-colors">{ex.slice(0, 28)}</button>
             ))}
           </div>
           <button onClick={submitProof} disabled={submitting || !proof.trim()}
-            className="w-full py-2 bg-[#b366ff] hover:bg-[#c47fff] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2">
+            className="w-full py-2 bg-[#b366ff] hover:bg-[#c47fff] text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2">
             {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Play className="w-3 h-3" />} Verify via Swarm
           </button>
           {result && (
-            <div className={`p-3 rounded-lg border font-mono text-[10px] leading-relaxed ${
+            <div className={`p-3 rounded-lg border text-[10px] leading-relaxed ${
               ["verified","completed"].includes(result.status) ? "border-[#1a3b00] bg-[#0a1a0a] text-[#7fff52]"
-              : result.status === "pending" ? "border-[#2c2c30] bg-[#0c0c0d] text-[#52504e]"
-              : "border-[#3b001a] bg-[#0c0c0d] text-[#ff5252]"}`}>
+              : result.status === "pending" ? "border-border bg-background text-muted-foreground"
+              : "border-[#3b001a] bg-background text-[#ff5252]"}`}>
               <div className="font-bold mb-1 uppercase">{result.status}{jobId ? ` · job ${jobId.slice(0, 8)}` : ""}</div>
               {result.output && <pre className="whitespace-pre-wrap opacity-80 text-[9px]">{result.output}</pre>}
               {result.error && <div className="opacity-80">{result.error}</div>}
@@ -2842,34 +2842,34 @@ function FormalVerifyTab() {
         </div>
 
         {/* Heyting / propositional tautology checker */}
-        <div className="border border-[#52c4ff]/30 rounded-xl bg-[#0c0c0d] p-4 space-y-3">
-          <div className="font-mono text-[10px] font-bold text-[#52c4ff] uppercase tracking-widest">Propositional Tautology Checker</div>
-          <p className="font-mono text-[9px] text-[#52504e]">Client-side truth table evaluator. Variables: A B C D · Operators: ∧ ∨ ¬ → ↔</p>
+        <div className="border border-[#52c4ff]/30 rounded-2xl bg-background p-4 space-y-3">
+          <div className="text-[10px] font-medium text-[#52c4ff]">Propositional Tautology Checker</div>
+          <p className="text-[9px] text-muted-foreground">Client-side truth table evaluator. Variables: A B C D · Operators: ∧ ∨ ¬ → ↔</p>
           <input value={formula} onChange={e => setFormula(e.target.value)}
-            className="w-full font-mono text-sm bg-[#0a0a0b] border border-[#2c2c30] rounded px-3 py-2.5 text-[#f5f0eb] focus:border-[#52c4ff]/40 focus:outline-none" />
+            className="w-full text-sm bg-[#0a0a0b] border border-border rounded px-3 py-2.5 text-foreground focus:border-[#52c4ff]/40 focus:outline-none" />
           <div className="flex gap-1 flex-wrap">
             {["∧", "∨", "¬", "→", "↔", "(", ")", "A", "B", "C", "D"].map(op => (
               <button key={op} onClick={() => setFormula(f => f + op)}
-                className="font-mono text-sm w-8 h-7 bg-[#1a1a1c] border border-[#2c2c30] rounded hover:border-[#52c4ff]/40 hover:text-[#52c4ff] text-[#f5f0eb] transition-colors">{op}</button>
+                className="text-sm w-8 h-7 bg-card border border-border rounded hover:border-[#52c4ff]/40 hover:text-[#52c4ff] text-foreground transition-colors">{op}</button>
             ))}
             <button onClick={() => setFormula(f => f.slice(0, -1))}
-              className="font-mono text-xs px-2 h-7 bg-[#1a1a1c] border border-[#2c2c30] rounded hover:border-[#ff4e1a]/40 hover:text-[#ff4e1a] text-[#52504e] transition-colors">⌫</button>
+              className="text-xs px-2 h-7 bg-card border border-border rounded hover:border-primary/40 hover:text-primary text-muted-foreground transition-colors">⌫</button>
           </div>
           <div className="flex flex-wrap gap-1">
             {["(A → B) ∧ A → B", "A ∨ ¬A", "(A → B) ∧ (B → C) → (A → C)", "¬(A ∧ ¬A)", "A ∧ B → B ∧ A"].map(ex => (
               <button key={ex} onClick={() => setFormula(ex)}
-                className="font-mono text-[9px] text-[#52504e] border border-[#2c2c30] rounded px-1.5 py-0.5 hover:text-[#52c4ff] transition-colors">{ex}</button>
+                className="text-[9px] text-muted-foreground border border-border rounded px-1.5 py-0.5 hover:text-[#52c4ff] transition-colors">{ex}</button>
             ))}
           </div>
           <button onClick={checkFormula}
-            className="w-full py-2 bg-[#52c4ff] hover:bg-[#7fd4ff] text-black font-mono text-xs font-bold rounded-lg flex items-center justify-center gap-2">
+            className="w-full py-2 bg-[#52c4ff] hover:bg-[#7fd4ff] text-black text-xs font-bold rounded-lg flex items-center justify-center gap-2">
             <CheckCircle2 className="w-3 h-3" /> Check Formula
           </button>
           {heytingResult && (
-            <div className={`p-3 rounded-lg border font-mono text-[10px] ${
-              heytingResult.startsWith("✓") ? "border-[#1a3b00] bg-[#0a1a0a] text-[#7fff52]"
-              : heytingResult.startsWith("✗") ? "border-[#3b001a] bg-[#0c0c0d] text-[#ff5252]"
-              : "border-[#2c2c30] bg-[#0c0c0d] text-[#52504e]"}`}>
+            <div className={`p-3 rounded-lg border text-[10px] ${
+              heytingResult.startsWith("TAUTOLOGY") ? "border-[#1a3b00] bg-[#0a1a0a] text-[#7fff52]"
+              : heytingResult.startsWith("NOT") ? "border-[#3b001a] bg-background text-[#ff5252]"
+              : "border-border bg-background text-muted-foreground"}`}>
               {heytingResult}
             </div>
           )}
@@ -2936,76 +2936,77 @@ function PaperReviewerTab() {
       });
       const d = await res.json() as { paperId?: string };
       setSubmitted(true);
-      setSubmitMsg({ ok: true, text: d.paperId ? `✓ Submitted to mempool — ID: ${d.paperId.slice(0, 8)}` : "✓ Paper submitted to mempool" });
-    } catch { setSubmitMsg({ ok: false, text: "✗ Submission failed — API offline. Try again later." }); }
+      setSubmitMsg({ ok: true, text: d.paperId ? `Submitted to mempool — ID: ${d.paperId.slice(0, 8)}` : "Paper submitted to mempool" });
+    } catch { setSubmitMsg({ ok: false, text: "Submission failed — API offline. Try again later." }); }
     setSubmitting(false);
   };
 
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
+        <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-[#7fff52]" />
           Paper Reviewer — Quality Gate
         </h2>
-        <p className="font-mono text-[10px] text-[#52504e]">Validate paper structure, word count, and sections before submitting to La Rueda consensus pool.</p>
+        <p className="text-[10px] text-muted-foreground">Validate paper structure, word count, and sections before submitting to La Rueda consensus pool.</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="space-y-3">
-          <label className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider block">Paper Content (Markdown)</label>
+          <label className="text-[10px] text-muted-foreground uppercase tracking-wider block">Paper Content (Markdown)</label>
           <textarea value={content} onChange={e => setContent(e.target.value)} rows={20} spellCheck={false}
             placeholder={"# Paper Title\n\n## Abstract\n...\n\n## Introduction\n...\n\n## Methodology\n...\n\n## Results\n...\n\n## Discussion\n...\n\n## Conclusion\n...\n\n## References\n[1] ..."}
-            className="w-full font-mono text-xs bg-[#0a0a0b] border border-[#2c2c30] rounded p-3 text-[#f5f0eb] placeholder:text-[#1a1a1c] focus:border-[#7fff52]/40 focus:outline-none resize-none" />
+            className="w-full text-xs bg-[#0a0a0b] border border-border rounded p-3 text-foreground placeholder:text-muted-foreground focus:border-[#7fff52]/40 focus:outline-none resize-none" />
           <div className="flex gap-2">
             <button onClick={review} disabled={!content.trim() || reviewing}
-              className="flex-1 py-2 bg-[#7fff52] hover:bg-[#a0ff80] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2">
+              className="flex-1 py-2 bg-[#7fff52] hover:bg-[#a0ff80] text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2">
               {reviewing ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />} Review Paper
             </button>
             {report?.canSubmit && !submitted && (
               <button onClick={submitToMempool} disabled={submitting}
-                className="flex-1 py-2 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2">
+                className="flex-1 py-2 bg-primary hover:bg-accent text-black text-xs font-bold rounded-lg disabled:opacity-40 flex items-center justify-center gap-2">
                 {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />} Submit to Mempool
               </button>
             )}
-            {submitted && !submitMsg && <div className="flex-1 py-2 border border-[#1a3b00] rounded-lg text-center font-mono text-xs text-[#7fff52]">✓ Submitted</div>}
+            {submitted && !submitMsg && <div className="flex-1 py-2 border border-[#1a3b00] rounded-lg text-center text-xs text-[#7fff52] flex items-center justify-center gap-1"><CheckCircle2 className="w-3 h-3" /> Submitted</div>}
           </div>
           {submitMsg && (
-            <div className={`mt-2 px-3 py-2 rounded-lg font-mono text-xs border ${submitMsg.ok ? "border-[#1a3b00] text-[#7fff52] bg-[#0a1a00]" : "border-[#3b0a00] text-[#ff5252] bg-[#1a0a00]"}`}>
+            <div className={`mt-2 px-3 py-2 rounded-lg text-xs border flex items-center gap-1.5 ${submitMsg.ok ? "border-[#1a3b00] text-[#7fff52] bg-[#0a1a00]" : "border-[#3b0a00] text-[#ff5252] bg-[#1a0a00]"}`}>
+              {submitMsg.ok ? <CheckCircle2 className="w-3 h-3 shrink-0" /> : <XCircle className="w-3 h-3 shrink-0" />}
               {submitMsg.text}
             </div>
           )}
         </div>
         {report ? (
           <div className="space-y-3">
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
+            <div className="border border-border rounded-2xl bg-background p-4">
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-[10px] text-[#52504e] uppercase">Quality Score</span>
-                <span className="font-mono text-3xl font-bold" style={{ color: report.score >= 80 ? "#7fff52" : report.score >= 55 ? "#ffcb47" : "#ff5252" }}>
+                <span className="text-[10px] text-muted-foreground uppercase">Quality Score</span>
+                <span className="text-3xl font-bold" style={{ color: report.score >= 80 ? "#7fff52" : report.score >= 55 ? "#ffcb47" : "#ff5252" }}>
                   {report.score}<span className="text-base">/100</span>
                 </span>
               </div>
-              <div className="w-full h-2 bg-[#2c2c30] rounded-full overflow-hidden mb-2">
+              <div className="w-full h-2 bg-border rounded-full overflow-hidden mb-2">
                 <div className="h-full rounded-full transition-all" style={{ width: `${report.score}%`, backgroundColor: report.score >= 80 ? "#7fff52" : report.score >= 55 ? "#ffcb47" : "#ff5252" }} />
               </div>
-              <div className="font-mono text-[10px] text-[#52504e]">{report.wordCount} words</div>
+              <div className="text-[10px] text-muted-foreground">{report.wordCount} words</div>
             </div>
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-              <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase mb-2">Sections</div>
+            <div className="border border-border rounded-2xl bg-background p-4">
+              <div className="text-[10px] font-bold text-muted-foreground uppercase mb-2">Sections</div>
               <div className="grid grid-cols-2 gap-1">
                 {report.sections.map(s => (
                   <div key={s.name} className="flex items-center gap-1.5">
                     <div className={`w-2 h-2 rounded-full ${s.present ? "bg-[#7fff52]" : "bg-[#ff5252]"}`} />
-                    <span className="font-mono text-[9px]" style={{ color: s.present ? "#9a9490" : "#ff5252" }}>{s.name}</span>
+                    <span className="text-[9px]" style={{ color: s.present ? "#9a9490" : "#ff5252" }}>{s.name}</span>
                   </div>
                 ))}
               </div>
             </div>
             {report.issues.length > 0 && (
-              <div className="border border-[#3b001a] rounded-xl bg-[#0c0c0d] p-4">
-                <div className="font-mono text-[10px] font-bold text-[#ff5252] uppercase mb-2">Issues ({report.issues.length})</div>
+              <div className="border border-[#3b001a] rounded-2xl bg-background p-4">
+                <div className="text-[10px] font-bold text-[#ff5252] uppercase mb-2">Issues ({report.issues.length})</div>
                 <ul className="space-y-1">
                   {report.issues.map((issue, i) => (
-                    <li key={i} className="font-mono text-[9px] text-[#ff5252] flex items-start gap-1.5">
+                    <li key={i} className="text-[9px] text-[#ff5252] flex items-start gap-1.5">
                       <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />{issue}
                     </li>
                   ))}
@@ -3013,15 +3014,15 @@ function PaperReviewerTab() {
               </div>
             )}
             {report.canSubmit && (
-              <div className="border border-[#1a3b00] rounded-xl bg-[#0a1a0a] p-3 font-mono text-[10px] text-[#7fff52] flex items-center gap-2">
+              <div className="border border-[#1a3b00] rounded-2xl bg-[#0a1a0a] p-3 text-[10px] text-[#7fff52] flex items-center gap-2">
                 <CheckCircle2 className="w-3 h-3 shrink-0" /> Paper passes quality gate — ready for La Rueda
               </div>
             )}
           </div>
         ) : (
-          <div className="border border-dashed border-[#2c2c30] rounded-xl p-8 flex flex-col items-center justify-center gap-3">
-            <CheckCircle2 className="w-10 h-10 text-[#2c2c30]" />
-            <p className="font-mono text-[10px] text-[#52504e] text-center">Paste your paper and click Review to see the quality report</p>
+          <div className="border border-dashed border-border rounded-2xl p-8 flex flex-col items-center justify-center gap-3">
+            <CheckCircle2 className="w-10 h-10 text-border" />
+            <p className="text-[10px] text-muted-foreground text-center">Paste your paper and click Review to see the quality report</p>
           </div>
         )}
       </div>
@@ -3108,23 +3109,23 @@ function KnowledgeGridTab() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
-            <Grid3x3 className="w-4 h-4 text-[#ffcb47]" />
+          <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Grid3x3 className="w-4 h-4 text-chart-3" />
             Knowledge Grid — Living Agent Navigator
           </h2>
-          <p className="font-mono text-[10px] text-[#52504e]">
+          <p className="text-[10px] text-muted-foreground">
             16×16 knowledge domain grid. Click to inspect · drag to navigate · Auto-Walk to simulate agent exploration.
           </p>
         </div>
         <button onClick={() => setAutoWalk(v => !v)}
-          className={`font-mono text-[10px] px-3 py-1.5 rounded font-bold flex items-center gap-1.5 ${autoWalk ? "bg-[#ff4e1a] text-black" : "border border-[#2c2c30] text-[#f5f0eb] hover:bg-[#2c2c30]"}`}>
+          className={`text-[10px] px-3 py-1.5 rounded font-bold flex items-center gap-1.5 ${autoWalk ? "bg-primary text-black" : "border border-border text-foreground hover:bg-border"}`}>
           {autoWalk ? <><Pause className="w-3 h-3" /> Stop Walk</> : <><Play className="w-3 h-3" /> Auto Walk</>}
         </button>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Grid */}
-        <div className="xl:col-span-2 border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-3">
+        <div className="xl:col-span-2 border border-border rounded-2xl bg-background p-3">
           <div className="grid gap-0.5" style={{ gridTemplateColumns: "repeat(16, 1fr)" }}>
             {grid.map((row, r) => row.map((cell, c) => {
               const isAgent = agentPos[0] === r && agentPos[1] === c;
@@ -3142,9 +3143,9 @@ function KnowledgeGridTab() {
                   title={`(${r},${c}) ${cell.domain}`}
                 >
                   {cell.agentsHere > 0 && !isAgent && (
-                    <span className="absolute inset-0 flex items-center justify-center font-mono text-[7px] text-white font-bold">{cell.agentsHere}</span>
+                    <span className="absolute inset-0 flex items-center justify-center text-[7px] text-white font-bold">{cell.agentsHere}</span>
                   )}
-                  {isAgent && <span className="absolute inset-0 flex items-center justify-center font-mono text-[7px] text-black font-bold">⬡</span>}
+                  {isAgent && <span className="absolute inset-0 flex items-center justify-center text-black"><Hexagon className="w-2.5 h-2.5" /></span>}
                 </button>
               );
             }))}
@@ -3153,7 +3154,7 @@ function KnowledgeGridTab() {
             {GRID_DOMAINS.map(d => (
               <div key={d} className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-sm" style={{ backgroundColor: GRID_COLORS[d] }} />
-                <span className="font-mono text-[7px] text-[#52504e]">{d}</span>
+                <span className="text-[7px] text-muted-foreground">{d}</span>
               </div>
             ))}
           </div>
@@ -3162,8 +3163,8 @@ function KnowledgeGridTab() {
         {/* Inspector + log */}
         <div className="space-y-3">
           {selectedCell && selected && (
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-              <div className="font-mono text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: GRID_COLORS[selectedCell.domain] }}>
+            <div className="border border-border rounded-2xl bg-background p-4">
+              <div className="text-[10px] font-medium mb-3" style={{ color: GRID_COLORS[selectedCell.domain] }}>
                 ({selected[0]},{selected[1]}) — {selectedCell.domain}
               </div>
               {[
@@ -3171,23 +3172,23 @@ function KnowledgeGridTab() {
                 { label: "Activity", value: `${(selectedCell.activity * 100).toFixed(0)}%` },
                 { label: "Agents Here", value: selectedCell.agentsHere },
               ].map(s => (
-                <div key={s.label} className="flex justify-between py-1 border-b border-[#1a1a1c] last:border-0">
-                  <span className="font-mono text-[10px] text-[#52504e]">{s.label}</span>
-                  <span className="font-mono text-[10px] text-[#f5f0eb] font-bold">{s.value}</span>
+                <div key={s.label} className="flex justify-between py-1 border-b border-card last:border-0">
+                  <span className="text-[10px] text-muted-foreground">{s.label}</span>
+                  <span className="text-[10px] text-foreground font-bold">{s.value}</span>
                 </div>
               ))}
             </div>
           )}
-          <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-3">
-            <div className="font-mono text-[9px] font-bold text-[#52504e] uppercase mb-1">
-              Top Domain: <span className="text-[#ffcb47]">{topDomain?.[0]} ({topDomain?.[1]} papers)</span>
+          <div className="border border-border rounded-2xl bg-background p-3">
+            <div className="text-[9px] font-bold text-muted-foreground uppercase mb-1">
+              Top Domain: <span className="text-chart-3">{topDomain?.[0]} ({topDomain?.[1]} papers)</span>
             </div>
-            <div className="font-mono text-[9px] font-bold text-[#52504e] uppercase mb-2 flex items-center gap-2">
-              Agent Log {autoWalk && <Activity className="w-3 h-3 text-[#ff4e1a] animate-pulse" />}
+            <div className="text-[9px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-2">
+              Agent Log {autoWalk && <Activity className="w-3 h-3 text-primary animate-pulse" />}
             </div>
             <div className="space-y-0.5 max-h-[280px] overflow-y-auto">
               {visitLog.slice().reverse().map((entry, i) => (
-                <div key={i} className="font-mono text-[8px] text-[#52504e]">{entry}</div>
+                <div key={i} className="text-[8px] text-muted-foreground">{entry}</div>
               ))}
             </div>
           </div>
@@ -3257,25 +3258,25 @@ function AnalyticsTab() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-[#ffcb47]" />
+          <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-chart-3" />
             Network Analytics
           </h2>
-          <p className="font-mono text-[10px] text-[#52504e]">
+          <p className="text-[10px] text-muted-foreground">
             Real-time metrics from the P2PCLAW distributed research network
             {lastUpdate && ` · updated ${lastUpdate.toLocaleTimeString()}`}
           </p>
         </div>
         <button onClick={load} disabled={loading}
-          className="flex items-center gap-1.5 font-mono text-[10px] px-3 py-1.5 border border-[#2c2c30] hover:bg-[#2c2c30] text-[#f5f0eb] rounded disabled:opacity-40">
+          className="flex items-center gap-1.5 text-[10px] px-3 py-1.5 border border-border hover:bg-border text-foreground rounded disabled:opacity-40">
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />} Refresh
         </button>
       </div>
 
       {loading && !data ? (
         <div className="flex items-center justify-center py-16 gap-2">
-          <Loader2 className="w-5 h-5 animate-spin text-[#ff4e1a]" />
-          <span className="font-mono text-xs text-[#52504e]">Loading metrics…</span>
+          <Loader2 className="w-5 h-5 animate-spin text-primary" />
+          <span className="text-xs text-muted-foreground">Loading metrics…</span>
         </div>
       ) : data ? (
         <>
@@ -3286,41 +3287,44 @@ function AnalyticsTab() {
               { label: "Total Agents",    value: data.totalAgents,    color: "#52c4ff" },
               { label: "Mempool",         value: `${data.mempoolSize} pending`, color: "#ffcb47" },
             ].map(m => (
-              <div key={m.label} className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-                <div className="font-mono text-[9px] text-[#52504e] uppercase tracking-wider mb-1">{m.label}</div>
+              <div key={m.label} className="border border-border rounded-2xl bg-background p-4">
+                <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">{m.label}</div>
                 <div className="font-mono text-2xl font-bold tabular-nums" style={{ color: m.color }}>{m.value}</div>
               </div>
             ))}
           </div>
           {data.consensusRate !== null && (
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4 flex items-center gap-4">
+            <div className="border border-border rounded-2xl bg-background p-4 flex items-center gap-4">
               <div>
-                <div className="font-mono text-[9px] text-[#52504e] uppercase tracking-wider mb-1">Consensus Rate</div>
-                <div className="font-mono text-2xl font-bold tabular-nums text-[#ffcb47]">{data.consensusRate}%</div>
+                <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-1">Consensus Rate</div>
+                <div className="font-mono text-2xl font-bold tabular-nums text-chart-3">{data.consensusRate}%</div>
               </div>
-              <div className="font-mono text-[9px] text-[#52504e]">From API — actual validator agreement rate</div>
+              <div className="text-[9px] text-muted-foreground">From API — actual validator agreement rate</div>
             </div>
           )}
-          <div className="border border-[#1a1008] rounded-xl bg-[#0c0a00] p-3">
-            <p className="font-mono text-[9px] text-[#52504e]">
-              ℹ️ Historical time-series charts (7-day sparklines) require a time-series backend. Only live snapshot metrics are shown above.
-              To enable history, add a time-series store (e.g. InfluxDB or PostgreSQL with timestamp rows) to the Railway API.
+          <div className="border border-[#1a1008] rounded-2xl bg-[#0c0a00] p-3">
+            <p className="text-[9px] text-muted-foreground flex items-start gap-1.5">
+              <Info className="w-3 h-3 shrink-0 mt-0.5" />
+              <span>
+                Historical time-series charts (7-day sparklines) require a time-series backend. Only live snapshot metrics are shown above.
+                To enable history, add a time-series store (e.g. InfluxDB or PostgreSQL with timestamp rows) to the Railway API.
+              </span>
             </p>
           </div>
 
           {data.topAgents.length > 0 && (
-            <div className="border border-[#2c2c30] rounded-xl bg-[#0c0c0d] p-4">
-              <div className="font-mono text-[10px] font-bold text-[#ffcb47] uppercase tracking-widest mb-3">Agent Leaderboard</div>
+            <div className="border border-border rounded-2xl bg-background p-4">
+              <div className="text-[10px] font-medium text-chart-3 mb-3">Agent Leaderboard</div>
               <div className="space-y-2">
                 {data.topAgents.map((a, i) => (
                   <div key={a.name} className="flex items-center gap-3">
-                    <span className="font-mono text-[10px] text-[#52504e] w-5 text-right shrink-0">#{i + 1}</span>
-                    <span className="font-mono text-[10px] text-[#f5f0eb] flex-1 truncate">{a.name}</span>
-                    <span className="font-mono text-[9px] text-[#52504e] shrink-0">{a.type}</span>
-                    <div className="w-24 h-1.5 bg-[#2c2c30] rounded-full overflow-hidden shrink-0">
-                      <div className="h-full bg-[#ffcb47] rounded-full" style={{ width: `${Math.min(100, (a.score / (data.topAgents[0]?.score || 1)) * 100)}%` }} />
+                    <span className="text-[10px] text-muted-foreground w-5 text-right shrink-0">#{i + 1}</span>
+                    <span className="text-[10px] text-foreground flex-1 truncate">{a.name}</span>
+                    <span className="text-[9px] text-muted-foreground shrink-0">{a.type}</span>
+                    <div className="w-24 h-1.5 bg-border rounded-full overflow-hidden shrink-0">
+                      <div className="h-full bg-chart-3 rounded-full" style={{ width: `${Math.min(100, (a.score / (data.topAgents[0]?.score || 1)) * 100)}%` }} />
                     </div>
-                    <span className="font-mono text-[10px] text-[#ffcb47] w-10 text-right shrink-0 tabular-nums">{a.score}</span>
+                    <span className="font-mono text-[10px] text-chart-3 w-10 text-right shrink-0 tabular-nums">{a.score}</span>
                   </div>
                 ))}
               </div>
@@ -3328,7 +3332,7 @@ function AnalyticsTab() {
           )}
         </>
       ) : (
-        <div className="text-center py-16 font-mono text-xs text-[#52504e]">Failed to load metrics — check API connection</div>
+        <div className="text-center py-16 text-xs text-muted-foreground">Failed to load metrics — check API connection</div>
       )}
     </div>
   );
@@ -3485,11 +3489,11 @@ function ExternalPortalsTab() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-mono text-sm font-bold text-[#f5f0eb] flex items-center gap-2">
-          <Globe className="w-4 h-4 text-[#ff4e1a]" />
+        <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+          <Globe className="w-4 h-4 text-primary" />
           External AI Research Labs
         </h2>
-        <p className="font-mono text-[10px] text-[#52504e]">
+        <p className="text-[10px] text-muted-foreground">
           Curated portals to the best AI research tools, platforms, and open-science infrastructure.
         </p>
       </div>
@@ -3497,23 +3501,23 @@ function ExternalPortalsTab() {
       {/* Search */}
       <div className="relative">
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-          <Search className="w-3.5 h-3.5 text-[#52504e]" />
+          <Search className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Filter portals…"
-          className="w-full bg-[#121214] border border-[#2c2c30] rounded-lg pl-9 pr-3 py-2.5 font-mono text-xs text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
+          className="w-full bg-popover border border-border rounded-lg pl-9 pr-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
         />
       </div>
 
       {/* Categories */}
       {filtered.map(cat => (
         <div key={cat.category}>
-          <div className="font-mono text-[10px] font-bold text-[#52504e] uppercase tracking-widest mb-3 flex items-center gap-2">
-            <div className="flex-1 h-px bg-[#2c2c30]" />
+          <div className="text-[10px] font-medium text-muted-foreground mb-3 flex items-center gap-2">
+            <div className="flex-1 h-px bg-border" />
             {cat.category}
-            <div className="flex-1 h-px bg-[#2c2c30]" />
+            <div className="flex-1 h-px bg-border" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {cat.portals.map(portal => (
@@ -3522,7 +3526,7 @@ function ExternalPortalsTab() {
                 href={portal.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group border border-[#2c2c30] rounded-xl p-4 bg-[#0c0c0d] hover:border-[#ff4e1a]/50 transition-all flex flex-col gap-3 cursor-pointer"
+                className="group border border-border rounded-2xl p-4 bg-background hover:border-primary/50 transition-all flex flex-col gap-3 cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
@@ -3533,20 +3537,20 @@ function ExternalPortalsTab() {
                       <portal.icon className="w-3.5 h-3.5" style={{ color: portal.color }} />
                     </div>
                     <div>
-                      <div className="font-mono text-xs font-bold text-[#f5f0eb] group-hover:text-[#ff4e1a] transition-colors leading-tight">
+                      <div className="text-xs font-bold text-foreground group-hover:text-primary transition-colors leading-tight">
                         {portal.label}
                       </div>
                       <span
-                        className="font-mono text-[8px] px-1 py-0 rounded uppercase tracking-wider"
+                        className="text-[8px] px-1 py-0 rounded uppercase tracking-wider"
                         style={{ color: portal.color, backgroundColor: `${portal.color}15` }}
                       >
                         {portal.stars}
                       </span>
                     </div>
                   </div>
-                  <ExternalLink className="w-3 h-3 text-[#2c2c30] group-hover:text-[#ff4e1a] transition-colors shrink-0 mt-1" />
+                  <ExternalLink className="w-3 h-3 text-border group-hover:text-primary transition-colors shrink-0 mt-1" />
                 </div>
-                <p className="font-mono text-[10px] text-[#52504e] leading-relaxed">{portal.desc}</p>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">{portal.desc}</p>
               </a>
             ))}
           </div>
@@ -3582,26 +3586,26 @@ export default function LabPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0c0d] text-[#f5f0eb]">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-[#2c2c30] bg-[#0c0c0d]/95 backdrop-blur-sm sticky top-0 z-40">
+      <header className="border-b border-border bg-background/95 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="w-7 h-7 bg-[#ff4e1a]/10 border border-[#ff4e1a]/30 rounded flex items-center justify-center">
-              <FlaskConical className="w-4 h-4 text-[#ff4e1a]" />
+            <div className="w-7 h-7 bg-primary/10 border border-primary/30 rounded flex items-center justify-center">
+              <FlaskConical className="w-4 h-4 text-primary" />
             </div>
-            <span className="font-mono text-sm font-bold text-[#ff4e1a] hidden sm:block">P2PCLAW LAB</span>
+            <span className="text-sm font-bold text-primary hidden sm:block">P2PCLAW LAB</span>
           </Link>
-          <span className="text-[#2c2c30] hidden sm:block">·</span>
-          <span className="font-mono text-[10px] text-[#52504e] hidden sm:block">
+          <span className="text-border hidden sm:block">·</span>
+          <span className="text-[10px] text-muted-foreground hidden sm:block">
             The world's best virtual research lab for autonomous AI agents
           </span>
           <div className="ml-auto flex items-center gap-2">
-            <Link href="/app/dashboard" className="font-mono text-[10px] text-[#52504e] hover:text-[#9a9490] transition-colors flex items-center gap-1">
+            <Link href="/app/dashboard" className="text-[10px] text-muted-foreground hover:text-muted-foreground transition-colors flex items-center gap-1">
               <ArrowLeft className="w-3 h-3" /> App
             </Link>
             <a href="https://beta.p2pclaw.com/app/agents" target="_blank" rel="noopener noreferrer"
-              className="font-mono text-[10px] text-[#52504e] hover:text-[#9a9490] transition-colors">
+              className="text-[10px] text-muted-foreground hover:text-muted-foreground transition-colors">
               Agents
             </a>
           </div>
@@ -3613,16 +3617,16 @@ export default function LabPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-2.5 font-mono text-xs whitespace-nowrap border-b-2 transition-colors shrink-0 relative ${
+              className={`flex items-center gap-1.5 px-3 py-2.5 text-xs whitespace-nowrap border-b-2 transition-colors shrink-0 relative ${
                 activeTab === tab.id
-                  ? "border-[#ff4e1a] text-[#ff4e1a]"
-                  : "border-transparent text-[#52504e] hover:text-[#9a9490]"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-muted-foreground"
               }`}
             >
               <tab.icon className="w-3 h-3" />
               {tab.label}
               {tab.badge && (
-                <span className="font-mono text-[8px] bg-[#ff4e1a] text-black rounded px-1 py-0 leading-4 font-bold">
+                <span className="text-[8px] bg-primary text-black rounded px-1 py-0 leading-4 font-bold">
                   {tab.badge}
                 </span>
               )}

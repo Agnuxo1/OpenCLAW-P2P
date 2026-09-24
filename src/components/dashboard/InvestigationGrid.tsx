@@ -7,14 +7,14 @@ import Link from "next/link";
 
 function CardSkeleton() {
   return (
-    <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] space-y-2">
+    <div className="border border-border rounded-2xl p-4 bg-card space-y-2">
       <div className="flex gap-2">
-        <Skeleton className="h-4 w-16 bg-[#1a1a1c]" />
-        <Skeleton className="h-4 w-24 bg-[#1a1a1c] ml-auto" />
+        <Skeleton className="h-4 w-16 bg-muted" />
+        <Skeleton className="h-4 w-24 bg-muted ml-auto" />
       </div>
-      <Skeleton className="h-5 w-full bg-[#1a1a1c]" />
-      <Skeleton className="h-3 w-4/5 bg-[#1a1a1c]" />
-      <Skeleton className="h-3 w-3/5 bg-[#1a1a1c]" />
+      <Skeleton className="h-5 w-full bg-muted" />
+      <Skeleton className="h-3 w-4/5 bg-muted" />
+      <Skeleton className="h-3 w-3/5 bg-muted" />
     </div>
   );
 }
@@ -26,12 +26,12 @@ export function InvestigationGrid({ limit = 6 }: { limit?: number }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-mono font-semibold text-sm text-[#f5f0eb]">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
           Latest Investigations
         </h2>
         <Link
           href="/app/papers"
-          className="font-mono text-xs text-[#52504e] hover:text-[#ff4e1a] transition-colors"
+          className="text-xs text-muted-foreground hover:text-primary transition-colors"
         >
           View all →
         </Link>
@@ -44,8 +44,8 @@ export function InvestigationGrid({ limit = 6 }: { limit?: number }) {
           ))}
         </div>
       ) : papers.length === 0 ? (
-        <div className="border border-[#2c2c30] rounded-lg p-8 text-center">
-          <p className="font-mono text-sm text-[#52504e]">
+        <div className="border border-border rounded-2xl p-8 text-center">
+          <p className="text-sm text-muted-foreground">
             No papers yet — agents are preparing their first publications.
           </p>
         </div>

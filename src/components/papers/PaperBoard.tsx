@@ -41,12 +41,12 @@ export function PaperBoard() {
       {/* Toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
         <Tabs value={filter} onValueChange={setFilter}>
-          <TabsList className="bg-[#1a1a1c] border border-[#2c2c30] h-8">
+          <TabsList className="bg-muted border border-border h-8">
             {FILTER_OPTIONS.map((opt) => (
               <TabsTrigger
                 key={opt.value}
                 value={opt.value}
-                className="font-mono text-[10px] px-2.5 h-6 data-[state=active]:bg-[#ff4e1a]/20 data-[state=active]:text-[#ff4e1a]"
+                className="text-xs px-2.5 h-6 data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
               >
                 {opt.label}
               </TabsTrigger>
@@ -59,7 +59,7 @@ export function PaperBoard() {
             href="https://github.com/P2P-OpenClaw/papers"
             target="_blank"
             rel="noopener noreferrer"
-            className="h-8 flex items-center gap-1.5 px-3 border border-[#ff7020] text-[#ff7020] hover:bg-[#ff7020]/10 font-mono text-xs rounded-md transition-colors"
+            className="h-8 flex items-center gap-1.5 px-3 border border-accent text-accent hover:bg-accent/10 text-xs rounded-full transition-colors"
           >
             <Github className="w-3.5 h-3.5" />
             ver papers GITHUB
@@ -67,14 +67,14 @@ export function PaperBoard() {
           <button
             onClick={refresh}
             disabled={isFetching}
-            className="h-8 w-8 flex items-center justify-center border border-[#2c2c30] rounded-md text-[#52504e] hover:text-[#9a9490] hover:border-[#52504e] transition-colors disabled:opacity-40"
+            className="h-8 w-8 flex items-center justify-center border border-border rounded-full text-muted-foreground hover:text-foreground hover:border-muted-foreground transition-colors disabled:opacity-40"
             title="Refresh"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} />
           </button>
           <button
             onClick={() => setPublishOpen(true)}
-            className="h-8 flex items-center gap-1.5 px-3 bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-mono text-xs font-bold rounded-md transition-colors"
+            className="h-8 flex items-center gap-1.5 px-3 bg-primary hover:bg-accent text-primary-foreground text-xs font-semibold rounded-full transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Publish
@@ -83,7 +83,7 @@ export function PaperBoard() {
       </div>
 
       {/* Count */}
-      <p className="font-mono text-xs text-[#52504e]">
+      <p className="text-xs text-muted-foreground">
         {filtered.length} paper{filtered.length !== 1 ? "s" : ""}
         {filter !== "all" && ` (${filter})`}
       </p>
@@ -92,19 +92,19 @@ export function PaperBoard() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="border border-[#2c2c30] rounded-lg p-4 space-y-2">
-              <Skeleton className="h-4 w-20 bg-[#1a1a1c]" />
-              <Skeleton className="h-5 w-full bg-[#1a1a1c]" />
-              <Skeleton className="h-3 w-4/5 bg-[#1a1a1c]" />
+            <div key={i} className="border border-border rounded-2xl p-5 space-y-2">
+              <Skeleton className="h-4 w-20 bg-muted" />
+              <Skeleton className="h-5 w-full bg-muted" />
+              <Skeleton className="h-3 w-4/5 bg-muted" />
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="border border-[#2c2c30] rounded-lg p-12 text-center">
-          <p className="font-mono text-sm text-[#52504e] mb-2">No papers found</p>
+        <div className="border border-border rounded-2xl p-12 text-center">
+          <p className="text-sm text-muted-foreground mb-2">No papers found</p>
           <button
             onClick={() => setPublishOpen(true)}
-            className="font-mono text-xs text-[#ff4e1a] hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             Be the first to publish →
           </button>

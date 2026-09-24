@@ -63,36 +63,36 @@ function MempoolVoteCard({ paper, alreadyVoted, votesLeft, onVote }: MempoolVote
   const canVote = !done && votesLeft > 0;
 
   return (
-    <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
+    <div className="border border-border rounded-2xl p-4 bg-card">
       {/* Title */}
-      <p className="font-mono text-xs font-semibold text-[#f5f0eb] mb-1 line-clamp-2 leading-snug">
+      <p className="text-xs font-semibold text-foreground mb-1 line-clamp-2 leading-snug">
         {paper.title}
       </p>
-      <p className="font-mono text-[10px] text-[#52504e] mb-3">
+      <p className="text-[10px] text-muted-foreground mb-3">
         by {paper.author}
       </p>
 
       {/* Validation progress */}
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex-1 h-1 bg-[#1a1a1c] rounded-full overflow-hidden">
+        <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#ff4e1a] transition-all"
+            className="h-full bg-primary transition-all"
             style={{ width: `${Math.min(100, (paper.validations / 3) * 100)}%` }}
           />
         </div>
-        <span className="font-mono text-[10px] text-[#52504e]">
+        <span className="text-[10px] text-muted-foreground">
           {paper.validations}/3
         </span>
       </div>
 
       {/* Vote buttons */}
       {done ? (
-        <div className="flex items-center gap-1.5 text-[#4caf50] font-mono text-[10px]">
+        <div className="flex items-center gap-1.5 text-chart-2 text-[10px]">
           <CheckCircle className="w-3 h-3" />
           Vote registered
         </div>
       ) : votesLeft === 0 ? (
-        <div className="flex items-center gap-1.5 text-[#52504e] font-mono text-[10px]">
+        <div className="flex items-center gap-1.5 text-muted-foreground text-[10px]">
           <Clock className="w-3 h-3" />
           Daily limit reached — resets at midnight
         </div>
@@ -101,8 +101,8 @@ function MempoolVoteCard({ paper, alreadyVoted, votesLeft, onVote }: MempoolVote
           <button
             onClick={() => handleVote(true)}
             disabled={!canVote || voting !== null}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded border font-mono text-[10px] transition-all
-              border-[#4caf50]/30 text-[#4caf50] hover:bg-[#4caf50]/10 hover:border-[#4caf50]/60
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] transition-all
+              border-chart-2/30 text-chart-2 hover:bg-chart-2/10 hover:border-chart-2/60
               disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ThumbsUp className="w-3 h-3" />
@@ -111,8 +111,8 @@ function MempoolVoteCard({ paper, alreadyVoted, votesLeft, onVote }: MempoolVote
           <button
             onClick={() => handleVote(false)}
             disabled={!canVote || voting !== null}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded border font-mono text-[10px] transition-all
-              border-[#e63030]/30 text-[#e63030] hover:bg-[#e63030]/10 hover:border-[#e63030]/60
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] transition-all
+              border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/60
               disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ThumbsDown className="w-3 h-3" />
@@ -148,11 +148,11 @@ export function VotePanel() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="font-mono font-semibold text-sm text-[#f5f0eb]">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Pending Validation
           </h2>
           {!isLoading && papers.length > 0 && (
-            <span className="font-mono text-[10px] text-[#52504e] bg-[#1a1a1c] px-1.5 py-0.5 rounded border border-[#2c2c30]">
+            <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">
               {papers.length}
             </span>
           )}
@@ -163,12 +163,12 @@ export function VotePanel() {
             <div
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${
-                i < votesLeft ? "bg-[#ff4e1a]" : "bg-[#2c2c30]"
+                i < votesLeft ? "bg-primary" : "bg-border"
               }`}
               title={`${votesLeft} of ${VOTES_PER_DAY} votes remaining today`}
             />
           ))}
-          <span className="font-mono text-[10px] text-[#52504e] ml-1">
+          <span className="text-[10px] text-muted-foreground ml-1">
             {votesLeft}/{VOTES_PER_DAY} today
           </span>
         </div>
@@ -177,19 +177,19 @@ export function VotePanel() {
       {isLoading ? (
         <div className="space-y-3">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] space-y-2">
-              <Skeleton className="h-3 w-full bg-[#1a1a1c]" />
-              <Skeleton className="h-3 w-3/5 bg-[#1a1a1c]" />
-              <Skeleton className="h-1 w-full bg-[#1a1a1c] mt-3" />
-              <Skeleton className="h-6 w-32 bg-[#1a1a1c]" />
+            <div key={i} className="border border-border rounded-2xl p-4 bg-card space-y-2">
+              <Skeleton className="h-3 w-full bg-muted" />
+              <Skeleton className="h-3 w-3/5 bg-muted" />
+              <Skeleton className="h-1 w-full bg-muted mt-3" />
+              <Skeleton className="h-6 w-32 bg-muted" />
             </div>
           ))}
         </div>
       ) : papers.length === 0 ? (
-        <div className="border border-[#2c2c30] rounded-lg p-8 text-center">
-          <Inbox className="w-8 h-8 text-[#2c2c30] mx-auto mb-3" />
-          <p className="font-mono text-sm text-[#52504e]">Mempool is empty</p>
-          <p className="font-mono text-xs text-[#2c2c30] mt-1">No papers awaiting validation</p>
+        <div className="border border-border rounded-2xl p-8 text-center">
+          <Inbox className="w-8 h-8 text-border mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Mempool is empty</p>
+          <p className="text-xs text-muted-foreground mt-1">No papers awaiting validation</p>
         </div>
       ) : (
         <div className="space-y-3">

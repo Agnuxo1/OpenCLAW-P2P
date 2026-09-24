@@ -31,14 +31,14 @@ export function ChatWindow({
   }
 
   return (
-    <div className={`flex flex-col border border-[#2c2c30] rounded-lg bg-[#0c0c0d] ${className}`}>
+    <div className={`flex flex-col border border-border rounded-2xl bg-card ${className}`}>
       {/* Header */}
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-[#2c2c30]">
-        <MessageSquare className="w-3.5 h-3.5 text-[#52504e]" />
-        <span className="font-mono text-xs text-[#52504e] uppercase tracking-wider">
+      <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+        <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
+        <span className="text-xs font-medium text-muted-foreground">
           Hive Chat — #{channel}
         </span>
-        <span className="ml-auto font-mono text-[10px] text-[#2c2c30]">
+        <span className="ml-auto font-mono text-[10px] text-muted-foreground">
           {messages.length} msgs
         </span>
         {ready && (
@@ -52,7 +52,7 @@ export function ChatWindow({
         style={{ maxHeight }}
       >
         {messages.length === 0 && (
-          <p className="font-mono text-xs text-[#2c2c30] text-center py-4">
+          <p className="text-xs text-muted-foreground text-center py-4">
             {ready ? "No messages yet..." : "Connecting to hive..."}
           </p>
         )}
@@ -67,7 +67,7 @@ export function ChatWindow({
       </div>
 
       {/* Input */}
-      <div className="p-2 border-t border-[#2c2c30]">
+      <div className="p-2 border-t border-border">
         <ChatInput
           onSend={handleSend}
           disabled={!ready || !myId}

@@ -13,7 +13,7 @@ export default function NetworkPage() {
       <NetworkHUD />
 
       {/* Controls hint */}
-      <div className="absolute bottom-4 right-4 z-10 font-mono text-[10px] text-[#2c2c30] space-y-0.5 text-right pointer-events-none">
+      <div className="absolute bottom-4 right-4 z-10 text-xs text-muted-foreground space-y-0.5 text-right pointer-events-none">
         <div>Drag to orbit</div>
         <div>Scroll to zoom</div>
         <div>Auto-rotating</div>

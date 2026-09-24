@@ -2,24 +2,31 @@
 
 import { cn } from "@/lib/utils";
 import type { PaperTier, PaperStatus } from "@/types/api";
+import { CheckCircle2, XCircle, type LucideIcon } from "lucide-react";
 
-const TIER_CONFIG: Record<string, { label: string; color: string }> = {
-  ALPHA:      { label: "α Alpha",   color: "#ffd740" },
-  BETA:       { label: "β Beta",    color: "#ff9a30" },
-  GAMMA:      { label: "γ Gamma",   color: "#ff4e1a" },
-  DELTA:      { label: "δ Delta",   color: "#9a9490" },
-  UNVERIFIED: { label: "⊘ Unverified", color: "#52504e" },
+type BadgeConfig = {
+  label: string;
+  className: string;
+  icon?: LucideIcon;
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  VERIFIED:   { label: "✓ Verified",   color: "#4caf50" },
-  PENDING:    { label: "⌛ Pending",    color: "#ff9a30" },
-  REJECTED:   { label: "✗ Rejected",   color: "#e63030" },
-  PROMOTED:   { label: "↑ Promoted",   color: "#4caf50" },
-  PURGED:     { label: "⊘ Purged",     color: "#e63030" },
-  UNVERIFIED: { label: "? Unverified", color: "#ff9a30" },
-  MEMPOOL:    { label: "⌛ Mempool",    color: "#ff9a30" },
-  DENIED:     { label: "✗ Denied",     color: "#e63030" },
+const TIER_CONFIG: Record<string, BadgeConfig> = {
+  ALPHA:      { label: "α Alpha",      className: "text-chart-3 border-chart-3/40" },
+  BETA:       { label: "β Beta",       className: "text-chart-2 border-chart-2/40" },
+  GAMMA:      { label: "γ Gamma",      className: "text-primary border-primary/40" },
+  DELTA:      { label: "δ Delta",      className: "text-muted-foreground border-muted-foreground/40" },
+  UNVERIFIED: { label: "⊘ Unverified", className: "text-muted-foreground border-muted-foreground/40" },
+};
+
+const STATUS_CONFIG: Record<string, BadgeConfig> = {
+  VERIFIED:   { label: "Verified",     className: "text-green-500 border-green-500/40",  icon: CheckCircle2 },
+  PENDING:    { label: "⌛ Pending",    className: "text-chart-2 border-chart-2/40" },
+  REJECTED:   { label: "Rejected",     className: "text-destructive border-destructive/40", icon: XCircle },
+  PROMOTED:   { label: "↑ Promoted",   className: "text-green-500 border-green-500/40" },
+  PURGED:     { label: "⊘ Purged",     className: "text-destructive border-destructive/40" },
+  UNVERIFIED: { label: "? Unverified", className: "text-chart-2 border-chart-2/40" },
+  MEMPOOL:    { label: "⌛ Mempool",    className: "text-chart-2 border-chart-2/40" },
+  DENIED:     { label: "Denied",       className: "text-destructive border-destructive/40", icon: XCircle },
 };
 
 interface TierBadgeProps {
@@ -29,31 +36,21 @@ interface TierBadgeProps {
 }
 
 export function TierBadge({ tier, status, size = "sm" }: TierBadgeProps) {
-  if (status && status !== "VERIFIED") {
-    const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.UNVERIFIED;
-    return (
-      <span
-        className={cn(
-          "inline-flex items-center font-mono font-semibold rounded border",
-          size === "sm" ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-1",
-        )}
-        style={{ color: cfg.color, borderColor: cfg.color + "44" }}
-      >
-        {cfg.label}
-      </span>
-    );
-  }
+  const cfg = status && status !== "VERIFIED"
+    ? (STATUS_CONFIG[status] ?? STATUS_CONFIG.UNVERIFIED)
+    : (TIER_CONFIG[tier ?? "UNVERIFIED"] ?? TIER_CONFIG.UNVERIFIED);
 
-  const key = tier ?? "UNVERIFIED";
-  const cfg = TIER_CONFIG[key] ?? TIER_CONFIG.UNVERIFIED;
+  const Icon = cfg.icon;
+
   return (
     <span
       className={cn(
-        "inline-flex items-center font-mono font-semibold rounded border",
+        "inline-flex items-center gap-1 font-medium rounded-full border",
         size === "sm" ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-1",
+        cfg.className,
       )}
-      style={{ color: cfg.color, borderColor: cfg.color + "44" }}
     >
+      {Icon && <Icon className="h-3 w-3" />}
       {cfg.label}
     </span>
   );

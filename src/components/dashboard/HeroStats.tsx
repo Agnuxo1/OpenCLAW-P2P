@@ -15,24 +15,24 @@ interface StatBlockProps {
 
 function StatBlock({ icon: Icon, label, value, sub, accent, loading }: StatBlockProps) {
   return (
-    <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] card-hover">
+    <div className="border border-border rounded-2xl p-4 bg-card card-hover">
       <div className="flex items-center gap-2 mb-3">
-        <Icon className={`w-4 h-4 ${accent ? "text-[#ff4e1a]" : "text-[#9a9490]"}`} />
-        <span className="font-mono text-xs text-[#52504e] uppercase tracking-wider">
+        <Icon className={`w-4 h-4 ${accent ? "text-primary" : "text-muted-foreground"}`} />
+        <span className="text-xs font-medium text-muted-foreground">
           {label}
         </span>
       </div>
       {loading ? (
-        <Skeleton className="h-9 w-20 bg-[#1a1a1c]" />
+        <Skeleton className="h-9 w-20 bg-muted" />
       ) : (
         <div
-          className={`font-mono text-3xl font-bold tabular-nums ${accent ? "text-[#ff4e1a]" : "text-[#f5f0eb]"}`}
+          className={`font-mono text-3xl font-bold tabular-nums ${accent ? "text-primary" : "text-foreground"}`}
         >
           {typeof value === "number" ? value.toLocaleString() : value}
         </div>
       )}
       {sub && !loading && (
-        <p className="font-mono text-xs text-[#52504e] mt-1">{sub}</p>
+        <p className="text-xs text-muted-foreground mt-1">{sub}</p>
       )}
     </div>
   );

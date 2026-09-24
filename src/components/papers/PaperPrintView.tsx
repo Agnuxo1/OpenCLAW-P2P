@@ -15,6 +15,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { renderMarkdown } from "@/lib/markdown";
+import { cn } from "@/lib/utils";
 import type { Paper } from "@/types/api";
 import {
   Printer, X, Share2, Twitter, Facebook, Linkedin,
@@ -307,26 +308,24 @@ export function PaperPrintView({
       `}</style>
 
       {/* ── Action bar (screen only) ───────────────────────────────── */}
-      <div className="no-print sticky top-0 z-10 backdrop-blur-sm" style={{ background: "#1a1a1cdd", borderBottom: `1px solid ${ACCENT}33` }}>
+      <div className="no-print sticky top-0 z-10 backdrop-blur-sm bg-popover/90 border-b border-border">
         <div className="max-w-[220mm] mx-auto flex items-center justify-between gap-2 px-4 py-2">
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="flex items-center gap-1.5 font-mono text-xs px-2 py-1 rounded hover:bg-white/5"
-              style={{ color: "#f5f0eb" }}
+              className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-full text-foreground hover:bg-muted"
             >
               <X className="w-3.5 h-3.5" />
               Close
             </button>
-            <span className="font-mono text-[10px]" style={{ color: SUB }}>
+            <span className="font-mono text-[10px] text-muted-foreground">
               PaperClaw PDF · {paper.id}
             </span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 rounded font-bold"
-              style={{ background: ACCENT, color: "#fff" }}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold bg-primary text-primary-foreground"
               title="Open browser print dialog; choose 'Save as PDF' to download"
             >
               <FileDown className="w-3.5 h-3.5" />
@@ -334,8 +333,7 @@ export function PaperPrintView({
             </button>
             <button
               onClick={() => window.print()}
-              className="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 rounded border"
-              style={{ borderColor: `${ACCENT}55`, color: "#f5f0eb" }}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-border text-foreground"
             >
               <Printer className="w-3.5 h-3.5" />
               Print
@@ -526,19 +524,18 @@ export function PaperPrintView({
 
       {/* ── Share bar (screen only) ────────────────────────────────── */}
       <div className="no-print max-w-[220mm] mx-auto px-4 pb-10">
-        <div
-          className="rounded-lg p-4 grid gap-3"
-          style={{ background: "#0c0c0d", border: `1px solid ${ACCENT}33` }}
-        >
+        <div className="rounded-2xl p-4 grid gap-3 bg-card border border-border">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-mono text-xs" style={{ color: "#f5f0eb" }}>
-              <Share2 className="w-4 h-4" style={{ color: ACCENT }} />
+            <div className="flex items-center gap-2 text-xs text-foreground">
+              <Share2 className="w-4 h-4 text-primary" />
               Share this PaperClaw PDF
             </div>
             <button
               onClick={copyLink}
-              className="flex items-center gap-1 font-mono text-[10px] px-2 py-1 rounded border"
-              style={{ borderColor: `${ACCENT}55`, color: copied ? "#4caf50" : "#f5f0eb" }}
+              className={cn(
+                "flex items-center gap-1 text-[10px] px-2 py-1 rounded-full border border-border",
+                copied ? "text-green-500" : "text-foreground",
+              )}
             >
               {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
               {copied ? "Copied!" : "Copy link"}
@@ -553,19 +550,18 @@ export function PaperPrintView({
             <ShareButton href={share.moltbook} label="Moltbook"  icon={<Send className="w-3.5 h-3.5" />} />
             <button
               onClick={() => window.print()}
-              className="flex items-center justify-center gap-1.5 font-mono text-xs px-3 py-2 rounded font-bold"
-              style={{ background: ACCENT, color: "#fff" }}
+              className="flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-full font-semibold bg-primary text-primary-foreground"
             >
               <FileDown className="w-3.5 h-3.5" />
               PDF
             </button>
           </div>
-          <div className="font-mono text-[10px] leading-relaxed" style={{ color: SUB }}>
-            <span style={{ color: "#f5f0eb" }}>Archive:</span> Once you save the PDF, upload it to
-            {" "}<a href="https://arxiv.org/submit" target="_blank" rel="noopener" style={{ color: ACCENT_LIGHT }}>arXiv</a>,
-            {" "}<a href="https://zenodo.org/deposit/new" target="_blank" rel="noopener" style={{ color: ACCENT_LIGHT }}>Zenodo</a>,
-            {" "}<a href="https://www.researchgate.net/publication/new" target="_blank" rel="noopener" style={{ color: ACCENT_LIGHT }}>ResearchGate</a>, or
-            {" "}<a href="https://www.academia.edu/upload" target="_blank" rel="noopener" style={{ color: ACCENT_LIGHT }}>Academia.edu</a>
+          <div className="text-[10px] leading-relaxed text-muted-foreground">
+            <span className="text-foreground">Archive:</span> Once you save the PDF, upload it to
+            {" "}<a href="https://arxiv.org/submit" target="_blank" rel="noopener" className="text-accent">arXiv</a>,
+            {" "}<a href="https://zenodo.org/deposit/new" target="_blank" rel="noopener" className="text-accent">Zenodo</a>,
+            {" "}<a href="https://www.researchgate.net/publication/new" target="_blank" rel="noopener" className="text-accent">ResearchGate</a>, or
+            {" "}<a href="https://www.academia.edu/upload" target="_blank" rel="noopener" className="text-accent">Academia.edu</a>
             {" "}to reach the widest audience.
           </div>
         </div>
@@ -596,10 +592,7 @@ function ShareButton({ href, label, icon }: { href: string; label: string; icon:
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center justify-center gap-1.5 font-mono text-xs px-3 py-2 rounded border transition-colors"
-      style={{ borderColor: `${ACCENT}55`, color: "#f5f0eb" }}
-      onMouseEnter={(e) => (e.currentTarget.style.background = `${ACCENT}22`)}
-      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+      className="flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-full border border-border text-foreground transition-colors hover:bg-accent/10"
     >
       {icon}
       {label}

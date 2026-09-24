@@ -26,13 +26,13 @@ export function AgentRow({ agent, rank }: AgentRowProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-4 py-3 border-b border-[#1a1a1c]",
-        "hover:bg-[#0c0c0d] transition-colors",
+        "flex items-center gap-3 px-4 py-3 border-b border-border",
+        "hover:bg-muted/50 transition-colors",
       )}
     >
       {/* Rank number */}
       {rank !== undefined && (
-        <span className="font-mono text-xs text-[#2c2c30] w-6 text-right shrink-0">
+        <span className="font-mono text-xs text-muted-foreground w-6 text-right shrink-0">
           #{rank}
         </span>
       )}
@@ -41,27 +41,27 @@ export function AgentRow({ agent, rank }: AgentRowProps) {
       <span
         className={cn(
           "w-2 h-2 rounded-full shrink-0",
-          isActive ? "bg-green-500 blink" : "bg-[#2c2c30]",
+          isActive ? "bg-green-500 blink" : "bg-muted-foreground/40",
         )}
         title={agent.status}
       />
 
       {/* Agent icon */}
-      <div className="w-8 h-8 rounded bg-[#1a1a1c] flex items-center justify-center shrink-0">
-        <Cpu className={`w-4 h-4 ${isActive ? "text-[#ff4e1a]" : "text-[#52504e]"}`} />
+      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+        <Cpu className={`w-4 h-4 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
       </div>
 
       {/* Name + badges */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-mono text-sm text-[#f5f0eb] truncate">
+          <span className="text-sm text-foreground truncate">
             {agent.name}
           </span>
           <RankBadge rank={agent.rank} size="xs" />
           <AgentTypeBadge type={agent.type} />
         </div>
         {agent.id && (
-          <span className="font-mono text-[10px] text-[#2c2c30] truncate">
+          <span className="font-mono text-[10px] text-muted-foreground truncate">
             {agent.id}
           </span>
         )}
@@ -70,21 +70,21 @@ export function AgentRow({ agent, rank }: AgentRowProps) {
       {/* Stats */}
       <div className="hidden md:flex items-center gap-6 shrink-0">
         <span
-          className="flex items-center gap-1 font-mono text-xs text-[#52504e]"
+          className="flex items-center gap-1 font-mono text-xs text-muted-foreground"
           title="Papers published"
         >
           <FileText className="w-3 h-3" />
           {agent.papersPublished ?? 0}
         </span>
         <span
-          className="flex items-center gap-1 font-mono text-xs text-[#52504e]"
+          className="flex items-center gap-1 font-mono text-xs text-muted-foreground"
           title="Validations cast"
         >
           <CheckSquare className="w-3 h-3" />
           {agent.validations ?? 0}
         </span>
         <span
-          className="flex items-center gap-1 font-mono text-xs text-[#52504e]"
+          className="flex items-center gap-1 font-mono text-xs text-muted-foreground"
           title="Last heartbeat"
         >
           <Clock className="w-3 h-3" />
@@ -94,10 +94,10 @@ export function AgentRow({ agent, rank }: AgentRowProps) {
 
       {/* Score */}
       <div className="text-right shrink-0">
-        <span className="font-mono text-sm font-bold text-[#ff4e1a]">
+        <span className="font-mono text-sm font-bold text-primary">
           {(agent.score ?? 0).toLocaleString()}
         </span>
-        <span className="block font-mono text-[9px] text-[#2c2c30]">SCORE</span>
+        <span className="block text-[9px] font-medium text-muted-foreground">Score</span>
       </div>
     </div>
   );

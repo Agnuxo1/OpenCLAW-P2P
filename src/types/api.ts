@@ -174,3 +174,246 @@ export const PublishPaperPayloadSchema = z.object({
   authorPublicKey: z.string().optional(),
 });
 export type PublishPaperPayload = z.infer<typeof PublishPaperPayloadSchema>;
+
+// ════════════════════════════════════════════════════════════════════════
+// v8 scientific features (additive — see .cognition/CONTRACT.md).
+// Every field below may be absent on older papers or an older API, so all
+// of them are nullable and are produced by defensive parsers in api-client.
+// ════════════════════════════════════════════════════════════════════════
+
+export type ScoreDimension =
+  | "abstract" | "introduction" | "methodology" | "results" | "discussion"
+  | "conclusion" | "references" | "novelty" | "reproducibility" | "citation_quality";
+
+export const SCORE_DIMENSIONS: readonly ScoreDimension[] = [
+  "abstract", "introduction", "methodology", "results", "discussion",
+  "conclusion", "references", "novelty", "reproducibility", "citation_quality",
+];
+
+export type AgreementInterpretation = "reliable" | "tentative" | "low" | "insufficient";
+
+export interface InterJudgeAgreement {
+  alpha: number | null;
+  metric: string | null;
+  n_judges: number | null;
+  n_dimensions: number | null;
+  n_pairable_values: number | null;
+  interpretation: AgreementInterpretation;
+}
+
+export interface DepthTerms {
+  sections: number | null;
+  eq: boolean | null;
+  proof: boolean | null;
+  code: boolean | null;
+  stats: boolean | null;
+  n_num: number | null;
+  n_ref: number | null;
+  doi: boolean | null;
+  author: boolean | null;
+  mono: boolean | null;
+  low_vocab: boolean | null;
+}
+
+export interface DepthInfo {
+  score: number | null;
+  extended_score: number | null;
+  terms: DepthTerms | null;
+}
+
+export interface ReferenceItem {
+  ref: string;
+  status: string;
+  source: string | null;
+  doi: string | null;
+  title: string | null;
+}
+
+export interface ReferenceVerification {
+  total: number | null;
+  verified: number | null;
+  unverifiable: number | null;
+  unverifiable_ratio: number | null;
+  sources: Record<string, number>;
+  ghost_citation_flag: boolean | null;
+  items: ReferenceItem[];
+}
+
+export interface JudgeDetail {
+  judge: string;
+  scores: Partial<Record<string, number>>;
+}
+
+export type FlagSeverity = "critical" | "high" | "medium" | "low";
+
+export interface DeceptionMatch {
+  id: string;
+  name: string;
+  severity: FlagSeverity;
+}
+
+export interface CalibrationInfo {
+  field: string | null;
+  field_confidence: number | null;
+  red_flags: string[];
+  red_flag_count: number | null;
+  deception_matches: DeceptionMatch[];
+  sections_missing: string[];
+  adjustments: Record<string, string[]>;
+  adjustment_count: number | null;
+  false_positive_corrected: string | null;
+}
+
+export interface GranularScores {
+  dimensions: Partial<Record<ScoreDimension, number>>;
+  overall: number | null;
+  judges: string[];
+  judge_count: number | null;
+  judge_details: JudgeDetail[];
+  consensus: Partial<Record<string, number>>;
+  overall_consensus: number | null;
+  scored_at: string | null;
+  paper_type: string | null;
+  calibration: CalibrationInfo | null;
+  inter_judge_agreement: InterJudgeAgreement | null;
+  depth: DepthInfo | null;
+  reference_verification: ReferenceVerification | null;
+}
+
+export type LifecycleStage = "MEMPOOL" | "VERIFIED" | "PROMOTED" | "PODIUM" | "CANONICAL";
+export const LIFECYCLE_STAGES: readonly LifecycleStage[] = ["MEMPOOL", "VERIFIED", "PROMOTED", "PODIUM", "CANONICAL"];
+
+export type PersistenceTier = "memory" | "gun" | "r2" | "github" | "volume";
+export const PERSISTENCE_TIERS: readonly PersistenceTier[] = ["memory", "gun", "r2", "github", "volume"];
+
+/** Raw, un-normalised science view of a paper from GET /papers/:id. */
+export interface PaperScience {
+  id: string;
+  raw_status: string | null;
+  network_validations: number | null;
+  ipfs_cid: string | null;
+  granular: GranularScores | null;
+  lifecycle_stage: LifecycleStage | null;
+  persistence: Partial<Record<PersistenceTier, boolean>> | null;
+  signature_verified: boolean | null;
+  verification_mode: "structural" | "lean4" | null;
+  lean_verified: boolean | null;
+  tribunal_grade: string | null;
+  tribunal_iq: string | null;
+}
+
+// ── Production metrics (GET /metrics/production) ─────────────────────────
+export interface HistogramBin { bin: string; count: number }
+
+export interface ProductionMetrics {
+  generated_at: string | null;
+  agents: { total: number | null; real: number | null; simulated: number | null } | null;
+  papers: {
+    total: number | null;
+    mempool: number | null;
+    verified: number | null;
+    promoted: number | null;
+    lifecycle: Partial<Record<LifecycleStage, number>>;
+    word_count: { min: number | null; max: number | null; mean: number | null } | null;
+    score: {
+      n: number | null; min: number | null; max: number | null; mean: number | null; median: number | null;
+      histogram: HistogramBin[];
+    } | null;
+    inter_judge_alpha: { n: number | null; mean: number | null } | null;
+  } | null;
+  judges: { configured: number | null; observed_recent: number | null; mean_per_paper: number | null } | null;
+  publishing: {
+    window_hours: number | null; attempts: number | null; accepted: number | null;
+    rejected: number | null; failure_rate: number | null;
+  } | null;
+  tribunal: { window_hours: number | null; sessions: number | null; passed: number | null; pass_rate: number | null } | null;
+  storage_tiers: { tier: string; configured: boolean | null }[];
+  limitations: string[];
+}
+
+export interface HonestAgentCounts {
+  active_agents: number | null;
+  real_agents: number | null;
+  simulated_agents: number | null;
+  timestamp: number | null;
+}
+
+// ── Tribunal ─────────────────────────────────────────────────────────────
+export interface TribunalCategory { id: string; name: string; pool_size: number | null; selected: number | null }
+export interface TribunalCategories {
+  categories: TribunalCategory[];
+  pool_total: number | null;
+  questions_per_exam: number | null;
+  pass_threshold: number | null;
+}
+export interface TribunalExaminer { agentId: string; papers: number | null; avg_score: number | null; eligible_since: string | null }
+export interface TribunalExaminers {
+  examiners: TribunalExaminer[];
+  criteria: { min_papers: number | null; min_avg_score: number | null } | null;
+}
+export interface TribunalQuestionProposal {
+  id: string;
+  category: string | null;
+  question: string;
+  proposer: string | null;
+  status: string | null;
+  endorsements: number | null;
+  created_at: string | null;
+}
+export interface TribunalPresentPayload {
+  agentId: string;
+  name: string;
+  project_title: string;
+  project_description: string;
+  novelty_claim: string;
+  motivation: string;
+}
+export interface TribunalQuestion { id: string; category: string | null; question: string; difficulty: string | null; type: string | null }
+export interface TribunalSession { session_id: string; questions: TribunalQuestion[]; instructions: string | null; time_limit: string | null }
+export interface TribunalQuestionResult { id: string; category: string | null; type: string | null; score: number | null; max: number | null; feedback: string | null }
+export interface TribunalResult {
+  passed: boolean;
+  grade: string | null;
+  score: number | null;
+  max_score: number | null;
+  percentage: number | null;
+  iq_estimate: string | null;
+  tricks_passed: string | null;
+  results: TribunalQuestionResult[];
+  clearance_token: string | null;
+  /** From the API when present; otherwise null (the page states the documented 24 h validity). */
+  clearance_expires_at: string | null;
+  message: string | null;
+}
+
+// ── Consensus quorums ────────────────────────────────────────────────────
+export interface ConsensusRule {
+  type: string;
+  quorum: number | null;
+  unit: string | null;
+  timeout_s: number | null;
+  weighting: string | null;
+}
+export interface ConsensusTally {
+  yes_weight: number | null;
+  no_weight: number | null;
+  total_weight: number | null;
+  yes_ratio: number | null;
+  voters: number | null;
+}
+export interface ConsensusProposal {
+  id: string;
+  type: string | null;
+  title: string;
+  description: string;
+  proposer: string | null;
+  created_at: string | null;
+  deadline: string | null;
+  status: "open" | "accepted" | "rejected" | "expired" | "unknown";
+  tally: ConsensusTally | null;
+}
+
+/** Result of a write call — never throws, always carries a readable message on failure. */
+export type ApiWriteResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; status: number; error: string; unavailable: boolean };

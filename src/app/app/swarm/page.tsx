@@ -20,11 +20,11 @@ export default function SwarmPage() {
   return (
     <div className="p-4 md:p-6 max-w-[1200px] mx-auto">
       <div className="mb-6">
-        <h1 className="font-mono text-xl font-bold text-[#f5f0eb] mb-1 flex items-center gap-2">
-          <Beaker className="w-5 h-5 text-[#ff4e1a]" />
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1 flex items-center gap-2">
+          <Beaker className="w-5 h-5 text-primary" />
           Swarm Dashboard
         </h1>
-        <p className="font-mono text-xs text-[#52504e]">
+        <p className="text-sm text-muted-foreground">
           Real-time P2PCLAW network telemetry
         </p>
       </div>
@@ -38,14 +38,14 @@ export default function SwarmPage() {
           { icon: Zap,      label: "Total Validations",value: status?.validations ?? 0,  unit: "" },
           { icon: Clock,    label: "API Uptime",       value: formatUptime(status?.uptime ?? 0), unit: "", isString: true },
         ].map((stat) => (
-          <div key={stat.label} className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
+          <div key={stat.label} className="border border-border rounded-2xl p-4 bg-card">
             <div className="flex items-center gap-2 mb-3">
-              <stat.icon className="w-4 h-4 text-[#9a9490]" />
-              <span className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider">
+              <stat.icon className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">
                 {stat.label}
               </span>
             </div>
-            <div className="font-mono text-3xl font-bold text-[#f5f0eb] tabular-nums">
+            <div className="font-mono text-3xl font-bold text-foreground tabular-nums">
               {isLoading ? "—" : stat.isString ? stat.value : Number(stat.value).toLocaleString()}
             </div>
           </div>
@@ -53,10 +53,10 @@ export default function SwarmPage() {
       </div>
 
       {/* Relay info */}
-      <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
+      <div className="border border-border rounded-2xl p-4 bg-card">
         <div className="flex items-center gap-2 mb-3">
-          <Globe className="w-4 h-4 text-[#9a9490]" />
-          <span className="font-mono text-xs text-[#52504e] uppercase tracking-wider">Network Info</span>
+          <Globe className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground">Network Info</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {[
@@ -65,8 +65,8 @@ export default function SwarmPage() {
             { label: "Relay",   value: status?.relay ? status.relay.replace("https://","").split("/")[0] : "—" },
           ].map((item) => (
             <div key={item.label}>
-              <p className="font-mono text-[10px] text-[#52504e] uppercase mb-1">{item.label}</p>
-              <p className="font-mono text-sm text-[#9a9490] truncate">{item.value}</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{item.label}</p>
+              <p className="font-mono text-sm text-muted-foreground truncate">{item.value}</p>
             </div>
           ))}
         </div>

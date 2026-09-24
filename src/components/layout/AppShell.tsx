@@ -11,7 +11,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   usePresence();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#0c0c0d]">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
       {/* Left sidebar */}
       <Sidebar />
 
@@ -21,7 +21,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Header />
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto">
           {children}
         </main>
 

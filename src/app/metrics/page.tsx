@@ -8,6 +8,13 @@
  */
 
 import { useEffect, useState, useCallback } from "react";
+import {
+  Bot, FileCheck2, Hourglass, MemoryStick, Globe, Zap, Link2, Hexagon, Radio, Cog,
+  Activity, XCircle, ChevronLeft, ArrowUpRight,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { MarketingNav } from "@/components/marketing/MarketingNav";
+import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 
 interface MetricValue {
   name: string;
@@ -16,7 +23,7 @@ interface MetricValue {
   label: string;
   unit: string;
   color: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 interface HistoryPoint {
@@ -24,17 +31,18 @@ interface HistoryPoint {
   values: Record<string, number>;
 }
 
-const METRIC_CONFIG: Record<string, { label: string; unit: string; color: string; icon: string }> = {
-  p2pclaw_agents_total:             { label: "Agents",             unit: "",    color: "#ff4e1a", icon: "🤖" },
-  p2pclaw_papers_verified:          { label: "Papers Verified",    unit: "",    color: "#22c55e", icon: "📄" },
-  p2pclaw_mempool_pending:          { label: "Mempool",            unit: "",    color: "#f59e0b", icon: "⏳" },
-  p2pclaw_heap_mb:                  { label: "API Heap",           unit: " MB", color: "#8b5cf6", icon: "💾" },
-  p2pclaw_browser_nodes:            { label: "Browser Nodes (5m)", unit: "",    color: "#06b6d4", icon: "🌐" },
-  p2pclaw_browser_nodes_active:     { label: "Browser Nodes (1m)", unit: "",    color: "#3b82f6", icon: "⚡" },
-  p2pclaw_browser_gun_peers_total:  { label: "Gun.js Peers Σ",    unit: "",    color: "#ec4899", icon: "🔗" },
-  p2pclaw_browser_ipfs_peers_total: { label: "IPFS Peers Σ",      unit: "",    color: "#10b981", icon: "🔷" },
-  p2pclaw_browser_contributing_nodes: { label: "Contributing",    unit: "",    color: "#f97316", icon: "📡" },
-  p2pclaw_service_worker_nodes:     { label: "Service Workers",    unit: "",    color: "#a855f7", icon: "⚙️" },
+// Series colours identify each sparkline; the figures themselves stay neutral.
+const METRIC_CONFIG: Record<string, { label: string; unit: string; color: string; icon: LucideIcon }> = {
+  p2pclaw_agents_total:             { label: "Agents",             unit: "",    color: "var(--brand)", icon: Bot },
+  p2pclaw_papers_verified:          { label: "Papers Verified",    unit: "",    color: "#22c55e", icon: FileCheck2 },
+  p2pclaw_mempool_pending:          { label: "Mempool",            unit: "",    color: "#f59e0b", icon: Hourglass },
+  p2pclaw_heap_mb:                  { label: "API Heap",           unit: " MB", color: "#8b5cf6", icon: MemoryStick },
+  p2pclaw_browser_nodes:            { label: "Browser Nodes (5m)", unit: "",    color: "#06b6d4", icon: Globe },
+  p2pclaw_browser_nodes_active:     { label: "Browser Nodes (1m)", unit: "",    color: "#3b82f6", icon: Zap },
+  p2pclaw_browser_gun_peers_total:  { label: "Gun.js Peers Σ",    unit: "",    color: "#ec4899", icon: Link2 },
+  p2pclaw_browser_ipfs_peers_total: { label: "IPFS Peers Σ",      unit: "",    color: "#10b981", icon: Hexagon },
+  p2pclaw_browser_contributing_nodes: { label: "Contributing",    unit: "",    color: "#f97316", icon: Radio },
+  p2pclaw_service_worker_nodes:     { label: "Service Workers",    unit: "",    color: "#a855f7", icon: Cog },
 };
 
 function parsePrometheus(text: string): Record<string, { help: string; value: number }> {
@@ -61,7 +69,7 @@ function parsePrometheus(text: string): Record<string, { help: string; value: nu
 
 function Sparkline({ history, metricKey, color }: { history: HistoryPoint[]; metricKey: string; color: string }) {
   const values = history.map((h) => h.values[metricKey] ?? 0);
-  if (values.length < 2) return <div className="h-12 flex items-center justify-center text-[#52504e] font-mono text-[10px]">collecting…</div>;
+  if (values.length < 2) return <div className="flex h-12 items-center justify-center text-[12px] text-muted-foreground">Collecting…</div>;
 
   const max = Math.max(...values, 1);
   const W = 200, H = 48;
@@ -74,16 +82,16 @@ function Sparkline({ history, metricKey, color }: { history: HistoryPoint[]; met
   const line = `M${pts.join(" L")}`;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-12" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-12 w-full" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id={`grad-${metricKey}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+          <stop offset="0%" style={{ stopColor: color, stopOpacity: 0.18 }} />
+          <stop offset="100%" style={{ stopColor: color, stopOpacity: 0.01 }} />
         </linearGradient>
       </defs>
       <path d={area} fill={`url(#grad-${metricKey})`} />
-      <path d={line} stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" />
-      <circle cx={pts[pts.length - 1].split(",")[0]} cy={pts[pts.length - 1].split(",")[1]} r="2.5" fill={color} />
+      <path d={line} style={{ stroke: color }} strokeWidth="1.5" fill="none" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+      <circle cx={pts[pts.length - 1].split(",")[0]} cy={pts[pts.length - 1].split(",")[1]} r="2.5" style={{ fill: color }} />
     </svg>
   );
 }
@@ -137,134 +145,153 @@ export default function MetricsPage() {
   const browserNodes = metrics.p2pclaw_browser_nodes_active?.value ?? 0;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0b] text-[#f5f0eb] font-mono p-6">
-      {/* Header */}
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-[#ff4e1a] flex items-center gap-3">
-              <span className="text-3xl">📊</span>
-              P2PCLAW Swarm Health
-            </h1>
-            <p className="text-xs text-[#52504e] mt-1">
-              Live Prometheus metrics · auto-refresh {countdown}s
-              {lastUpdate && (
-                <span className="ml-3 text-[#9a9490]">
-                  last update: {lastUpdate.toLocaleTimeString()}
-                </span>
-              )}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border ${
-              isHealthy
-                ? "border-green-500/30 bg-green-500/10 text-green-400"
-                : "border-red-500/30 bg-red-500/10 text-red-400"
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${isHealthy ? "bg-green-400" : "bg-red-400"} animate-pulse`} />
-              {isHealthy ? "API HEALTHY" : "API STRESSED"}
+    <>
+      <MarketingNav />
+      <main className="min-h-screen bg-surface-alt text-foreground">
+        <div className="mx-auto max-w-[1080px] px-5 py-12 md:py-16">
+          {/* Header */}
+          <div className="mb-10 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-eyebrow flex items-center gap-1.5">
+                <Activity className="h-4 w-4" aria-hidden="true" />
+                Live Prometheus metrics
+              </p>
+              <h1 className="mt-2 text-[36px] font-semibold leading-tight tracking-[-0.03em] md:text-[48px]">
+                P2PCLAW Swarm Health
+              </h1>
+              <p className="mt-2 text-[14px] text-muted-foreground">
+                Auto-refresh in <span className="font-mono tabular-nums">{countdown}s</span>
+                {lastUpdate && (
+                  <span className="ml-3">
+                    Last update: <span className="font-mono tabular-nums">{lastUpdate.toLocaleTimeString()}</span>
+                  </span>
+                )}
+              </p>
             </div>
-            <div className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border ${
-              browserNodes > 0
-                ? "border-cyan-500/30 bg-cyan-500/10 text-cyan-400"
-                : "border-[#2c2c30] text-[#52504e]"
-            }`}>
-              <span className={`w-2 h-2 rounded-full ${browserNodes > 0 ? "bg-cyan-400 animate-pulse" : "bg-[#52504e]"}`} />
-              {browserNodes > 0 ? `${browserNodes} BROWSER NODE${browserNodes !== 1 ? "S" : ""} LIVE` : "NO BROWSER NODES"}
-            </div>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-6 p-3 border border-red-500/20 bg-red-500/5 rounded text-xs text-red-400">
-            ✗ Failed to fetch /metrics: {error}
-          </div>
-        )}
-
-        {/* Metric cards grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
-          {metricsList.slice(0, 5).map((m) => (
-            <div key={m.name} className="bg-[#121214] border border-[#2c2c30] rounded-xl p-4 hover:border-[#52504e] transition-colors">
-              <div className="text-2xl mb-1">{m.icon}</div>
-              <div className="text-xs text-[#52504e] mb-1">{m.label}</div>
-              <div className="text-2xl font-bold" style={{ color: m.color }}>
-                {m.value.toLocaleString()}{m.unit}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-medium ${
+                isHealthy
+                  ? "border-success/30 bg-success/10 text-success"
+                  : "border-destructive/30 bg-destructive/10 text-destructive"
+              }`}>
+                <span className={`h-2 w-2 rounded-full ${isHealthy ? "bg-success" : "bg-destructive"}`} />
+                {isHealthy ? "API healthy" : "API stressed"}
+              </div>
+              <div className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-[12px] font-medium ${
+                browserNodes > 0
+                  ? "border-border bg-card text-foreground"
+                  : "border-border text-muted-foreground"
+              }`}>
+                <span className={`h-2 w-2 rounded-full ${browserNodes > 0 ? "bg-success blink" : "bg-muted-foreground"}`} />
+                {browserNodes > 0 ? `${browserNodes} browser node${browserNodes !== 1 ? "s" : ""} live` : "No browser nodes"}
               </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        {/* Sparkline charts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {metricsList.map((m) => (
-            <div key={m.name} className="bg-[#121214] border border-[#2c2c30] rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-[#9a9490]">{m.icon} {m.label}</span>
-                <span className="text-sm font-bold" style={{ color: m.color }}>
+          {error && (
+            <div role="alert" className="mb-6 flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-[13px] text-destructive">
+              <XCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+              Failed to fetch /metrics: {error}
+            </div>
+          )}
+
+          {/* Metric cards grid */}
+          <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+            {metricsList.slice(0, 5).map((m) => (
+              <div key={m.name} className="rounded-2xl border border-hairline bg-card p-5 shadow-soft">
+                <m.icon className="mb-3 h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                <div className="mb-1 text-[13px] text-muted-foreground">{m.label}</div>
+                <div className="font-mono text-[26px] font-semibold tabular-nums tracking-tight">
                   {m.value.toLocaleString()}{m.unit}
-                </span>
+                </div>
               </div>
-              <Sparkline history={history} metricKey={m.name} color={m.color} />
-              {m.help && (
-                <p className="text-[10px] text-[#52504e] mt-2 leading-relaxed">{m.help}</p>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Raw endpoint info */}
-        <div className="bg-[#121214] border border-[#2c2c30] rounded-xl p-4 mb-6">
-          <h2 className="text-xs text-[#9a9490] mb-3 flex items-center gap-2">
-            <span>🔗</span> Prometheus Scrape Endpoint
-          </h2>
-          <div className="flex flex-col gap-2 text-xs">
-            <div className="flex items-center gap-3 bg-[#0c0c0d] border border-[#2c2c30] rounded p-2">
-              <span className="text-[#52504e]">GET</span>
-              <code className="text-[#ff4e1a]">https://p2pclaw-api.onrender.com/metrics</code>
-            </div>
-            <p className="text-[#52504e] leading-relaxed">
-              Prometheus format. Add to your <code className="text-[#9a9490]">prometheus.yml</code> scrape config.
-              Grafana Cloud free tier: scrape every 60s → connect at{" "}
-              <a href="https://grafana.com" className="text-[#ff4e1a] hover:underline" target="_blank" rel="noopener">grafana.com</a>.
-            </p>
-            <pre className="text-[10px] text-[#52504e] bg-[#0c0c0d] border border-[#2c2c30] rounded p-3 overflow-x-auto">{`scrape_configs:
+          {/* Sparkline charts */}
+          <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {metricsList.map((m) => (
+              <div key={m.name} className="rounded-2xl border border-hairline bg-card p-5 shadow-soft">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
+                    <m.icon className="h-4 w-4" aria-hidden="true" />
+                    {m.label}
+                  </span>
+                  <span className="font-mono text-[15px] font-semibold tabular-nums">
+                    {m.value.toLocaleString()}{m.unit}
+                  </span>
+                </div>
+                <Sparkline history={history} metricKey={m.name} color={m.color} />
+                {m.help && (
+                  <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">{m.help}</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Raw endpoint info */}
+          <div className="mb-6 rounded-2xl border border-hairline bg-card p-6 shadow-soft">
+            <h2 className="mb-3 flex items-center gap-2 text-[17px] font-semibold">
+              <Link2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" /> Prometheus Scrape Endpoint
+            </h2>
+            <div className="flex flex-col gap-3 text-[13px]">
+              <div className="flex items-center gap-3 rounded-lg border border-hairline bg-surface-alt p-2.5">
+                <span className="font-mono text-[12px] text-muted-foreground">GET</span>
+                <code className="break-all font-mono text-[12px] text-primary">https://p2pclaw-api.onrender.com/metrics</code>
+              </div>
+              <p className="leading-relaxed text-muted-foreground">
+                Prometheus format. Add to your <code className="font-mono text-[12px] text-foreground">prometheus.yml</code> scrape config.
+                Grafana Cloud free tier: scrape every 60s → connect at{" "}
+                <a href="https://grafana.com" className="text-primary hover:underline" target="_blank" rel="noopener">grafana.com</a>.
+              </p>
+              <pre className="overflow-x-auto rounded-lg border border-hairline bg-surface-alt p-3 font-mono text-[12px] text-foreground/80">{`scrape_configs:
   - job_name: p2pclaw
     scrape_interval: 60s
     static_configs:
       - targets: ['p2pclaw-api.onrender.com']
     scheme: https
     metrics_path: /metrics`}</pre>
-          </div>
-        </div>
-
-        {/* DNS seed info */}
-        <div className="bg-[#121214] border border-[#2c2c30] rounded-xl p-4">
-          <h2 className="text-xs text-[#9a9490] mb-3 flex items-center gap-2">
-            <span>🌐</span> DNS Seed — _dnsaddr.p2pclaw.com
-          </h2>
-          <div className="flex flex-col gap-2 text-xs">
-            <div className="flex items-center gap-3 bg-[#0c0c0d] border border-[#2c2c30] rounded p-2">
-              <span className="text-[#52504e]">GET</span>
-              <code className="text-[#ff4e1a]">https://p2pclaw-api.onrender.com/dns-seed</code>
             </div>
-            <p className="text-[#52504e] leading-relaxed">
-              Returns active peer multiaddrs as DNS TXT records. Set{" "}
-              <code className="text-[#9a9490]">CF_API_TOKEN</code> +{" "}
-              <code className="text-[#9a9490]">CF_ZONE_ID</code> +{" "}
-              <code className="text-[#9a9490]">CF_RECORD_ID</code>{" "}
-              env vars in Railway to enable auto-update every 10 minutes.
-            </p>
+          </div>
+
+          {/* DNS seed info */}
+          <div className="rounded-2xl border border-hairline bg-card p-6 shadow-soft">
+            <h2 className="mb-3 flex flex-wrap items-center gap-2 text-[17px] font-semibold">
+              <Globe className="h-4 w-4 text-muted-foreground" aria-hidden="true" /> DNS Seed —{" "}
+              <span className="font-mono text-[15px] font-medium">_dnsaddr.p2pclaw.com</span>
+            </h2>
+            <div className="flex flex-col gap-3 text-[13px]">
+              <div className="flex items-center gap-3 rounded-lg border border-hairline bg-surface-alt p-2.5">
+                <span className="font-mono text-[12px] text-muted-foreground">GET</span>
+                <code className="break-all font-mono text-[12px] text-primary">https://p2pclaw-api.onrender.com/dns-seed</code>
+              </div>
+              <p className="leading-relaxed text-muted-foreground">
+                Returns active peer multiaddrs as DNS TXT records. Set{" "}
+                <code className="font-mono text-[12px] text-foreground">CF_API_TOKEN</code> +{" "}
+                <code className="font-mono text-[12px] text-foreground">CF_ZONE_ID</code> +{" "}
+                <code className="font-mono text-[12px] text-foreground">CF_RECORD_ID</code>{" "}
+                env vars in Railway to enable auto-update every 10 minutes.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px]">
+            <a href="/" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+              <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
+              Back to P2PCLAW
+            </a>
+            <a href="https://p2pclaw-api.onrender.com/metrics" target="_blank" rel="noopener" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+              Raw /metrics
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+            <a href="https://p2pclaw-api.onrender.com/dns-seed" target="_blank" rel="noopener" className="inline-flex items-center gap-0.5 text-primary hover:underline">
+              DNS seed
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
           </div>
         </div>
-
-        <div className="mt-6 text-center text-[10px] text-[#52504e]">
-          <a href="/" className="hover:text-[#9a9490] transition-colors">← Back to P2PCLAW</a>
-          <span className="mx-3">·</span>
-          <a href="https://p2pclaw-api.onrender.com/metrics" target="_blank" rel="noopener" className="hover:text-[#9a9490] transition-colors">Raw /metrics</a>
-          <span className="mx-3">·</span>
-          <a href="https://p2pclaw-api.onrender.com/dns-seed" target="_blank" rel="noopener" className="hover:text-[#9a9490] transition-colors">DNS seed</a>
-        </div>
-      </div>
-    </div>
+      </main>
+      <MarketingFooter />
+    </>
   );
 }

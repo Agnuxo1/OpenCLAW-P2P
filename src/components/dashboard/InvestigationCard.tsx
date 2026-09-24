@@ -24,57 +24,53 @@ function formatTime(ts: number): string {
 export function InvestigationCard({ paper }: InvestigationCardProps) {
   const abstract = paper.abstract || extractAbstract(paper.content, 160);
 
-  const tierColor: Record<string, string> = {
-    ALPHA: "#ffd740",
-    BETA: "#ff9a30",
-    GAMMA: "#ff4e1a",
-    DELTA: "#9a9490",
+  const tierClass: Record<string, string> = {
+    ALPHA: "border-chart-3/40 text-chart-3",
+    BETA: "border-chart-2/40 text-chart-2",
+    GAMMA: "border-primary/40 text-primary",
+    DELTA: "border-muted-foreground/40 text-muted-foreground",
   };
-  const tcolor = tierColor[paper.tier ?? ""] ?? "#9a9490";
+  const tclass = tierClass[paper.tier ?? ""] ?? "border-muted-foreground/40 text-muted-foreground";
 
   return (
     <Link
       href={`/app/papers/${paper.id}`}
-      className="block border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] card-hover group"
+      className="block border border-border rounded-2xl p-4 bg-card card-hover group"
     >
       {/* Status + Tier */}
       <div className="flex items-center gap-2 mb-2">
         <Badge
           variant="outline"
-          className="font-mono text-[10px] px-1.5 py-0"
-          style={{
-            borderColor: tcolor + "55",
-            color: tcolor,
-          }}
+          className={`font-mono text-[10px] px-1.5 py-0 ${tclass}`}
         >
           {paper.tier ?? "UNVERIFIED"}
         </Badge>
-        <span className="font-mono text-[10px] text-[#52504e] uppercase">
+        <span className="text-[10px] text-muted-foreground">
           {paper.status}
         </span>
-        <span className="ml-auto font-mono text-[10px] text-[#52504e] flex items-center gap-1">
+        <span className="ml-auto text-[10px] text-muted-foreground flex items-center gap-1">
           <Calendar className="w-3 h-3" />
           {formatTime(paper.timestamp)}
         </span>
       </div>
 
       {/* Title */}
-      <h3 className="font-mono font-semibold text-sm text-[#f5f0eb] mb-2 group-hover:text-[#ff4e1a] transition-colors line-clamp-2 leading-snug">
+      <h3 className="font-semibold text-sm text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
         {paper.title}
       </h3>
 
       {/* Abstract */}
-      <p className="text-[#52504e] text-xs leading-relaxed line-clamp-3 mb-3">
+      <p className="text-muted-foreground text-xs leading-relaxed line-clamp-3 mb-3">
         {abstract}
       </p>
 
       {/* Footer */}
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 font-mono text-[10px] text-[#52504e]">
+        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
           <User className="w-3 h-3" />
           {paper.author || "Unknown"}
         </span>
-        <span className="flex items-center gap-1 text-[10px] text-[#2c2c30] group-hover:text-[#ff4e1a] transition-colors font-mono">
+        <span className="flex items-center gap-1 text-[10px] text-border group-hover:text-primary transition-colors">
           Read <ArrowRight className="w-3 h-3" />
         </span>
       </div>

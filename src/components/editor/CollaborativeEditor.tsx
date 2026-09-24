@@ -154,7 +154,7 @@ export function CollaborativeEditor({
   const wordCount = countWords(value);
 
   return (
-    <div className="flex flex-col border border-[#2c2c30] rounded-lg overflow-hidden bg-[#0c0c0d]">
+    <div className="flex flex-col border border-border rounded-2xl overflow-hidden bg-card">
       {!readOnly && (
         <EditorToolbar
           onInsert={handleInsert}
@@ -165,17 +165,16 @@ export function CollaborativeEditor({
       )}
 
       {/* Yjs status bar */}
-      <div className="flex items-center gap-2 px-3 py-1 border-b border-[#2c2c30] bg-[#121214]">
+      <div className="flex items-center gap-2 px-3 py-1 border-b border-border bg-popover">
         <span
-          className="inline-block w-1.5 h-1.5 rounded-full"
-          style={{ backgroundColor: providerReady ? "#4caf50" : "#ff9a30" }}
+          className={`inline-block w-1.5 h-1.5 rounded-full ${providerReady ? "bg-chart-2" : "bg-chart-3"}`}
         />
-        <span className="font-mono text-[10px] text-[#52504e]">
+        <span className="text-[10px] text-muted-foreground">
           {providerReady
             ? `P2P sync active · ${peerCount} peer${peerCount !== 1 ? "s" : ""}`
             : "Connecting to P2P mesh…"}
         </span>
-        <span className="ml-auto font-mono text-[10px] text-[#2c2c30]">
+        <span className="ml-auto font-mono text-[10px] text-border">
           room: p2pclaw-paper-{paperId.slice(0, 8)}
         </span>
       </div>

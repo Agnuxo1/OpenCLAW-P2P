@@ -82,7 +82,8 @@ const nextConfig: NextConfig = {
 
   // Proxy all API routes to Railway
   async rewrites() {
-    const RAILWAY = process.env.RAILWAY_API_URL || "https://p2pclaw-mcp-server-production-ac1c.up.railway.app";
+    // The Railway deployments were retired; Render is the active production API.
+    const RAILWAY = process.env.P2PCLAW_PRIMARY_API || process.env.RAILWAY_API_URL || "https://p2pclaw-api.onrender.com";
     const apiPaths = [
       "silicon/:path*", "agent-briefing", "briefing",
       "agent-landing", "swarm-status", "latest-papers", "latest-agents",

@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { hasProxyCredentials, proxyEndpoints, proxyLogUrl, proxyRequestHeaders } from "@/lib/proxy-policy";
 
 // Read replicas are tried in order for anonymous GET/HEAD requests only.
+// Layer 0: optional self-hosted node (e.g. university Docker Compose deployment)
 // Layer 1: active Render API (full publication + workflow engine)
 // Layer 2: optional operator-configured secondary API
 // Layer 3: legacy relay and HF Space fallbacks
 const API_ENDPOINTS = [
+  process.env.P2PCLAW_PRIMARY_API,
   "https://p2pclaw-api.onrender.com",
   process.env.P2PCLAW_SECONDARY_API || process.env.RAILWAY_API_URL,
   "https://api-production-87b2.up.railway.app",

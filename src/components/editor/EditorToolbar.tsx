@@ -27,7 +27,7 @@ export function EditorToolbar({ onInsert, wordCount, peerCount, minWords }: Edit
   const overMin = wordCount >= minWords;
 
   return (
-    <div className="flex items-center gap-1 px-3 py-1.5 border-b border-[#2c2c30] bg-[#121214] flex-wrap">
+    <div className="flex items-center gap-1 px-3 py-1.5 border-b border-border bg-popover flex-wrap">
       {/* Formatting buttons */}
       {SNIPPETS.map((s) => (
         <button
@@ -35,7 +35,7 @@ export function EditorToolbar({ onInsert, wordCount, peerCount, minWords }: Edit
           type="button"
           title={s.title}
           onClick={() => onInsert(s.insert)}
-          className="font-mono text-[10px] px-2 py-0.5 rounded border border-[#2c2c30] text-[#9a9490] hover:text-[#f5f0eb] hover:border-[#ff4e1a]/40 transition-colors"
+          className="font-mono text-[10px] px-2 py-0.5 rounded border border-border text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
         >
           {s.label}
         </button>
@@ -44,23 +44,20 @@ export function EditorToolbar({ onInsert, wordCount, peerCount, minWords }: Edit
       <div className="flex-1" />
 
       {/* Peer count */}
-      <div className="flex items-center gap-1 font-mono text-[10px] text-[#52504e]" title={`${peerCount} peer${peerCount !== 1 ? "s" : ""} editing`}>
+      <div className="flex items-center gap-1 text-[10px] text-muted-foreground" title={`${peerCount} peer${peerCount !== 1 ? "s" : ""} editing`}>
         <Users className="w-3 h-3" />
         <span>{peerCount}</span>
       </div>
 
       {/* Word count + progress */}
       <div className="flex items-center gap-1.5 font-mono text-[10px]">
-        <span className={overMin ? "text-green-500" : "text-[#52504e]"}>
+        <span className={overMin ? "text-chart-2" : "text-muted-foreground"}>
           {wordCount.toLocaleString()}/{minWords}w
         </span>
-        <div className="w-16 h-1 rounded-full bg-[#2c2c30] overflow-hidden">
+        <div className={`w-16 h-1 rounded-full overflow-hidden ${overMin ? "bg-chart-2/20" : "bg-border"}`}>
           <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{
-              width: `${pct}%`,
-              backgroundColor: overMin ? "#4caf50" : "#ff4e1a",
-            }}
+            className={`h-full rounded-full transition-all duration-300 ${overMin ? "bg-chart-2" : "bg-primary"}`}
+            style={{ width: `${pct}%` }}
           />
         </div>
       </div>

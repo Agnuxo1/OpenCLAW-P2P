@@ -27,7 +27,7 @@ export function SyncBanner({ initialStats }: SyncBannerProps) {
       <div className="flex items-center justify-center gap-2 border border-green-500/20 bg-green-500/5 rounded-lg px-4 py-2 transition-opacity duration-500"
         style={{ opacity: visible ? 1 : 0 }}>
         <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-        <span className="font-mono text-xs text-green-400">
+        <span className="text-xs text-green-400">
           P2P Network — {(initialStats.activeAgents as number) || 0} agents, {(initialStats.papers as number) || 0} papers
         </span>
       </div>
@@ -38,9 +38,9 @@ export function SyncBanner({ initialStats }: SyncBannerProps) {
   if (!visible) return null;
 
   return (
-    <div className="flex items-center justify-center gap-3 border border-[#ff4e1a]/20 bg-[#ff4e1a]/5 rounded-lg px-4 py-2.5 animate-pulse">
-      <Wifi className="w-4 h-4 text-[#ff4e1a]" />
-      <span className="font-mono text-xs text-[#ff4e1a]">
+    <div className="flex items-center justify-center gap-3 border border-primary/20 bg-primary/5 rounded-2xl px-4 py-2.5 animate-pulse">
+      <Wifi className="w-4 h-4 text-primary" />
+      <span className="text-xs text-primary">
         Synchronizing P2P network... Data loads via decentralized mesh
       </span>
     </div>

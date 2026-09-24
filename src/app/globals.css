@@ -4,12 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ── CLAW Token Bridge → Tailwind v4 ─────────────────────────────────── */
+/* ── Token bridge → Tailwind v4 ───────────────────────────────────────────
+   Semantic token NAMES are shared by every page (bg-card, text-muted-foreground…).
+   Only their values change between :root (light) and .dark (dark).            */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-body);
-  --font-mono: var(--font-mono);
+  --font-mono: var(--font-code);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,83 +41,171 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Extra tokens for the redesign */
+  --color-surface-alt: var(--surface-alt);
+  --color-hairline: var(--hairline);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-nav: var(--nav-bg);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 6px);
 
-  /* CLAW semantic tokens */
-  --color-claw-accent:       #ff4e1a;
-  --color-claw-accent-light: #ff7020;
-  --color-claw-crimson:      #e63030;
-  --color-claw-amber:        #ff9a30;
-  --color-claw-gold:         #ffcb47;
-  --color-bg-primary:        #0c0c0d;
-  --color-bg-secondary:      #121214;
-  --color-bg-card:           #1a1a1c;
-  --color-text-primary:      #f5f0eb;
-  --color-text-secondary:    #9a9490;
-  --color-text-muted:        #52504e;
+  --shadow-soft: var(--elev-1);
+  --shadow-lifted: var(--elev-2);
+
+  /* Legacy CLAW tokens — names kept, values now theme-aware */
+  --color-claw-accent:       var(--brand);
+  --color-claw-accent-light: var(--brand);
+  --color-claw-crimson:      var(--destructive);
+  --color-claw-amber:        var(--warning);
+  --color-claw-gold:         var(--tier-gold);
+  --color-bg-primary:        var(--background);
+  --color-bg-secondary:      var(--surface-alt);
+  --color-bg-card:           var(--card);
+  --color-text-primary:      var(--foreground);
+  --color-text-secondary:    var(--muted-foreground);
+  --color-text-muted:        var(--muted-foreground);
 }
 
-/* ── CLAW Dark Design System ──────────────────────────────────────────── */
+/* ── Light theme (default) ────────────────────────────────────────────── */
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
-  /* Core backgrounds */
-  --background:       #0c0c0d;
-  --foreground:       #f5f0eb;
+  --background:         #ffffff;
+  --foreground:         #1d1d1f;
+  --surface-alt:        #f5f5f7;
 
-  /* Cards / Popover */
-  --card:             #1a1a1c;
-  --card-foreground:  #f5f0eb;
-  --popover:          #121214;
-  --popover-foreground: #f5f0eb;
+  --card:               #ffffff;
+  --card-foreground:    #1d1d1f;
+  --popover:            #ffffff;
+  --popover-foreground: #1d1d1f;
 
-  /* Primary = CLAW Flame accent */
-  --primary:          #ff4e1a;
-  --primary-foreground: #0c0c0d;
+  /* Brand orange: --brand for fills / large figures, --primary is the
+     AA-safe variant for text links and buttons with white labels (5.05:1). */
+  --brand:              #ff5a1f;
+  --brand-soft:         rgba(255, 90, 31, 0.10);
+  --primary:            #c93d0a;
+  --primary-hover:      #b3380a;
+  --primary-foreground: #ffffff;
 
-  /* Secondary = card surface */
-  --secondary:        #1a1a1c;
-  --secondary-foreground: #f5f0eb;
+  --secondary:            #f5f5f7;
+  --secondary-foreground: #1d1d1f;
+  --muted:                #f5f5f7;
+  --muted-foreground:     #6e6e73;
+  --accent:               #ebebf0;
+  --accent-foreground:    #1d1d1f;
 
-  /* Muted */
-  --muted:            #1a1a1c;
-  --muted-foreground: #9a9490;
+  --destructive: #d70015;
+  --success:     #1a7f37;
+  --warning:     #b25000;
 
-  /* Accent = same as primary for shadcn compatibility */
-  --accent:           #ff4e1a;
-  --accent-foreground: #0c0c0d;
+  --border:  #d2d2d7;
+  --hairline:#e5e5ea;
+  --input:   #d2d2d7;
+  --ring:    #c93d0a;
 
-  /* Destructive */
-  --destructive:      #e63030;
+  --chart-1: #ff5a1f;
+  --chart-2: #0071e3;
+  --chart-3: #1a7f37;
+  --chart-4: #8e44ad;
+  --chart-5: #86868b;
 
-  /* Borders / Inputs */
-  --border:           #2c2c30;
-  --input:            #2c2c30;
-  --ring:             #ff4e1a;
+  --sidebar:                    #f5f5f7;
+  --sidebar-foreground:         #1d1d1f;
+  --sidebar-primary:            #c93d0a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             #e8e8ed;
+  --sidebar-accent-foreground:  #1d1d1f;
+  --sidebar-border:             #e5e5ea;
+  --sidebar-ring:               #c93d0a;
 
-  /* Chart palette — CLAW gradient */
-  --chart-1: #ff4e1a;
-  --chart-2: #ff9a30;
-  --chart-3: #ffcb47;
-  --chart-4: #e63030;
-  --chart-5: #ff7020;
+  --nav-bg:   rgba(255, 255, 255, 0.72);
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --elev-2: 0 2px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08);
 
-  /* Sidebar */
-  --sidebar:                    #0c0c0d;
-  --sidebar-foreground:         #f5f0eb;
-  --sidebar-primary:            #ff4e1a;
-  --sidebar-primary-foreground: #0c0c0d;
-  --sidebar-accent:             #1a1a1c;
-  --sidebar-accent-foreground:  #f5f0eb;
-  --sidebar-border:             #2c2c30;
-  --sidebar-ring:               #ff4e1a;
+  /* Tier / rank colours (AA on light surfaces) */
+  --tier-gold:   #8a6100;
+  --tier-orange: #b25000;
+  --tier-brand:  #c93d0a;
+  --tier-gray:   #6e6e73;
+  --tier-green:  #1a7f37;
+  --tier-red:    #d70015;
+  --tier-blue:   #0066cc;
 
-  /* Typography */
-  --font-body: 'Space Grotesk', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    var(--font-inter), "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-code: var(--font-jetbrains), "JetBrains Mono", ui-monospace, SFMono-Regular,
+    Menlo, Consolas, monospace;
+  /* Kept for components that reference var(--font-mono) inline */
+  --font-mono: var(--font-code);
+}
+
+/* ── Dark theme ───────────────────────────────────────────────────────── */
+.dark {
+  --background:         #000000;
+  --foreground:         #f5f5f7;
+  --surface-alt:        #161617;
+
+  --card:               #1c1c1e;
+  --card-foreground:    #f5f5f7;
+  --popover:            #1c1c1e;
+  --popover-foreground: #f5f5f7;
+
+  --brand:              #ff6a33;
+  --brand-soft:         rgba(255, 106, 51, 0.14);
+  --primary:            #ff6a33;
+  --primary-hover:      #ff7f4f;
+  --primary-foreground: #000000;
+
+  --secondary:            #1c1c1e;
+  --secondary-foreground: #f5f5f7;
+  --muted:                #1c1c1e;
+  --muted-foreground:     #a1a1a6;
+  --accent:               #2c2c2e;
+  --accent-foreground:    #f5f5f7;
+
+  --destructive: #ff453a;
+  --success:     #30d158;
+  --warning:     #ff9f0a;
+
+  --border:  #3a3a3c;
+  --hairline:#2c2c2e;
+  --input:   #3a3a3c;
+  --ring:    #ff6a33;
+
+  --chart-1: #ff6a33;
+  --chart-2: #0a84ff;
+  --chart-3: #30d158;
+  --chart-4: #bf5af2;
+  --chart-5: #98989d;
+
+  --sidebar:                    #161617;
+  --sidebar-foreground:         #f5f5f7;
+  --sidebar-primary:            #ff6a33;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent:             #2c2c2e;
+  --sidebar-accent-foreground:  #f5f5f7;
+  --sidebar-border:             #2c2c2e;
+  --sidebar-ring:               #ff6a33;
+
+  --nav-bg:   rgba(22, 22, 23, 0.72);
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --elev-2: 0 2px 6px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  --tier-gold:   #ffd60a;
+  --tier-orange: #ff9f0a;
+  --tier-brand:  #ff6a33;
+  --tier-gray:   #a1a1a6;
+  --tier-green:  #30d158;
+  --tier-red:    #ff453a;
+  --tier-blue:   #64d2ff;
 }
 
 /* ── Base styles ──────────────────────────────────────────────────────── */
@@ -126,6 +216,10 @@
   }
 
   html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+  html.dark {
     color-scheme: dark;
   }
 
@@ -133,187 +227,170 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-body);
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "kern" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     overflow-x: hidden;
     position: relative;
+    letter-spacing: -0.003em;
   }
 
-  /* CRT scanlines overlay */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.05) 2px,
-      rgba(0, 0, 0, 0.05) 4px
-    );
-    pointer-events: none;
-    z-index: 9999;
+  h1, h2, h3 {
+    letter-spacing: -0.015em;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: var(--background);
-  }
+  /* Numbers in tables line up */
+  table { font-variant-numeric: tabular-nums; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     background: var(--border);
-    border-radius: 3px;
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #52504e;
+    background: var(--muted-foreground);
+    background-clip: content-box;
   }
 
-  /* Selection */
   ::selection {
-    background: rgba(255, 78, 26, 0.3);
+    background: var(--brand-soft);
     color: var(--foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
-/* ── Utility classes ──────────────────────────────────────────────────── */
+/* ── Utility classes (names kept for existing pages) ──────────────────── */
 @layer utilities {
   .font-mono {
-    font-family: var(--font-mono);
+    font-family: var(--font-code);
   }
 
-  /* CLAW gradient text */
+  /* Formerly a gradient; now the single accent colour */
   .text-claw-gradient {
-    background: linear-gradient(135deg, #ff4e1a 0%, #ffcb47 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--primary);
+    -webkit-text-fill-color: currentColor;
   }
 
-  /* Glow effects */
-  .glow-accent {
-    box-shadow: 0 0 20px rgba(255, 78, 26, 0.25), 0 0 40px rgba(255, 78, 26, 0.1);
-  }
-  .glow-accent-sm {
-    box-shadow: 0 0 8px rgba(255, 78, 26, 0.3);
-  }
+  /* Glows → soft, neutral depth */
+  .glow-accent { box-shadow: var(--elev-2); }
+  .glow-accent-sm { box-shadow: var(--elev-1); }
 
-  /* Status dot blink */
+  /* Status dot: calm, very slow breathing; static under reduced motion */
   .blink {
-    animation: blink 1.4s ease-in-out infinite;
+    animation: calm-breathe 3.2s ease-in-out infinite;
   }
+  .pulse-accent {
+    animation: calm-breathe 3.2s ease-in-out infinite;
+  }
+  @keyframes calm-breathe {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  /* Kept so legacy inline `animation: blink …` references resolve calmly */
   @keyframes blink {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; }
-  }
-
-  /* Pulse for live indicators */
-  .pulse-accent {
-    animation: pulse-accent 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    50% { opacity: 0.55; }
   }
   @keyframes pulse-accent {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    50% { opacity: 0.55; }
   }
 
-  /* Card hover border accent */
   .card-hover {
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
   }
   .card-hover:hover {
-    border-color: rgba(255, 78, 26, 0.4);
-    box-shadow: 0 0 0 1px rgba(255, 78, 26, 0.15);
+    border-color: var(--border);
+    box-shadow: var(--elev-2);
   }
 
-  /* Scan line animation for loading */
-  .scan-line {
-    position: relative;
-    overflow: hidden;
-  }
-  .scan-line::before {
-    content: '';
-    position: absolute;
-    top: -100%;
-    left: 0;
-    right: 0;
-    height: 30%;
-    background: linear-gradient(to bottom, transparent, rgba(255, 78, 26, 0.05), transparent);
-    animation: scan 3s linear infinite;
-  }
-  @keyframes scan {
-    to { top: 200%; }
-  }
+  /* Scan line effect retired: class kept as a no-op wrapper */
+  .scan-line { position: relative; }
+  .scan-line::before { content: none; }
+  @keyframes scan { to { top: 200%; } }
 
-  /* Mono code blocks */
   .code-block {
-    font-family: var(--font-mono);
-    background: #0c0c0d;
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    font-family: var(--font-code);
+    background: var(--surface-alt);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
     padding: 1rem;
     font-size: 0.8125rem;
     line-height: 1.6;
     overflow-x: auto;
   }
 
-  /* Tier badge colors */
-  .tier-alpha    { color: #ffd740; border-color: rgba(255, 215, 64, 0.4); }
-  .tier-beta     { color: #ff9a30; border-color: rgba(255, 154, 48, 0.4); }
-  .tier-gamma    { color: #ff4e1a; border-color: rgba(255, 78, 26, 0.4); }
-  .tier-delta    { color: #9a9490; border-color: rgba(154, 148, 144, 0.4); }
-  .tier-verified { color: #4caf50; border-color: rgba(76, 175, 80, 0.4); }
-  .tier-pending  { color: #ff9a30; border-color: rgba(255, 154, 48, 0.4); }
-  .tier-rejected { color: #e63030; border-color: rgba(230, 48, 48, 0.4); }
+  .tier-alpha    { color: var(--tier-gold);   border-color: color-mix(in srgb, var(--tier-gold) 40%, transparent); }
+  .tier-beta     { color: var(--tier-orange); border-color: color-mix(in srgb, var(--tier-orange) 40%, transparent); }
+  .tier-gamma    { color: var(--tier-brand);  border-color: color-mix(in srgb, var(--tier-brand) 40%, transparent); }
+  .tier-delta    { color: var(--tier-gray);   border-color: color-mix(in srgb, var(--tier-gray) 40%, transparent); }
+  .tier-verified { color: var(--tier-green);  border-color: color-mix(in srgb, var(--tier-green) 40%, transparent); }
+  .tier-pending  { color: var(--tier-orange); border-color: color-mix(in srgb, var(--tier-orange) 40%, transparent); }
+  .tier-rejected { color: var(--tier-red);    border-color: color-mix(in srgb, var(--tier-red) 40%, transparent); }
 
-  /* Rank badge colors */
-  .rank-director    { color: #ffd740; }
-  .rank-architect   { color: #ff4e1a; }
-  .rank-researcher  { color: #ff7020; }
-  .rank-analyst     { color: #448aff; }
-  .rank-citizen     { color: #9a9490; }
+  .rank-director   { color: var(--tier-gold); }
+  .rank-architect  { color: var(--tier-brand); }
+  .rank-researcher { color: var(--tier-orange); }
+  .rank-analyst    { color: var(--tier-blue); }
+  .rank-citizen    { color: var(--tier-gray); }
+
+  /* Frosted translucent bar (nav, app header) */
+  .frosted {
+    background-color: var(--nav-bg);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* Display type */
+  .text-display {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .text-eyebrow {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--muted-foreground);
+  }
 }
 
-/* ── shadcn component overrides ──────────────────────────────────────── */
+/* ── Legacy button helpers (names kept) ───────────────────────────────── */
 @layer components {
-  /* Force dark button styles */
   .btn-claw {
     background: var(--primary);
     color: var(--primary-foreground);
     border: none;
-    border-radius: 6px;
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 1.125rem;
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color 0.2s ease;
   }
-  .btn-claw:hover {
-    background: #ff7020;
-    box-shadow: 0 0 12px rgba(255, 78, 26, 0.4);
-  }
+  .btn-claw:hover { background: var(--primary-hover); }
 
-  /* Ghost button */
   .btn-ghost-claw {
     background: transparent;
-    color: var(--muted-foreground);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-family: var(--font-mono);
-    font-size: 0.8125rem;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .btn-ghost-claw:hover {
-    border-color: rgba(255, 78, 26, 0.4);
     color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    padding: 0.5rem 1.125rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
   }
+  .btn-ghost-claw:hover { background: var(--accent); }
 }
 
 /* ── Researcher carousel marquee ──────────────────────────────────────── */
@@ -321,8 +398,34 @@
   0%   { transform: translateX(0); }
   100% { transform: translateX(-33.333%); }
 }
+.marquee-track {
+  animation: marquee 60s linear infinite;
+  width: max-content;
+}
+.marquee-track:hover,
+.marquee-track:focus-within {
+  animation-play-state: paused;
+}
 
 /* ── Ping animation for network dot ───────────────────────────────────── */
 @keyframes ping {
   75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+/* Gentle fade-up for landing sections */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fade-up 0.7s cubic-bezier(0.25, 0.1, 0.25, 1) both; }
+
+/* ── Reduced motion: no looping or decorative motion ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .blink, .pulse-accent, .marquee-track { animation: none !important; }
 }

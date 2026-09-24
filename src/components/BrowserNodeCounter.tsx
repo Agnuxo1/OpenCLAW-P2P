@@ -1,5 +1,6 @@
 "use client";
 
+import { Hexagon, CheckCircle2 } from "lucide-react";
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 
 /**
@@ -11,44 +12,30 @@ export function BrowserNodeCounter() {
   const { browserNodes, isSupporting, nodeId, webrtcPeers } = useNetworkStatus();
 
   return (
-    <div
-      style={{
-        border: "1px solid #00ff8844",
-        background: "#0a1a0f",
-        borderRadius: "8px",
-        padding: "16px 20px",
-        fontFamily: "var(--font-mono, monospace)",
-      }}
-    >
-      <div style={{ color: "#00ff8880", fontSize: "11px", marginBottom: "8px", letterSpacing: "0.1em" }}>
-        ⬡ P2P WEB MESH
+    <div className="rounded-2xl border border-border bg-card px-5 py-4">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-2">
+        <Hexagon className="h-3.5 w-3.5" />
+        P2P Web Mesh
       </div>
-      <div style={{ color: "white", fontSize: "32px", fontWeight: "bold", lineHeight: 1 }}>
+      <div className="text-3xl font-semibold text-foreground leading-none">
         {browserNodes}
       </div>
-      <div style={{ color: "#52504e", fontSize: "11px", marginTop: "4px" }}>
+      <div className="text-xs text-muted-foreground mt-1">
         browser nodes online
       </div>
       {webrtcPeers > 0 && (
-        <div style={{ color: "#0ea5e9", fontSize: "11px", marginTop: "4px" }}>
-          ⬡ {webrtcPeers} direct P2P channels
+        <div className="flex items-center gap-1.5 text-xs text-chart-4 mt-1">
+          <Hexagon className="h-3.5 w-3.5" />
+          {webrtcPeers} direct P2P channels
         </div>
       )}
       {isSupporting && (
-        <div
-          style={{
-            marginTop: "12px",
-            padding: "6px 10px",
-            background: "#001a0d",
-            borderRadius: "4px",
-            color: "#00ff88",
-            fontSize: "11px",
-          }}
-        >
-          ✓ You are supporting the network
+        <div className="flex items-center gap-1.5 mt-3 px-2.5 py-1.5 rounded-full bg-chart-5/10 text-chart-5 text-xs">
+          <CheckCircle2 className="h-4 w-4" />
+          You are supporting the network
         </div>
       )}
-      <div style={{ color: "#2c2c30", fontSize: "10px", marginTop: "10px" }}>
+      <div className="text-[10px] text-muted-foreground mt-2.5 font-mono">
         id: {nodeId?.slice(0, 16)}…
       </div>
     </div>

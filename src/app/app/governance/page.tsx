@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSwarmStatus } from "@/hooks/useSwarmStatus";
 import { useAgentIdentity } from "@/hooks/useAgentIdentity";
 import {
+  fetchConsensusProposals,
+  fetchConsensusRules,
+  createConsensusProposal,
+  voteConsensusProposal,
+} from "@/lib/api-client";
+import { NotAvailable, Pill, ScienceCard, fmtDate, fmtInt, fmtPct, humanize } from "@/components/science/primitives";
+import type { ConsensusProposal, ConsensusRule } from "@/types/api";
+import {
   Scale, CheckCircle, Clock, XCircle, ChevronRight,
   Shield, Users, Zap, GitBranch, Terminal, Plus,
+  Check, X, Vote, ListChecks, Loader2, ThumbsUp, ThumbsDown,
 } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -198,27 +208,23 @@ async function submitProposal(proposal: {
 
 // ── UI helpers ───────────────────────────────────────────────────────────────
 
-const TIER_COLORS: Record<string, string> = {
-  PROTOCOL: "#ff4e1a",
-  STORAGE:  "#ff9a30",
-  IDENTITY: "#ffcb47",
-  NETWORK:  "#448aff",
-  CUSTOM:   "#cc44ff",
+const STATUS_META = {
+  ACTIVE:   { icon: Clock,       tone: "neutral" as const,     label: "Active — Voting Open" },
+  PASSED:   { icon: CheckCircle, tone: "primary" as const,     label: "Passed"              },
+  REJECTED: { icon: XCircle,     tone: "muted" as const,       label: "Rejected"            },
 };
 
-const STATUS_META = {
-  ACTIVE:   { icon: Clock,       color: "#ff9a30", label: "Active — Voting Open" },
-  PASSED:   { icon: CheckCircle, color: "#4caf50", label: "Passed"              },
-  REJECTED: { icon: XCircle,     color: "#e63030", label: "Rejected"            },
-};
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const inputClass =
+  `w-full rounded-xl border border-input bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground ${focusRing}`;
 
 function VoteBar({ yes, no, abstain }: { yes: number; no: number; abstain: number }) {
   const total = yes + no + abstain || 1;
   return (
-    <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-full">
-      <div style={{ width: `${(yes / total) * 100}%`, backgroundColor: "#4caf50" }} />
-      <div style={{ width: `${(no / total) * 100}%`, backgroundColor: "#e63030" }} />
-      <div style={{ width: `${(abstain / total) * 100}%`, backgroundColor: "#52504e" }} />
+    <div className="flex h-1.5 rounded-full overflow-hidden gap-px w-full bg-muted" aria-hidden="true">
+      <div className="bg-primary" style={{ width: `${(yes / total) * 100}%` }} />
+      <div className="bg-muted-foreground" style={{ width: `${(no / total) * 100}%` }} />
+      <div className="bg-border" style={{ width: `${(abstain / total) * 100}%` }} />
     </div>
   );
 }
@@ -246,13 +252,12 @@ function ProposalCard({
 }) {
   const [expanded, setExpanded] = useState(false);
   const [casting, setCasting] = useState<string | null>(null);
+  const panelId = useId();
   const s = STATUS_META[p.status] ?? STATUS_META.ACTIVE;
   const Icon = s.icon;
 
   const liveCounts = countVotes(votesForProposal);
-  // Merge live counts with seed baseline for seed proposals
-  const seedBaseline = SEED_PROPOSALS.find((sp) => sp.id === p.id);
-  const yes = liveCounts.yes + (seedBaseline ? 0 : 0);
+  const yes = liveCounts.yes;
   const no = liveCounts.no;
   const abstain = liveCounts.abstain;
   const total = yes + no + abstain;
@@ -270,41 +275,39 @@ function ProposalCard({
   }
 
   return (
-    <div className="border border-[#2c2c30] rounded-lg bg-[#0c0c0d] overflow-hidden">
+    <div className="rounded-2xl border border-border bg-card overflow-hidden">
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left p-4 hover:bg-[#1a1a1c] transition-colors"
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        className={`w-full text-left p-5 hover:bg-muted/50 transition-colors ${focusRing}`}
       >
         <div className="flex items-start gap-3">
-          <Icon className="w-4 h-4 mt-0.5 shrink-0" style={{ color: s.color }} />
+          <Icon className="size-4 mt-0.5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="font-mono text-[10px] font-bold" style={{ color: s.color }}>
-                {p.id}
-              </span>
-              <span
-                className="font-mono text-[9px] px-1.5 py-0.5 rounded"
-                style={{
-                  backgroundColor: `${TIER_COLORS[p.tier] ?? "#ff4e1a"}22`,
-                  color: TIER_COLORS[p.tier] ?? "#ff4e1a",
-                }}
-              >
-                {p.tier}
-              </span>
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="font-mono text-xs font-semibold text-foreground">{p.id}</span>
+              <Pill tone="neutral">{p.tier}</Pill>
+              <Pill tone={s.tone}>{s.label}</Pill>
+              {SEED_PROPOSALS.some((seed) => seed.id === p.id) && (
+                <Pill tone="neutral">Example</Pill>
+              )}
               {p.status === "ACTIVE" && (
-                <span className="font-mono text-[9px] text-[#52504e]">{daysLeft}d left</span>
+                <span className="text-xs text-muted-foreground tabular-nums">{daysLeft}d left</span>
               )}
-              {myVote && (
-                <span className="font-mono text-[9px] px-1 py-0.5 rounded bg-[#ff4e1a]/10 text-[#ff4e1a]">
-                  Voted {myVote}
-                </span>
-              )}
+              {myVote && <Pill tone="primary">Voted {myVote}</Pill>}
             </div>
-            <p className="font-mono text-xs text-[#f5f0eb] leading-snug mb-2">{p.title}</p>
+            <p className="text-sm font-medium text-foreground leading-snug mb-3">{p.title}</p>
             <VoteBar yes={yes} no={no} abstain={abstain} />
-            <div className="flex items-center gap-3 mt-1.5 font-mono text-[10px] text-[#52504e]">
-              <span className="text-green-500">✓ {yes}</span>
-              <span className="text-[#e63030]">✗ {no}</span>
+            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground tabular-nums">
+              <span className="inline-flex items-center gap-1 text-foreground">
+                <Check className="size-3.5" aria-hidden="true" />
+                <span className="sr-only">Yes votes:</span>{yes}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <X className="size-3.5" aria-hidden="true" />
+                <span className="sr-only">No votes:</span>{no}
+              </span>
               <span>· {abstain} abstain</span>
               {total > 0 && (
                 <span className="ml-auto">
@@ -314,22 +317,23 @@ function ProposalCard({
             </div>
           </div>
           <ChevronRight
-            className={`w-3.5 h-3.5 text-[#52504e] transition-transform shrink-0 mt-0.5 ${expanded ? "rotate-90" : ""}`}
+            className={`size-4 text-muted-foreground motion-safe:transition-transform shrink-0 mt-0.5 ${expanded ? "rotate-90" : ""}`}
+            aria-hidden="true"
           />
         </div>
       </button>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-[#2c2c30] pt-3 space-y-3">
-          <p className="font-sans text-xs text-[#9a9490] leading-relaxed">
+        <div id={panelId} className="px-5 pb-5 border-t border-border pt-4 space-y-3">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             {p.description}
           </p>
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <span className="font-mono text-[10px] text-[#52504e]">
-              Proposer: <span className="text-[#9a9490]">{p.proposer}</span>
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+            <span className="text-muted-foreground">
+              Proposer: <span className="font-mono text-foreground">{p.proposer}</span>
             </span>
             {p.status === "ACTIVE" && (
-              <span className="font-mono text-[10px] text-[#ff9a30]">
+              <span className="text-muted-foreground tabular-nums">
                 Quorum: {total} / 50 required
               </span>
             )}
@@ -337,16 +341,17 @@ function ProposalCard({
 
           {/* Voting buttons — only for ACTIVE proposals */}
           {p.status === "ACTIVE" && userDid && (
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-1" role="group" aria-label={`Vote on ${p.id}`}>
               {(["YES", "NO", "ABSTAIN"] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => handleVote(v)}
                   disabled={casting !== null}
-                  className={`flex-1 h-7 font-mono text-[10px] rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                  aria-pressed={myVote === v}
+                  className={`flex-1 h-9 text-xs font-medium rounded-full border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing} ${
                     myVote === v
-                      ? "bg-[#ff4e1a]/20 border-[#ff4e1a] text-[#ff4e1a]"
-                      : "border-[#2c2c30] text-[#52504e] hover:border-[#52504e] hover:text-[#9a9490]"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-border text-foreground hover:bg-muted"
                   }`}
                 >
                   {casting === v ? "..." : v}
@@ -371,12 +376,244 @@ const CONSENSUS_RULES = [
 
 const TIER_OPTIONS = ["PROTOCOL", "STORAGE", "IDENTITY", "NETWORK", "CUSTOM"];
 
+// ── Protocol consensus quorums (GET /consensus/rules) ────────────────────────
+
+// Static table from the OpenCLAW-P2P v7 paper, used only when the endpoint is absent.
+const PAPER_QUORUMS: ConsensusRule[] = [
+  { type: "pov", quorum: 2, unit: "validators", timeout_s: 172800, weighting: null },
+  { type: "knowledge_validation", quorum: 0.75, unit: null, timeout_s: 40, weighting: "reputation" },
+  { type: "self_improvement", quorum: 0.8, unit: null, timeout_s: 120, weighting: null },
+  { type: "protocol_change", quorum: 0.9, unit: null, timeout_s: 300, weighting: null },
+];
+
+const RULE_LABELS: Record<string, string> = {
+  pov: "Proof of validation (PoV)",
+  knowledge_validation: "Knowledge validation",
+  self_improvement: "Self-improvement",
+  protocol_change: "Protocol change",
+};
+
+function ruleLabel(type: string | null) {
+  return type ? RULE_LABELS[type] ?? humanize(type) : "Unspecified";
+}
+
+function formatQuorum(r: ConsensusRule) {
+  if (r.quorum === null) return "—";
+  if (r.unit || r.quorum > 1) return `${fmtInt(r.quorum)} ${r.unit ?? ""}`.trim();
+  return fmtPct(r.quorum);
+}
+
+function formatTimeout(s: number | null) {
+  if (s === null) return "—";
+  if (s >= 3600) return `${Math.round(s / 3600)} h`;
+  if (s >= 60 && s % 60 === 0) return `${s / 60} min`;
+  return `${s} s`;
+}
+
+function QuorumRulesPanel() {
+  const rules = useQuery({ queryKey: ["consensus-rules"], queryFn: fetchConsensusRules, staleTime: 300_000, retry: 1 });
+  const list = rules.data ?? PAPER_QUORUMS;
+  return (
+    <ScienceCard
+      title="Consensus rules"
+      icon={ListChecks}
+      description={
+        rules.data
+          ? "Protocol quorums reported live by the consensus service."
+          : rules.isLoading
+            ? "Loading live quorums…"
+            : "Live quorums are not available yet; showing the table from the OpenCLAW-P2P v7 paper."
+      }
+    >
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <caption className="sr-only">Quorum and timeout per decision type</caption>
+          <thead>
+            <tr className="text-left text-muted-foreground">
+              <th scope="col" className="py-2 pr-4 font-medium">Decision</th>
+              <th scope="col" className="py-2 pr-4 font-medium text-right">Quorum</th>
+              <th scope="col" className="py-2 font-medium text-right">Timeout</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((r) => (
+              <tr key={r.type} className="border-t border-border">
+                <th scope="row" className="py-2 pr-4 text-left font-normal text-foreground">
+                  {ruleLabel(r.type)}
+                  {r.weighting && <span className="block text-xs text-muted-foreground">{humanize(r.weighting)}-weighted</span>}
+                </th>
+                <td className="py-2 pr-4 text-right tabular-nums text-foreground">{formatQuorum(r)}</td>
+                <td className="py-2 text-right tabular-nums text-foreground">{formatTimeout(r.timeout_s)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </ScienceCard>
+  );
+}
+
+function ConsensusProposalRow({ p, agentId }: { p: ConsensusProposal; agentId: string }) {
+  const qc = useQueryClient();
+  const vote = useMutation({
+    mutationFn: (v: "yes" | "no") => voteConsensusProposal(p.id, agentId, v),
+    onSuccess: (res) => { if (res.ok) qc.invalidateQueries({ queryKey: ["consensus-proposals"] }); },
+  });
+  const failure = vote.data && !vote.data.ok ? vote.data : null;
+  const ratio = p.tally?.yes_ratio ?? null;
+  const open = p.status === "open";
+
+  return (
+    <li className="py-4">
+      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+        <Pill tone="neutral">{ruleLabel(p.type)}</Pill>
+        <Pill tone={p.status === "accepted" ? "primary" : open ? "strong" : "muted"}>{humanize(p.status)}</Pill>
+        {p.deadline && <span className="text-xs text-muted-foreground">Deadline {fmtDate(p.deadline)}</span>}
+      </div>
+      <p className="text-sm font-medium text-foreground">{p.title}</p>
+      {p.description && <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{p.description}</p>}
+      {p.tally && (
+        <div className="mt-3">
+          <div
+            className="h-1.5 rounded-full bg-muted overflow-hidden"
+            role="meter"
+            aria-label="Weighted yes share"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={ratio !== null ? Math.round(ratio * 100) : undefined}
+            aria-valuetext={ratio !== null ? `${Math.round(ratio * 100)}% yes` : "no votes yet"}
+          >
+            <div className="h-full bg-primary" style={{ width: `${Math.max(0, Math.min(1, ratio ?? 0)) * 100}%` }} />
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+            {fmtPct(ratio)} yes (weighted) · {fmtInt(p.tally.voters)} voters
+          </p>
+        </div>
+      )}
+      {p.proposer && <p className="mt-1 font-mono text-xs text-muted-foreground break-all">{p.proposer}</p>}
+      {open && (
+        <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label={`Vote on ${p.title}`}>
+          <button
+            type="button"
+            disabled={!agentId || vote.isPending}
+            onClick={() => vote.mutate("yes")}
+            className={`inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-50 ${focusRing}`}
+          >
+            <ThumbsUp className="size-3.5" aria-hidden="true" /> Yes
+          </button>
+          <button
+            type="button"
+            disabled={!agentId || vote.isPending}
+            onClick={() => vote.mutate("no")}
+            className={`inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-50 ${focusRing}`}
+          >
+            <ThumbsDown className="size-3.5" aria-hidden="true" /> No
+          </button>
+          {vote.isPending && <Loader2 className="size-4 text-muted-foreground motion-safe:animate-spin" aria-label="Submitting vote" />}
+          <span aria-live="polite" className="text-xs text-muted-foreground">
+            {vote.data?.ok ? "Vote recorded." : failure ? failure.error : ""}
+          </span>
+        </div>
+      )}
+    </li>
+  );
+}
+
+function OpenProposalsPanel({ agentId }: { agentId: string }) {
+  const qc = useQueryClient();
+  const proposals = useQuery({ queryKey: ["consensus-proposals"], queryFn: fetchConsensusProposals, staleTime: 30_000, refetchInterval: 60_000, retry: 1 });
+  const rules = useQuery({ queryKey: ["consensus-rules"], queryFn: fetchConsensusRules, staleTime: 300_000, retry: 1 });
+  const types = (rules.data ?? PAPER_QUORUMS).map((r) => r.type).filter((t) => t !== "pov");
+  const [showForm, setShowForm] = useState(false);
+  const [type, setType] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const formId = useId();
+
+  const create = useMutation({
+    mutationFn: () => createConsensusProposal({ agentId, type: type || types[0] || "protocol_change", title: title.trim(), description: description.trim() }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        setTitle(""); setDescription(""); setShowForm(false);
+        qc.invalidateQueries({ queryKey: ["consensus-proposals"] });
+      }
+    },
+  });
+  const createFailure = create.data && !create.data.ok ? create.data : null;
+  const available = !!proposals.data;
+  const ordered = (proposals.data ?? []).slice().sort((a, b) => (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1));
+
+  return (
+    <ScienceCard
+      title="Open proposals"
+      icon={Vote}
+      description="Protocol decisions voted by agents with reputation weighting. Your vote is cast as this browser's agent identity."
+      action={available ? (
+        <button
+          type="button"
+          onClick={() => setShowForm((v) => !v)}
+          aria-expanded={showForm}
+          aria-controls={`${formId}-form`}
+          className={`inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted ${focusRing}`}
+        >
+          <Plus className="size-3.5" aria-hidden="true" /> New proposal
+        </button>
+      ) : undefined}
+    >
+      {showForm && available && (
+        <form
+          id={`${formId}-form`}
+          onSubmit={(e) => { e.preventDefault(); if (title.trim() && description.trim() && agentId) create.mutate(); }}
+          className="mb-6 space-y-3 rounded-xl border border-border p-4"
+        >
+          <div>
+            <label htmlFor={`${formId}-type`} className="block text-sm font-medium text-foreground mb-1.5">Decision type</label>
+            <select id={`${formId}-type`} value={type || types[0] || ""} onChange={(e) => setType(e.target.value)} className={inputClass}>
+              {types.map((t) => <option key={t} value={t}>{ruleLabel(t)}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor={`${formId}-title`} className="block text-sm font-medium text-foreground mb-1.5">Title</label>
+            <input id={`${formId}-title`} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={160} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor={`${formId}-desc`} className="block text-sm font-medium text-foreground mb-1.5">Description</label>
+            <textarea id={`${formId}-desc`} value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={2000} className={`${inputClass} resize-y`} />
+          </div>
+          {createFailure && <p role="alert" className="text-sm text-foreground">{createFailure.error}</p>}
+          <button
+            type="submit"
+            disabled={create.isPending || !title.trim() || !description.trim() || !agentId}
+            className={`inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 ${focusRing}`}
+          >
+            {create.isPending && <Loader2 className="size-4 motion-safe:animate-spin" aria-hidden="true" />}
+            Submit proposal
+          </button>
+        </form>
+      )}
+
+      {proposals.isLoading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : !available ? (
+        <NotAvailable>The consensus proposal service is not available yet.</NotAvailable>
+      ) : ordered.length === 0 ? (
+        <p className="text-sm text-muted-foreground">There are no proposals yet.</p>
+      ) : (
+        <ul className="divide-y divide-border -my-4">
+          {ordered.map((p) => <ConsensusProposalRow key={p.id} p={p} agentId={agentId} />)}
+        </ul>
+      )}
+    </ScienceCard>
+  );
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function GovernancePage() {
   const { data: swarm } = useSwarmStatus();
-  const { did: userDid } = useAgentIdentity();
+  const { id: agentId, did: userDid } = useAgentIdentity();
   const { proposals, votes, seeded } = useGovProposals();
+  const formId = useId();
 
   const [showSubmit, setShowSubmit] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -406,178 +643,200 @@ export default function GovernancePage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-[1000px] mx-auto">
+    <div className="px-4 py-10 md:px-8 md:py-14 max-w-6xl mx-auto space-y-12">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="font-mono text-xl font-bold text-[#f5f0eb] mb-1 flex items-center gap-2">
-          <Scale className="w-5 h-5 text-[#ff4e1a]" />
+      <header>
+        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-foreground flex items-center gap-3">
+          <Scale className="size-8 text-muted-foreground" aria-hidden="true" />
           Governance
         </h1>
-        <p className="font-mono text-xs text-[#52504e]">
+        <p className="mt-3 text-lg text-muted-foreground">
           Protocol improvement proposals · weighted consensus · Silicon FSM v2
         </p>
-      </div>
+      </header>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Active GIPs",   value: active,                    color: "#ff9a30",  str: false },
-          { label: "Passed",        value: passed,                    color: "#4caf50",  str: false },
-          { label: "Voting agents", value: swarm?.activeAgents ?? 0,  color: "#f5f0eb",  str: false },
-          { label: "Protocol ver.", value: swarm?.version ?? "—",     color: "#9a9490",  str: true  },
+          { label: "Active GIPs",   value: active,                    str: false },
+          { label: "Passed",        value: passed,                    str: false },
+          { label: "Voting agents", value: swarm?.activeAgents ?? 0,  str: false },
+          { label: "Protocol ver.", value: swarm?.version ?? "—",     str: true  },
         ].map((s) => (
-          <div key={s.label} className="border border-[#2c2c30] rounded-lg p-3 bg-[#0c0c0d] text-center">
-            <div className="font-mono text-xl font-bold tabular-nums" style={{ color: s.color }}>
+          <div key={s.label} className="rounded-2xl border border-border bg-card p-5">
+            <div className="text-sm text-muted-foreground">{s.label}</div>
+            <div className="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-foreground">
               {s.str ? s.value : Number(s.value).toLocaleString()}
             </div>
-            <div className="font-mono text-[10px] text-[#52504e] mt-1">{s.label}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Proposals list */}
-        <div className="lg:col-span-2 space-y-3">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="font-mono text-xs font-bold text-[#9a9490] uppercase tracking-widest">
-              Proposals {!seeded && <span className="text-[#52504e] normal-case font-normal">loading…</span>}
-            </h2>
-            <button
-              onClick={() => setShowSubmit((v) => !v)}
-              className="flex items-center gap-1 font-mono text-[10px] text-[#52504e] hover:text-[#ff4e1a] transition-colors"
-            >
-              <Plus className="w-3 h-3" />
-              Submit GIP
-            </button>
-          </div>
-
-          {/* Submit GIP form */}
-          {showSubmit && (
-            <form
-              onSubmit={handleSubmitGIP}
-              className="border border-[#ff4e1a]/30 rounded-lg p-4 bg-[#0c0c0d] space-y-3 mb-3"
-            >
-              <h3 className="font-mono text-xs font-bold text-[#ff4e1a]">New Governance Improvement Proposal</h3>
-              <input
-                type="text"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="GIP title..."
-                maxLength={120}
-                className="w-full font-mono text-xs bg-[#121214] border border-[#2c2c30] rounded px-3 py-2 text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
-              />
-              <textarea
-                value={newDesc}
-                onChange={(e) => setNewDesc(e.target.value)}
-                placeholder="Describe the proposal in detail..."
-                rows={4}
-                maxLength={1000}
-                className="w-full font-mono text-xs bg-[#121214] border border-[#2c2c30] rounded px-3 py-2 text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none resize-none"
-              />
-              <div className="flex items-center gap-2">
-                <select
-                  value={newTier}
-                  onChange={(e) => setNewTier(e.target.value)}
-                  className="font-mono text-xs bg-[#121214] border border-[#2c2c30] rounded px-2 py-1.5 text-[#9a9490] focus:outline-none"
-                >
-                  {TIER_OPTIONS.map((t) => (
-                    <option key={t} value={t}>{t}</option>
-                  ))}
-                </select>
-                <button
-                  type="submit"
-                  disabled={submitting || !newTitle.trim() || !newDesc.trim()}
-                  className="flex-1 h-8 font-mono text-xs bg-[#ff4e1a] hover:bg-[#ff7020] text-black font-bold rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {submitting ? "Submitting…" : "Submit to Gun.js"}
-                </button>
-              </div>
-              {submitError && (
-                <p className="font-mono text-[10px] text-[#e63030]">{submitError}</p>
-              )}
-            </form>
-          )}
-
-          {proposals.length === 0 && seeded ? (
-            <p className="font-mono text-xs text-[#52504e] text-center py-8">No proposals found.</p>
-          ) : (
-            proposals
-              .slice()
-              .sort((a, b) => {
-                const order = { ACTIVE: 0, PASSED: 1, REJECTED: 2 };
-                return (order[a.status] ?? 3) - (order[b.status] ?? 3);
-              })
-              .map((p) => (
-                <ProposalCard
-                  key={p.id}
-                  p={p}
-                  votesForProposal={votes[p.id]}
-                  userDid={userDid}
-                />
-              ))
-          )}
+      {/* Protocol consensus (v8) */}
+      <section aria-labelledby="protocol-consensus" className="space-y-6">
+        <h2 id="protocol-consensus" className="text-3xl font-semibold tracking-tight text-foreground">Protocol consensus</h2>
+        <div className="grid grid-cols-1 gap-6 2xl:grid-cols-5">
+          <div className="2xl:col-span-2"><QuorumRulesPanel /></div>
+          <div className="2xl:col-span-3"><OpenProposalsPanel agentId={agentId} /></div>
         </div>
+      </section>
 
-        {/* Sidebar: rules + FSM */}
-        <div className="space-y-4">
-          {/* Consensus rules */}
-          <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
-            <h3 className="font-mono text-xs font-bold text-[#9a9490] uppercase tracking-widest mb-3">
-              Consensus Rules
-            </h3>
-            <div className="space-y-2">
-              {CONSENSUS_RULES.map((r) => {
-                const Icon = r.icon;
-                return (
-                  <div key={r.label} className="flex items-center gap-2">
-                    <Icon className="w-3.5 h-3.5 text-[#52504e] shrink-0" />
-                    <span className="font-mono text-[10px] text-[#52504e] flex-1">{r.label}</span>
-                    <span className="font-mono text-[10px] text-[#9a9490]">{r.value}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Silicon FSM endpoints */}
-          <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
-            <h3 className="font-mono text-xs font-bold text-[#9a9490] uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Terminal className="w-3.5 h-3.5" />
-              Silicon FSM API
-            </h3>
-            <div className="space-y-1.5 font-mono text-[10px]">
-              {[
-                { path: "/silicon/map",      desc: "Full FSM diagram"    },
-                { path: "/silicon/validate", desc: "Validation protocol" },
-                { path: "/silicon/hub",      desc: "Research hub entry"  },
-              ].map((e) => (
-                <a
-                  key={e.path}
-                  href={`https://p2pclaw-api.onrender.com${e.path}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 p-2 rounded border border-[#2c2c30] hover:border-[#ff4e1a]/30 hover:bg-[#1a1a1c] transition-colors group"
-                >
-                  <span className="text-[#ff4e1a] group-hover:text-[#ff7020] w-8">GET</span>
-                  <span className="text-[#9a9490] flex-1">{e.path}</span>
-                  <span className="text-[#52504e]">{e.desc}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Your DID */}
-          {userDid && (
-            <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
-              <h3 className="font-mono text-[10px] font-bold text-[#52504e] uppercase tracking-widest mb-2">
-                Your Identity
+      {/* Community GIPs (Gun.js) */}
+      <section aria-labelledby="community-gips" className="space-y-6">
+        <h2 id="community-gips" className="text-3xl font-semibold tracking-tight text-foreground">Community improvement proposals</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Proposals list */}
+          <div className="lg:col-span-2 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Proposals {!seeded && <span className="font-normal">loading…</span>}
               </h3>
-              <p className="font-mono text-[10px] text-[#9a9490] break-all">{userDid.slice(0, 40)}…</p>
-              <p className="font-mono text-[9px] text-[#52504e] mt-1">Ed25519 DID — votes are cryptographically signed</p>
+              <button
+                onClick={() => setShowSubmit((v) => !v)}
+                aria-expanded={showSubmit}
+                aria-controls={`${formId}-gip`}
+                className={`inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted ${focusRing}`}
+              >
+                <Plus className="size-3.5" aria-hidden="true" />
+                Submit GIP
+              </button>
             </div>
-          )}
+
+            {/* Submit GIP form */}
+            {showSubmit && (
+              <form
+                id={`${formId}-gip`}
+                onSubmit={handleSubmitGIP}
+                className="rounded-2xl border border-border bg-card p-5 space-y-3 mb-3"
+              >
+                <h4 className="text-sm font-semibold text-foreground">New Governance Improvement Proposal</h4>
+                <label htmlFor={`${formId}-gip-title`} className="sr-only">GIP title</label>
+                <input
+                  id={`${formId}-gip-title`}
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="GIP title..."
+                  maxLength={120}
+                  className={inputClass}
+                />
+                <label htmlFor={`${formId}-gip-desc`} className="sr-only">Description</label>
+                <textarea
+                  id={`${formId}-gip-desc`}
+                  value={newDesc}
+                  onChange={(e) => setNewDesc(e.target.value)}
+                  placeholder="Describe the proposal in detail..."
+                  rows={4}
+                  maxLength={1000}
+                  className={`${inputClass} resize-none`}
+                />
+                <div className="flex items-center gap-2">
+                  <label htmlFor={`${formId}-gip-tier`} className="sr-only">Category</label>
+                  <select
+                    id={`${formId}-gip-tier`}
+                    value={newTier}
+                    onChange={(e) => setNewTier(e.target.value)}
+                    className={`rounded-xl border border-input bg-background px-3 py-2 text-sm text-foreground ${focusRing}`}
+                  >
+                    {TIER_OPTIONS.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    disabled={submitting || !newTitle.trim() || !newDesc.trim()}
+                    className={`flex-1 h-10 rounded-full bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${focusRing}`}
+                  >
+                    {submitting ? "Submitting…" : "Submit to Gun.js"}
+                  </button>
+                </div>
+                {submitError && (
+                  <p role="alert" className="text-xs text-destructive">{submitError}</p>
+                )}
+              </form>
+            )}
+
+            {proposals.length === 0 && seeded ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No proposals found.</p>
+            ) : (
+              proposals
+                .slice()
+                .sort((a, b) => {
+                  const order = { ACTIVE: 0, PASSED: 1, REJECTED: 2 };
+                  return (order[a.status] ?? 3) - (order[b.status] ?? 3);
+                })
+                .map((p) => (
+                  <ProposalCard
+                    key={p.id}
+                    p={p}
+                    votesForProposal={votes[p.id]}
+                    userDid={userDid}
+                  />
+                ))
+            )}
+          </div>
+
+          {/* Sidebar: rules + FSM */}
+          <div className="space-y-4">
+            {/* GIP voting rules */}
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
+                GIP voting rules
+              </h3>
+              <div className="space-y-2.5">
+                {CONSENSUS_RULES.map((r) => {
+                  const Icon = r.icon;
+                  return (
+                    <div key={r.label} className="flex items-center gap-2 text-sm">
+                      <Icon className="size-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                      <span className="text-muted-foreground flex-1">{r.label}</span>
+                      <span className="text-foreground tabular-nums">{r.value}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Silicon FSM endpoints */}
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Terminal className="size-4 text-muted-foreground" aria-hidden="true" />
+                Silicon FSM API
+              </h3>
+              <div className="space-y-1.5 text-xs">
+                {[
+                  { path: "/silicon/map",      desc: "Full FSM diagram"    },
+                  { path: "/silicon/validate", desc: "Validation protocol" },
+                  { path: "/silicon/hub",      desc: "Research hub entry"  },
+                ].map((e) => (
+                  <a
+                    key={e.path}
+                    href={`https://p2pclaw-api.onrender.com${e.path}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex items-center gap-2 p-2.5 rounded-xl border border-border hover:bg-muted transition-colors ${focusRing}`}
+                  >
+                    <span className="font-mono text-primary w-8">GET</span>
+                    <span className="font-mono text-foreground flex-1">{e.path}</span>
+                    <span className="text-muted-foreground">{e.desc}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Your DID */}
+            {userDid && (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-2">
+                  Your Identity
+                </h3>
+                <p className="font-mono text-xs text-foreground break-all">{userDid.slice(0, 40)}…</p>
+                <p className="text-xs text-muted-foreground mt-1">Ed25519 DID. Board votes are stored in Gun.js and are not yet signed; protocol votes above go through the consensus service.</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

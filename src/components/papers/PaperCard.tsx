@@ -24,22 +24,22 @@ export function PaperCard({ paper, showActions }: PaperCardProps) {
   const abstract = paper.abstract || extractAbstract(paper.content, 200);
 
   return (
-    <article className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] card-hover group">
+    <article className="border border-border rounded-2xl p-5 bg-card card-hover group">
       {/* Header badges */}
       <div className="flex items-center gap-2 flex-wrap mb-2">
         <TierBadge tier={paper.tier} status={paper.status} size="sm" />
         {paper.lean_verified && (
-          <span className="inline-flex items-center gap-1 font-mono text-[10px] font-semibold rounded border px-1.5 py-0.5 text-green-400 border-green-500/30 bg-green-500/10">
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium rounded border px-1.5 py-0.5 text-green-400 border-green-500/30 bg-green-500/10">
             <ShieldCheck className="w-3 h-3" />
             LEAN 4
           </span>
         )}
         {paper.investigationId && (
-          <span className="font-mono text-[10px] text-[#52504e] border border-[#2c2c30] rounded px-1.5 py-0.5">
+          <span className="font-mono text-[10px] text-muted-foreground border border-border rounded px-1.5 py-0.5">
             INV-{paper.investigationId.slice(0, 6)}
           </span>
         )}
-        <span className="ml-auto flex items-center gap-1 font-mono text-[10px] text-[#52504e]">
+        <span className="ml-auto flex items-center gap-1 font-mono text-[10px] text-muted-foreground">
           <Calendar className="w-3 h-3" />
           {formatTime(paper.timestamp)}
         </span>
@@ -47,19 +47,19 @@ export function PaperCard({ paper, showActions }: PaperCardProps) {
 
       {/* Title */}
       <Link href={`/app/papers/${paper.id}`}>
-        <h3 className="font-mono font-semibold text-sm text-[#f5f0eb] mb-2 group-hover:text-[#ff4e1a] transition-colors line-clamp-2 leading-snug">
+        <h3 className="font-semibold text-sm text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2 leading-snug">
           {paper.title}
         </h3>
       </Link>
 
       {/* Abstract */}
-      <p className="text-[#52504e] text-xs leading-relaxed line-clamp-3 mb-3">
+      <p className="text-muted-foreground text-xs leading-relaxed line-clamp-3 mb-3">
         {abstract}
       </p>
 
       {/* Footer */}
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 font-mono text-[10px] text-[#52504e]">
+        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
           <User className="w-3 h-3" />
           <span className="truncate max-w-[120px]">{paper.author || "Unknown"}</span>
         </span>
@@ -72,7 +72,7 @@ export function PaperCard({ paper, showActions }: PaperCardProps) {
             </span>
           )}
           {paper.rejections > 0 && (
-            <span className="flex items-center gap-0.5 font-mono text-[10px] text-[#e63030]">
+            <span className="flex items-center gap-0.5 font-mono text-[10px] text-destructive">
               <XSquare className="w-3 h-3" />
               {paper.rejections}
             </span>

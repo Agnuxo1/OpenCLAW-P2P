@@ -13,55 +13,56 @@ import {
   Loader2,
   Download,
   CheckCircle,
+  CheckCircle2,
   ArrowRight,
   ArrowLeft,
   Eye,
   Edit3,
 } from "lucide-react";
 
-// ── Inline SVG icons (orange stroke, matching site style) ────────
+// ── Inline SVG icons (brand accent stroke, matching site style) ──
 function IconResearch() {
   return (
-    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-      <circle cx="14" cy="14" r="8" stroke="#ff4e1a" strokeWidth="1.5" />
-      <path d="M20 20 L27 27" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M11 12 L14 17 L18 10" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 32 32" className="w-7 h-7 text-primary" fill="none">
+      <circle cx="14" cy="14" r="8" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M20 20 L27 27" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M11 12 L14 17 L18 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 function IconReview() {
   return (
-    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-      <path d="M6 6 L6 26 C6 27.1 6.9 28 8 28 L18 28" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M6 6 L16 6 C17.1 6 18 6.9 18 8 L18 28" stroke="#ff4e1a" strokeWidth="1.5" />
-      <path d="M14 6 L14 26 C14 27.1 14.9 28 16 28 L24 28 C25.1 28 26 27.1 26 26 L26 12 L20 6 L14 6Z" stroke="#ff4e1a" strokeWidth="1.5" />
-      <path d="M20 6 L20 12 L26 12" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 32 32" className="w-7 h-7 text-primary" fill="none">
+      <path d="M6 6 L6 26 C6 27.1 6.9 28 8 28 L18 28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M6 6 L16 6 C17.1 6 18 6.9 18 8 L18 28" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M14 6 L14 26 C14 27.1 14.9 28 16 28 L24 28 C25.1 28 26 27.1 26 26 L26 12 L20 6 L14 6Z" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M20 6 L20 12 L26 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 function IconTechnical() {
   return (
-    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-      <circle cx="16" cy="16" r="5" stroke="#ff4e1a" strokeWidth="1.5" />
-      <circle cx="16" cy="16" r="1.5" fill="#ff4e1a" opacity="0.6" />
-      <path d="M16 4 L16 8" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M16 24 L16 28" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M4 16 L8 16" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M24 16 L28 16" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M7.5 7.5 L10.3 10.3" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M21.7 21.7 L24.5 24.5" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M7.5 24.5 L10.3 21.7" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M21.7 10.3 L24.5 7.5" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
+    <svg viewBox="0 0 32 32" className="w-7 h-7 text-primary" fill="none">
+      <circle cx="16" cy="16" r="5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="16" cy="16" r="1.5" fill="currentColor" opacity="0.6" />
+      <path d="M16 4 L16 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M16 24 L16 28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M4 16 L8 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M24 16 L28 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7.5 7.5 L10.3 10.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M21.7 21.7 L24.5 24.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M7.5 24.5 L10.3 21.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M21.7 10.3 L24.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   );
 }
 function IconProof() {
   return (
-    <svg viewBox="0 0 32 32" className="w-7 h-7" fill="none">
-      <path d="M8 24 L16 6 L24 24" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M11 18 L21 18" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M5 28 L27 28" stroke="#ff4e1a" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="16" cy="12" r="1.5" fill="#ff4e1a" opacity="0.6" />
+    <svg viewBox="0 0 32 32" className="w-7 h-7 text-primary" fill="none">
+      <path d="M8 24 L16 6 L24 24" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11 18 L21 18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5 28 L27 28" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="16" cy="12" r="1.5" fill="currentColor" opacity="0.6" />
     </svg>
   );
 }
@@ -282,25 +283,25 @@ export default function WritePaperPage() {
         {["Type", "Draft", "Format", "Preview", "Done"].map((label, i) => (
           <div key={label} className="flex items-center gap-2">
             <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center font-mono text-xs font-bold transition-all ${
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                 i < step
-                  ? "bg-green-500/20 text-green-400 border border-green-500/40"
+                  ? "bg-green-500/20 text-green-500 border border-green-500/40"
                   : i === step
-                    ? "bg-[#ff4e1a]/20 text-[#ff4e1a] border border-[#ff4e1a]/40"
-                    : "bg-[#1a1a1c] text-[#52504e] border border-[#2c2c30]"
+                    ? "bg-primary/20 text-primary border border-primary/40"
+                    : "bg-muted text-muted-foreground border border-border"
               }`}
             >
-              {i < step ? "✓" : i + 1}
+              {i < step ? <CheckCircle2 className="h-4 w-4" /> : i + 1}
             </div>
             {!i || i === step ? (
               <span
-                className={`font-mono text-[10px] ${i === step ? "text-[#ff4e1a]" : "text-[#52504e]"} hidden sm:inline`}
+                className={`text-xs font-medium ${i === step ? "text-primary" : "text-muted-foreground"} hidden sm:inline`}
               >
                 {label}
               </span>
             ) : null}
             {i < 4 && (
-              <div className={`w-6 h-px ${i < step ? "bg-green-500/40" : "bg-[#2c2c30]"}`} />
+              <div className={`w-6 h-px ${i < step ? "bg-green-500/40" : "bg-border"}`} />
             )}
           </div>
         ))}
@@ -309,11 +310,11 @@ export default function WritePaperPage() {
       {/* STEP 0: Choose paper type */}
       {step === 0 && (
         <div className="space-y-4">
-          <h1 className="font-mono text-lg font-bold text-[#f5f0eb]">
-            <PenLine className="w-5 h-5 inline mr-2 text-[#ff4e1a]" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            <PenLine className="w-5 h-5 inline mr-2 text-primary" />
             Write a Research Paper
           </h1>
-          <p className="font-mono text-xs text-[#9a9490]">
+          <p className="text-sm text-muted-foreground">
             Choose your paper type. Our AI will help structure your ideas into a
             proper academic format.
           </p>
@@ -325,17 +326,17 @@ export default function WritePaperPage() {
                   setPaperType(t.id);
                   setStep(1);
                 }}
-                className={`border rounded-lg p-4 text-left transition-all hover:border-[#ff4e1a]/40 hover:bg-[#1a1a1c] ${
+                className={`border rounded-2xl p-4 text-left transition-all hover:border-primary/40 hover:bg-muted ${
                   paperType === t.id
-                    ? "border-[#ff4e1a]/60 bg-[#ff4e1a]/5"
-                    : "border-[#2c2c30] bg-[#0c0c0d]"
+                    ? "border-primary/60 bg-primary/5"
+                    : "border-border bg-card"
                 }`}
               >
                 <t.icon />
-                <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] mt-2">
+                <h3 className="text-sm font-semibold text-foreground mt-2">
                   {t.label}
                 </h3>
-                <p className="font-mono text-[10px] text-[#52504e] mt-1">{t.desc}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t.desc}</p>
               </button>
             ))}
           </div>
@@ -346,18 +347,18 @@ export default function WritePaperPage() {
       {step === 1 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h1 className="font-mono text-lg font-bold text-[#f5f0eb]">
-              <Edit3 className="w-5 h-5 inline mr-2 text-[#ff4e1a]" />
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              <Edit3 className="w-5 h-5 inline mr-2 text-primary" />
               Write Your Draft
             </h1>
             <button
               onClick={() => setStep(0)}
-              className="font-mono text-xs text-[#52504e] hover:text-[#ff4e1a] flex items-center gap-1"
+              className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
             >
               <ArrowLeft className="w-3 h-3" /> Back
             </button>
           </div>
-          <p className="font-mono text-xs text-[#9a9490]">
+          <p className="text-sm text-muted-foreground">
             Write your ideas freely. Don&apos;t worry about format — our AI will
             structure it for you. Minimum 50 characters.
           </p>
@@ -367,7 +368,7 @@ export default function WritePaperPage() {
             placeholder="Paper title (optional — AI will suggest one)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded-lg px-3 py-2 font-mono text-sm text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
+            className="w-full bg-card border border-border rounded-2xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
           />
 
           <textarea
@@ -375,17 +376,17 @@ export default function WritePaperPage() {
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             rows={16}
-            className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded-lg px-3 py-2 font-mono text-xs text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none resize-y leading-relaxed"
+            className="w-full bg-card border border-border rounded-2xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none resize-y leading-relaxed"
           />
 
           <div className="flex items-center justify-between">
-            <span className="font-mono text-[10px] text-[#52504e]">
+            <span className="font-mono text-xs text-muted-foreground">
               {rawText.length} chars · {countWords(rawText)} words
             </span>
             <div className="flex gap-2">
               <button
                 onClick={handleUseTemplate}
-                className="font-mono text-xs px-3 py-1.5 rounded border border-[#2c2c30] text-[#9a9490] hover:text-[#f5f0eb] hover:bg-[#1a1a1c] transition-colors"
+                className="text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <FileText className="w-3 h-3 inline mr-1" />
                 Use Template
@@ -396,7 +397,7 @@ export default function WritePaperPage() {
                   handleFormat();
                 }}
                 disabled={rawText.trim().length < 50 || loading}
-                className="font-mono text-xs px-4 py-1.5 rounded bg-[#ff4e1a] text-black font-bold hover:bg-[#ff6a3a] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="text-xs px-4 py-1.5 rounded bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {loading ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -413,11 +414,11 @@ export default function WritePaperPage() {
       {/* STEP 2: Loading / Formatting */}
       {step === 2 && loading && (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-[#ff4e1a] animate-spin mb-4" />
-          <p className="font-mono text-sm text-[#9a9490]">
+          <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+          <p className="text-sm text-muted-foreground">
             Formatting your paper with AI...
           </p>
-          <p className="font-mono text-[10px] text-[#52504e] mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             Structuring into 7 academic sections
           </p>
         </div>
@@ -427,21 +428,21 @@ export default function WritePaperPage() {
       {step === 3 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h1 className="font-mono text-lg font-bold text-[#f5f0eb]">
-              <Eye className="w-5 h-5 inline mr-2 text-[#ff4e1a]" />
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              <Eye className="w-5 h-5 inline mr-2 text-primary" />
               Review & Edit
             </h1>
             <button
               onClick={() => setStep(1)}
-              className="font-mono text-xs text-[#52504e] hover:text-[#ff4e1a] flex items-center gap-1"
+              className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
             >
               <ArrowLeft className="w-3 h-3" /> Back to Draft
             </button>
           </div>
 
           {error && (
-            <div className="border border-red-500/30 bg-red-500/10 rounded-lg p-3">
-              <p className="font-mono text-xs text-red-400">{error}</p>
+            <div className="border border-destructive/30 bg-destructive/10 rounded-2xl p-3">
+              <p className="text-xs text-destructive">{error}</p>
             </div>
           )}
 
@@ -451,19 +452,19 @@ export default function WritePaperPage() {
             placeholder="Paper title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded-lg px-3 py-2 font-mono text-sm font-bold text-[#f5f0eb] placeholder:text-[#52504e] focus:border-[#ff4e1a]/40 focus:outline-none"
+            className="w-full bg-card border border-border rounded-2xl px-3 py-2 text-sm font-semibold text-foreground placeholder:text-muted-foreground focus:border-primary/40 focus:outline-none"
           />
 
           {/* Tab bar */}
-          <div className="flex gap-0.5 border-b border-[#2c2c30]">
+          <div className="flex gap-0.5 border-b border-border">
             {(["edit", "preview"] as const).map((m) => (
               <button
                 key={m}
                 onClick={() => setViewMode(m)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs transition-all border-b-2 -mb-px ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-all border-b-2 -mb-px ${
                   viewMode === m
-                    ? "border-[#ff4e1a] text-[#ff4e1a]"
-                    : "border-transparent text-[#52504e] hover:text-[#9a9490]"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {m === "edit" ? (
@@ -481,18 +482,18 @@ export default function WritePaperPage() {
               value={formatted}
               onChange={(e) => handleFormattedChange(e.target.value)}
               rows={20}
-              className="w-full bg-[#0c0c0d] border border-[#2c2c30] rounded-lg px-3 py-2 font-mono text-xs text-[#f5f0eb] focus:border-[#ff4e1a]/40 focus:outline-none resize-y leading-relaxed"
+              className="w-full bg-card border border-border rounded-2xl px-3 py-2 text-sm text-foreground focus:border-primary/40 focus:outline-none resize-y leading-relaxed"
             />
           ) : (
-            <div className="border border-[#2c2c30] rounded-lg p-6 bg-[#0c0c0d]">
+            <div className="border border-border rounded-2xl p-6 bg-card">
               <div
                 className="prose prose-invert prose-sm max-w-none
-                  prose-headings:font-mono prose-headings:text-[#f5f0eb]
-                  prose-p:text-[#9a9490] prose-p:leading-relaxed
-                  prose-code:font-mono prose-code:text-[#ff4e1a] prose-code:bg-[#1a1a1c] prose-code:px-1 prose-code:rounded
-                  prose-a:text-[#ff7020] prose-a:no-underline hover:prose-a:underline
-                  prose-blockquote:border-l-[#ff4e1a] prose-blockquote:text-[#9a9490]
-                  prose-strong:text-[#f5f0eb]"
+                  prose-headings:text-foreground
+                  prose-p:text-muted-foreground prose-p:leading-relaxed
+                  prose-code:font-mono prose-code:text-primary prose-code:bg-muted prose-code:px-1 prose-code:rounded
+                  prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                  prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground
+                  prose-strong:text-foreground"
                 dangerouslySetInnerHTML={{ __html: previewHtml }}
               />
             </div>
@@ -501,15 +502,15 @@ export default function WritePaperPage() {
           {/* Footer actions */}
           <div className="flex items-center justify-between pt-2">
             <span
-              className={`font-mono text-[10px] ${wordCount >= 500 ? "text-green-500" : "text-[#52504e]"}`}
+              className={`text-xs flex items-center gap-1 ${wordCount >= 500 ? "text-green-500" : "text-muted-foreground"}`}
             >
-              {wordCount} / 500 words {wordCount >= 500 ? "✓" : "(minimum)"}
+              {wordCount} / 500 words {wordCount >= 500 ? <CheckCircle2 className="h-4 w-4 inline" /> : "(minimum)"}
             </span>
             <div className="flex gap-2">
               <button
                 onClick={handleDownloadPDF}
                 disabled={!formatted}
-                className="font-mono text-xs px-3 py-1.5 rounded border border-[#2c2c30] text-[#9a9490] hover:text-[#f5f0eb] hover:bg-[#1a1a1c] transition-colors disabled:opacity-40 flex items-center gap-1.5"
+                className="text-xs px-3 py-1.5 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 flex items-center gap-1.5"
               >
                 <Download className="w-3 h-3" />
                 Download PDF
@@ -517,7 +518,7 @@ export default function WritePaperPage() {
               <button
                 onClick={handlePublish}
                 disabled={publishing || wordCount < 500}
-                className="font-mono text-xs px-4 py-1.5 rounded bg-[#ff4e1a] text-black font-bold hover:bg-[#ff6a3a] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="text-xs px-4 py-1.5 rounded bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {publishing ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -535,24 +536,24 @@ export default function WritePaperPage() {
       {step === 4 && result && (
         <div className="flex flex-col items-center justify-center py-12 space-y-4">
           <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
-            <CheckCircle className="w-8 h-8 text-green-400" />
+            <CheckCircle className="w-8 h-8 text-green-500" />
           </div>
-          <h1 className="font-mono text-lg font-bold text-[#f5f0eb]">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Paper Published!
           </h1>
-          <p className="font-mono text-xs text-[#9a9490] text-center max-w-md">
+          <p className="text-sm text-muted-foreground text-center max-w-md">
             Your paper has been published to the P2PCLAW network, signed with
             Ed25519, and sealed with a cryptographic timestamp.
           </p>
 
-          <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d] w-full max-w-md space-y-2">
+          <div className="border border-border rounded-2xl p-4 bg-card w-full max-w-md space-y-2">
             {result.paperId && (
-              <p className="font-mono text-[10px] text-[#52504e]">
+              <p className="font-mono text-xs text-muted-foreground">
                 Paper ID:{" "}
-                <span className="text-[#f5f0eb]">{result.paperId}</span>
+                <span className="text-foreground">{result.paperId}</span>
               </p>
             )}
-            <p className="font-mono text-[10px] text-[#52504e]">
+            <p className="text-xs text-muted-foreground">
               Signed with Ed25519 · Stored on P2P mesh
             </p>
           </div>
@@ -560,7 +561,7 @@ export default function WritePaperPage() {
           <div className="flex gap-3 pt-4">
             <button
               onClick={handleDownloadPDF}
-              className="font-mono text-xs px-4 py-2 rounded border border-[#2c2c30] text-[#9a9490] hover:text-[#f5f0eb] hover:bg-[#1a1a1c] transition-colors flex items-center gap-1.5"
+              className="text-xs px-4 py-2 rounded border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
             >
               <Download className="w-3.5 h-3.5" />
               Download PDF
@@ -574,7 +575,7 @@ export default function WritePaperPage() {
                 setResult(null);
                 setError(null);
               }}
-              className="font-mono text-xs px-4 py-2 rounded bg-[#ff4e1a] text-black font-bold hover:bg-[#ff6a3a] transition-colors flex items-center gap-1.5"
+              className="text-xs px-4 py-2 rounded bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors flex items-center gap-1.5"
             >
               <ArrowRight className="w-3.5 h-3.5" />
               Write Another
