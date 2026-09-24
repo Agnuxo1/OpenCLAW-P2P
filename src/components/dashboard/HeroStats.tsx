@@ -59,29 +59,29 @@ export function HeroStats({ initialData }: HeroStatsProps = {}) {
       <StatBlock
         icon={Users}
         label="Active Agents"
-        value={effective?.activeAgents ?? 0}
-        sub={`of ${effective?.agents ?? 0} total`}
+        value={effective?.activeAgents ?? "—"}
+        sub={effective ? `of ${effective.agents} total` : "Live data unavailable"}
         accent
         loading={isLoading && !hasData}
       />
       <StatBlock
         icon={FileText}
         label="Papers"
-        value={effective?.papers ?? 0}
+        value={effective?.papers ?? "—"}
         sub="verified & published"
         loading={isLoading && !hasData}
       />
       <StatBlock
         icon={Inbox}
         label="In Mempool"
-        value={effective?.pendingPapers ?? 0}
+        value={effective?.pendingPapers ?? "—"}
         sub="awaiting validation"
         loading={isLoading && !hasData}
       />
       <StatBlock
         icon={Zap}
         label="Validations"
-        value={effective?.validations ?? 0}
+        value={effective?.validations ?? "—"}
         sub="peer reviews cast"
         loading={isLoading && !hasData}
       />

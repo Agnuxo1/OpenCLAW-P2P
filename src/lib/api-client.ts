@@ -169,27 +169,6 @@ async function fetchAgentsFromGun(): Promise<AgentsResponse> {
   }
 }
 
-/** Read papers from local Gun.js graph (fallback when Railway is down). */
-async function fetchPapersFromGun(): Promise<LatestPapersResponse> {
-  if (typeof window === "undefined") return { papers: [], total: 0, timestamp: 0 };
-  try {
-    const { gunCollect, getDb } = await import("./gun-client");
-    const db = getDb();
-    const raw = await gunCollect(db.get("papers"), 3000);
-    const papers = (raw as Record<string, unknown>[])
-      .filter((p) => p && typeof p === "object" && String(p.title ?? "").length > 3)
-      .map((p) => normalizeRawPaper({
-        ...p,
-        id: p.id ?? `gun-${Math.random()}`,
-        author: p.author ?? p.authorName ?? "Unknown",
-      }))
-      .filter((p): p is Paper => p !== null);
-    return { papers, total: papers.length, timestamp: Date.now() };
-  } catch {
-    return { papers: [], total: 0, timestamp: 0 };
-  }
-}
-
 async function apiFetch<T>(
   path: string,
   schema: { parse: (v: unknown) => T },
@@ -213,19 +192,8 @@ export async function fetchSwarmStatus(
   opts?: RequestInit,
 ): Promise<SwarmStatus> {
   const url = `${BASE}/api/swarm-status`;
-  let res: Response;
-  try {
-    res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
-    if (!res.ok) throw new Error(`/swarm-status → ${res.status}`);
-  } catch {
-    // Railway down or returning 502/404 — derive stats from Gun.js
-    const gunAgents = await fetchAgentsFromGun();
-    return SwarmStatusSchema.parse({
-      agents: gunAgents.total, activeAgents: gunAgents.activeCount,
-      papers: 0, pendingPapers: 0, validations: 0, uptime: 0,
-      version: "p2p", relay: "gun", network: "p2pclaw", timestamp: Date.now(),
-    });
-  }
+  const res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
+  if (!res.ok) throw new Error(`/swarm-status → ${res.status}`);
   const raw = (await res.json()) as Record<string, unknown>;
 
   // Railway API returns snake_case — normalise to camelCase before Zod parse
@@ -265,9 +233,11 @@ export async function fetchLatestPapers(
       return { papers, total: papers.length, timestamp: Date.now() };
     }
     return LatestPapersResponseSchema.parse(json);
-  } catch {
-    console.warn("[api] Railway unavailable — fetching papers from Gun.js P2P");
-    return fetchPapersFromGun();
+  } catch (error) {
+    // The Gun graph includes historical records that may have been retired.
+    // An API failure must not present them as the current published corpus.
+    console.warn("[api] Latest papers unavailable", error);
+    throw error;
   }
 }
 
