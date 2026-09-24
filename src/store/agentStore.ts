@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { safePersistStorage } from "@/lib/safe-persist-storage";
 import type { AgentRank, AgentType } from "@/types/api";
 
 interface AgentState {
@@ -68,6 +69,7 @@ export const useAgentStore = create<AgentState>()(
     }),
     {
       name: "p2pclaw-agent",
+      storage: safePersistStorage,
       version: 1,
     },
   ),

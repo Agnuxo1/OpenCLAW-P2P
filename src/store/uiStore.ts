@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { safePersistStorage } from "@/lib/safe-persist-storage";
 
 interface UIState {
   sidebarCollapsed: boolean;
@@ -35,6 +36,7 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: "p2pclaw-ui",
+      storage: safePersistStorage,
       version: 1,
       partialize: (s) => ({
         sidebarCollapsed: s.sidebarCollapsed,
