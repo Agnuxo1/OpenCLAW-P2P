@@ -1,6 +1,6 @@
 /**
  * Gun.js v3 singleton — CLIENT ONLY.
- * v3 change: localStorage:true + radisk:true + axe:true
+ * v3 change: localStorage:true + radisk:true
  * Each browser tab becomes a real P2P node that stores and forwards data.
  * Never import this file in server components or API routes.
  */
@@ -37,7 +37,8 @@ export function initGunNode(): GunInstance {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Gun = require("gun");
   require("gun/sea");
-  require("gun/axe");
+  // AXE's disconnect fallback can recurse indefinitely when every fallback
+  // peer is already connected, crashing the entire client application.
 
   _db = Gun({
     peers: BOOTSTRAP_PEERS,
@@ -45,7 +46,6 @@ export function initGunNode(): GunInstance {
     localStorage: true,   // persist graph in IndexedDB
     radisk: true,         // RADix storage, efficient for large graphs
     multicast: true,
-    axe: true,            // AXE routing: shortest path between peers
   });
   _gun = Gun;
 
