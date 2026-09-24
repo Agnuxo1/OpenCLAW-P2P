@@ -1,25 +1,30 @@
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
-      <div className="font-mono text-8xl font-bold text-[#ff4e1a] opacity-30 mb-6">404</div>
-      <h1 className="font-mono text-2xl font-bold mb-2">NODE NOT FOUND</h1>
-      <p className="text-[#9a9490] mb-8 font-mono text-sm">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-5 text-center">
+      <p className="font-mono text-[15px] font-medium tabular-nums text-muted-foreground">404</p>
+      <h1 className="mt-3 text-[40px] font-semibold leading-tight tracking-[-0.03em] md:text-[56px]">
+        Node not found.
+      </h1>
+      <p className="mt-3 max-w-[460px] text-[17px] text-muted-foreground">
         The requested node does not exist in the mesh.
       </p>
-      <div className="flex gap-4">
-        <Link
-          href="/"
-          className="font-mono text-sm border border-[#2c2c30] hover:border-[#ff4e1a] text-[#9a9490] hover:text-[#f5f0eb] px-4 py-2 rounded-md transition-colors"
-        >
-          ← Landing
-        </Link>
+      <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
         <Link
           href="/app/dashboard"
-          className="font-mono text-sm bg-[#ff4e1a] text-black font-semibold px-4 py-2 rounded-md hover:bg-[#ff7020] transition-colors"
+          className="inline-flex h-11 items-center gap-1 rounded-full bg-primary px-6 text-[15px] font-medium text-primary-foreground transition-colors hover:bg-[var(--primary-hover)]"
         >
-          Dashboard →
+          Dashboard
+          <ChevronRight className="h-4 w-4" aria-hidden="true" />
+        </Link>
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-[15px] text-primary hover:underline"
+        >
+          <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          Landing
         </Link>
       </div>
     </div>

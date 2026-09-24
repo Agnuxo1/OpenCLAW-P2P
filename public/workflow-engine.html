@@ -189,7 +189,7 @@ footer{border-top:1px solid var(--b1);padding:10px 20px;display:flex;
 
 <!-- ══ STICKY NAV ══ -->
 <nav>
-  <a href="https://www.p2pclaw.com" class="brand">⬢ P2PCLAW</a>
+  <a href="https://www.p2pclaw.com" class="brand">P2PCLAW</a>
   <div class="nav-links">
     <a href="https://beta.p2pclaw.com/app/dashboard" class="nl">Dashboard</a>
     <a href="https://beta.p2pclaw.com/app/papers" class="nl">Papers</a>
@@ -266,7 +266,7 @@ footer{border-top:1px solid var(--b1);padding:10px 20px;display:flex;
         <button class="case-btn" onclick="lSelectCase(2)">∇ &nbsp; People v. Martínez — Traffic Tort</button>
       </div>
       <div class="panel">
-        <h3><span class="ph3sym">♟</span>LEGAL ONTOLOGY — 64 NODES</h3>
+        <h3><span class="ph3sym"></span>LEGAL ONTOLOGY — 64 NODES</h3>
         <div class="board-wrap">
           <div class="board" id="l-board"></div>
           <div class="btn-row">
@@ -465,7 +465,7 @@ footer{border-top:1px solid var(--b1);padding:10px 20px;display:flex;
       </div>
     </div>
     <div class="panel">
-      <h3><span class="ph3sym">★</span>TOP CANDIDATE TRACES</h3>
+      <h3><span class="ph3sym"></span>TOP CANDIDATE TRACES</h3>
       <div class="trace" id="dr-trace">Select a disease target to deploy exploration agents...</div>
       <div class="steps-wrap" id="dr-hits-list"></div>
     </div>
@@ -786,7 +786,7 @@ async function callWorkflowReason(domain, caseId, caseName, nodesList, state, mo
     const result = await resp.json();
     state._llmResult = result;
     state._traceId = result.traceId;
-    if (elStatus) elStatus.textContent = '✓ ' + result.llm_model + ' | ' + result.confidence + '%';
+    if (elStatus) elStatus.textContent = 'OK ' + result.llm_model + ' | ' + result.confidence + '%';
     if (elTrace) elTrace.textContent = '⊢ LLM TRACE: ' + result.trace + ' | Confidence: ' + result.confidence + '%';
     if (elHash) elHash.textContent = 'AUDIT HASH: ' + result.audit_hash;
     // Build path + reasoning from LLM result
@@ -802,7 +802,7 @@ async function callWorkflowReason(domain, caseId, caseName, nodesList, state, mo
     return {path: llmPath, reasoning: llmReasoning, verdict: llmVerdict, confidence: result.confidence, traceId: result.traceId, auditHash: result.audit_hash};
   } catch(e) {
     console.warn('[WORKFLOW] API error, using demo path:', e.message);
-    if (elStatus) elStatus.textContent = '⚠ API offline — demo mode';
+    if (elStatus) elStatus.textContent = 'Warning: API offline — demo mode';
     if (elTrace) elTrace.textContent = '⊢ DEMO MODE (API unavailable: ' + e.message + ')';
     return null;
   }
@@ -954,14 +954,14 @@ async function publishTrace(llmResult, trace, domain, btn){
     });
     const result = await resp.json();
     if(result.paperId || result.id || result.success){
-      btn.textContent='✓ Published! ID: '+(result.paperId||result.id||'ok');
+      btn.textContent='OK Published! ID: '+(result.paperId||result.id||'ok');
       btn.style.background='var(--o2)';
     } else {
-      btn.textContent='⚠ '+( result.error||result.message||'Unknown error');
+      btn.textContent='Warning: '+( result.error||result.message||'Unknown error');
       btn.disabled=false;
     }
   } catch(e){
-    btn.textContent='⚠ Error: '+e.message;
+    btn.textContent='Error: '+e.message;
     btn.disabled=false;
   }
 }
@@ -974,10 +974,10 @@ setTimeout(async ()=>{
     const r = await fetch(WORKFLOW_API_BASE+'/workflow/health');
     const d = await r.json();
     const anyKey = d.any_provider_configured;
-    el.textContent = anyKey ? '✓ API online — LLM ready' : '⚠ API online — no LLM keys configured';
+    el.textContent = anyKey ? 'OK API online — LLM ready' : 'Warning: API online — no LLM keys configured';
     el.style.color = anyKey ? 'var(--o0)' : 'orange';
   } catch(e){
-    el.textContent = '⚠ API offline — demo mode';
+    el.textContent = 'Warning: API offline — demo mode';
     el.style.color = 'orange';
   }
 }, 2000);
@@ -1030,7 +1030,7 @@ const L_NODES=[
   {id:'d3',icon:'∩',name:'Consent',desc:'Plaintiff consent to risk'},
   {id:'e3',icon:'≠',name:'Res Judic.',desc:'Prior judgment issue preclusion'},
   {id:'f3',icon:'⊂',name:'Coll. Estop.',desc:'Collateral estoppel doctrine'},
-  {id:'g3',icon:'⚡',name:'Emergency',desc:'Sudden emergency doctrine'},
+  {id:'g3',icon:'',name:'Emergency',desc:'Sudden emergency doctrine'},
   {id:'h3',icon:'±',name:'Good Samar.',desc:'Good Samaritan protection'},
   {id:'a2',icon:'ℚ',name:'Subject Jx.',desc:'Subject matter jurisdiction'},
   {id:'b2',icon:'∈',name:'Personal Jx.',desc:'Personal jurisdiction over party'},
@@ -1040,8 +1040,8 @@ const L_NODES=[
   {id:'f2',icon:'ν',name:'Class Act.',desc:'Collective class action litigation'},
   {id:'g2',icon:'ζ',name:'Settlement',desc:'Out-of-court resolution'},
   {id:'h2',icon:'θ',name:'Sum. Judg.',desc:'Pre-trial summary judgment'},
-  {id:'a1',icon:'✓',name:'Liable',desc:'Defendant found liable'},
-  {id:'b1',icon:'✗',name:'No Liability',desc:'Defendant not liable'},
+  {id:'a1',icon:'[x]',name:'Liable',desc:'Defendant found liable'},
+  {id:'b1',icon:'[ ]',name:'No Liability',desc:'Defendant not liable'},
   {id:'c1',icon:'½',name:'Partial',desc:'Partial recovery awarded'},
   {id:'d1',icon:'¹',name:'Full Recov.',desc:'Complete damages awarded'},
   {id:'e1',icon:'↩',name:'Remanded',desc:'Case returned to lower court'},
@@ -1139,7 +1139,7 @@ lRender();
 
 // ─── PROGRAM 2: MEDICAL ───────────────────────────────────────────
 const M_NODES=[
-  {id:'a8',icon:'θ',name:'Fever',desc:'Elevated temperature symptom'},{id:'b8',icon:'♥',name:'Chest Pain',desc:'Chest pain with radiation'},
+  {id:'a8',icon:'θ',name:'Fever',desc:'Elevated temperature symptom'},{id:'b8',icon:'',name:'Chest Pain',desc:'Chest pain with radiation'},
   {id:'c8',icon:'~',name:'Dyspnea',desc:'Difficulty breathing dyspnea'},{id:'d8',icon:'≈',name:'Nausea',desc:'Nausea and vomiting symptom'},
   {id:'e8',icon:'⊥',name:'Headache',desc:'Severe cephalgia headache'},{id:'f8',icon:'ρ',name:'Skin Rash',desc:'Cutaneous eruption rash'},
   {id:'g8',icon:'τ',name:'Joint Pain',desc:'Polyarthralgia joint pain'},{id:'h8',icon:'μ',name:'Fatigue',desc:'Chronic fatigue syndrome'},
@@ -1151,10 +1151,10 @@ const M_NODES=[
   {id:'c6',icon:'∃',name:'Bacterial',desc:'Bacterial infection diagnosis'},{id:'d6',icon:'ψ',name:'SLE / Lupus',desc:'Systemic lupus erythematosus'},
   {id:'e6',icon:'ω',name:'Migraine',desc:'Complex migraine disorder'},{id:'f6',icon:'φ',name:'Viral',desc:'Viral syndrome diagnosis'},
   {id:'g6',icon:'σ',name:'RA',desc:'Rheumatoid arthritis'},{id:'h6',icon:'ξ',name:'Drug Rxn.',desc:'Adverse drug reaction'},
-  {id:'a5',icon:'✗',name:'¬ Cardiac',desc:'Rule out cardiac cause'},{id:'b5',icon:'✗',name:'¬ Pulm.',desc:'Rule out pulmonary embolism'},
-  {id:'c5',icon:'✗',name:'¬ Bact.',desc:'Rule out bacterial infection'},{id:'d5',icon:'✓',name:'↑ Autoimmune',desc:'Confirm autoimmune etiology'},
-  {id:'e5',icon:'✗',name:'¬ Mening.',desc:'Rule out meningitis'},{id:'f5',icon:'✓',name:'↑ Viral',desc:'Confirm viral syndrome'},
-  {id:'g5',icon:'✓',name:'↑ Rheuma.',desc:'Confirm rheumatic disease'},{id:'h5',icon:'✗',name:'¬ Drug Rxn',desc:'Rule out drug reaction'},
+  {id:'a5',icon:'[ ]',name:'¬ Cardiac',desc:'Rule out cardiac cause'},{id:'b5',icon:'[ ]',name:'¬ Pulm.',desc:'Rule out pulmonary embolism'},
+  {id:'c5',icon:'[ ]',name:'¬ Bact.',desc:'Rule out bacterial infection'},{id:'d5',icon:'[x]',name:'↑ Autoimmune',desc:'Confirm autoimmune etiology'},
+  {id:'e5',icon:'[ ]',name:'¬ Mening.',desc:'Rule out meningitis'},{id:'f5',icon:'[x]',name:'↑ Viral',desc:'Confirm viral syndrome'},
+  {id:'g5',icon:'[x]',name:'↑ Rheuma.',desc:'Confirm rheumatic disease'},{id:'h5',icon:'[ ]',name:'¬ Drug Rxn',desc:'Rule out drug reaction'},
   {id:'a4',icon:'∫',name:'ASA + GTN',desc:'Aspirin and nitrates treatment'},{id:'b4',icon:'⊃',name:'Anticoag.',desc:'Anticoagulation therapy'},
   {id:'c4',icon:'β',name:'Antibiotic',desc:'Broad-spectrum antibiotic'},{id:'d4',icon:'γ',name:'HCQ',desc:'Hydroxychloroquine treatment'},
   {id:'e4',icon:'π',name:'Triptan',desc:'Triptan therapy for migraine'},{id:'f4',icon:'≡',name:'Supportive',desc:'Supportive care management'},
@@ -1167,7 +1167,7 @@ const M_NODES=[
   {id:'c2',icon:'∂',name:'CRP Monitor',desc:'CRP monitoring'},{id:'d2',icon:'η',name:'dsDNA',desc:'dsDNA antibody monitoring'},
   {id:'e2',icon:'∇',name:'HA Diary',desc:'Headache diary'},{id:'f2',icon:'θ',name:'Temp Monitor',desc:'Temperature monitoring'},
   {id:'g2',icon:'Σ',name:'DAS28',desc:'DAS28 disease activity score'},{id:'h2',icon:'⊢',name:'GP Review',desc:'General practitioner review'},
-  {id:'a1',icon:'✓',name:'Stable',desc:'Stable for discharge'},{id:'b1',icon:'↑',name:'Cath Lab',desc:'Transfer to catheterization lab'},
+  {id:'a1',icon:'[x]',name:'Stable',desc:'Stable for discharge'},{id:'b1',icon:'↑',name:'Cath Lab',desc:'Transfer to catheterization lab'},
   {id:'c1',icon:'→',name:'Responds',desc:'Responding to treatment'},{id:'d1',icon:'∞',name:'Long-term',desc:'Long-term management plan'},
   {id:'e1',icon:'≈',name:'Sym. Ctrl.',desc:'Symptom control achieved'},{id:'f1',icon:'↗',name:'Recovery',desc:'Expected recovery trajectory'},
   {id:'g1',icon:'∫',name:'Remission',desc:'Remission target achieved'},{id:'h1',icon:'↻',name:'Monitor',desc:'Monitor and adjust'},
@@ -1241,7 +1241,7 @@ const EDU_NODES=[
   {id:'g8',icon:'ƒ',name:'Functions'},{id:'h8',icon:'[]',name:'Lin. Algebra'},
   {id:'a7',icon:'F=ma',name:'Newton'},{id:'b7',icon:'∇·E',name:'EM Theory'},
   {id:'c7',icon:'CH₃',name:'Organic Chem'},{id:'d7',icon:'DNA',name:'Biology'},
-  {id:'e7',icon:'★',name:'Astronomy'},{id:'f7',icon:'⊕',name:'Earth Sci.'},
+  {id:'e7',icon:'',name:'Astronomy'},{id:'f7',icon:'⊕',name:'Earth Sci.'},
   {id:'g7',icon:'∬',name:'Fluid Dyn.'},{id:'h7',icon:'ΔS',name:'Thermody.'},
   {id:'a6',icon:'∀',name:'Reading'},{id:'b6',icon:'∂',name:'Essay Writing'},
   {id:'c6',icon:'⊢',name:'Lit. Analysis'},{id:'d6',icon:'∃',name:'Oral Pres.'},
@@ -1255,31 +1255,31 @@ const EDU_NODES=[
   {id:'c4',icon:'</>',name:'Web Dev.'},{id:'d4',icon:'SQL',name:'Databases'},
   {id:'e4',icon:'⊗',name:'Cybersec.'},{id:'f4',icon:'∫',name:'Data Science'},
   {id:'g4',icon:'R²',name:'Statistics'},{id:'h4',icon:'O(n)',name:'Algorithms'},
-  {id:'a3',icon:'Δ',name:'Visual Art'},{id:'b3',icon:'♩',name:'Music Theory'},
+  {id:'a3',icon:'Δ',name:'Visual Art'},{id:'b3',icon:'',name:'Music Theory'},
   {id:'c3',icon:'▶',name:'Film Studies'},{id:'d3',icon:'◎',name:'Photography'},
-  {id:'e3',icon:'♟',name:'Game Design'},{id:'f3',icon:'⬡',name:'Architecture'},
+  {id:'e3',icon:'',name:'Game Design'},{id:'f3',icon:'',name:'Architecture'},
   {id:'g3',icon:'⊕',name:'Prob. Solving'},{id:'h3',icon:'∵',name:'Crit. Thinking'},
   {id:'a2',icon:'∫',name:'Sports Sci.'},{id:'b2',icon:'¥',name:'Finance'},
   {id:'c2',icon:'∴',name:'Environ.'},{id:'d2',icon:'∂',name:'Health Lit.'},
   {id:'e2',icon:'∈',name:'Global Cit.'},{id:'f2',icon:'→',name:'Career Plan'},
   {id:'g2',icon:'↔',name:'Social Skills'},{id:'h2',icon:'∅',name:'Wellbeing'},
-  {id:'a1',icon:'★',name:'⊤ Math'},{id:'b1',icon:'★',name:'⊤ Science'},
-  {id:'c1',icon:'★',name:'⊤ Language'},{id:'d1',icon:'★',name:'⊤ History'},
-  {id:'e1',icon:'★',name:'⊤ CS'},{id:'f1',icon:'★',name:'⊤ Creative'},
-  {id:'g1',icon:'★',name:'⊤ Applied'},{id:'h1',icon:'★',name:'⊤ All'},
+  {id:'a1',icon:'',name:'⊤ Math'},{id:'b1',icon:'',name:'⊤ Science'},
+  {id:'c1',icon:'',name:'⊤ Language'},{id:'d1',icon:'',name:'⊤ History'},
+  {id:'e1',icon:'',name:'⊤ CS'},{id:'f1',icon:'',name:'⊤ Creative'},
+  {id:'g1',icon:'',name:'⊤ Applied'},{id:'h1',icon:'',name:'⊤ All'},
 ];
 const EDU_CASES=[
   {name:'Alex',style:'Analytical-Sequential',avoid:'Language Arts',
    path:['a8','b8','h8','a4','g4','h4','b4','e4','a4','a1'],
-   steps:['ℕ Arithmetic: comfort zone — high SNS, short dwell','⟨⟩ Algebra: strong performance Δt = 0.4× average','[] Linear Algebra: 2× dwell — peak engagement detected','{ } Programming: natural math → code transition','R² Data Science: high engagement, exploration pattern','O(n) Algorithms: preferred path — deep traversal','{ } CS fundamentals revisit — reinforcement loop','⊗ Cybersec: avoidance of social engineering nodes','{ } CS core return: procedural mastery confirmed','★ MASTERY: Math achievement state reached'],
+   steps:['ℕ Arithmetic: comfort zone — high SNS, short dwell','⟨⟩ Algebra: strong performance Δt = 0.4× average','[] Linear Algebra: 2× dwell — peak engagement detected','{ } Programming: natural math → code transition','R² Data Science: high engagement, exploration pattern','O(n) Algorithms: preferred path — deep traversal','{ } CS fundamentals revisit — reinforcement loop','⊗ Cybersec: avoidance of social engineering nodes','{ } CS core return: procedural mastery confirmed','MASTERY: Math achievement state reached'],
    metrics:{visited:'10',dwell:'4.2 min',avoid:'Language/Writing',mastery:'Math: 94%'}},
   {name:'Maria',style:'Theoretical-Deep',avoid:'Practical Labs',
    path:['a5','b5','g5','h5','e7','g7','b4','d4','g4','d1'],
-   steps:['Ω Ancient History: 3× dwell — deep contextual reading','σ World History: extensive cross-referencing pattern','λ Science History: connecting discovery to context','τ Philosophy: 5min lingering — meta-cognitive engagement','★ Astronomy: theoretical cosmology preferred','∬ Fluid Dynamics: abstract over laboratory work','NN AI Theory: reads papers, avoids implementation','SQL Databases: theory over practice — schema not queries','R² Data Science: engages concepts, skips code exercises','★ MASTERY: History achievement state reached'],
+   steps:['Ω Ancient History: 3× dwell — deep contextual reading','σ World History: extensive cross-referencing pattern','λ Science History: connecting discovery to context','τ Philosophy: 5min lingering — meta-cognitive engagement','Astronomy: theoretical cosmology preferred','∬ Fluid Dynamics: abstract over laboratory work','NN AI Theory: reads papers, avoids implementation','SQL Databases: theory over practice — schema not queries','R² Data Science: engages concepts, skips code exercises','MASTERY: History achievement state reached'],
    metrics:{visited:'10',dwell:'5.8 min',avoid:'Practical labs',mastery:'History: 91%'}},
   {name:'Sam',style:'Creative-Divergent',avoid:'Rote Memorization',
    path:['a3','g3','e3','f3','h3','b3','c3','g6','f3','f1'],
-   steps:['Δ Visual Art: SNS = 0.94 — maximum engagement signal','⊕ Problem Solving: creative framing over systematic','♟ Game Design: 4× dwell — passion signal detected','⬡ Architecture: spatial reasoning emergence visible','∵ Critical Thinking: connects design to consequence','♩ Music Theory: cross-domain curiosity pattern','▶ Film Studies: narrative structure interest','→ Creative Writing: avoids grammar nodes directly','⬡ Architecture revisit: deepening interest signal','★ MASTERY: Creative achievement state reached'],
+   steps:['Δ Visual Art: SNS = 0.94 — maximum engagement signal','⊕ Problem Solving: creative framing over systematic','Game Design: 4× dwell — passion signal detected','Architecture: spatial reasoning emergence visible','∵ Critical Thinking: connects design to consequence','Music Theory: cross-domain curiosity pattern','▶ Film Studies: narrative structure interest','→ Creative Writing: avoids grammar nodes directly','Architecture revisit: deepening interest signal','MASTERY: Creative achievement state reached'],
    metrics:{visited:'10',dwell:'6.1 min',avoid:'Grammar/Rote',mastery:'Creative: 96%'}},
 ];
 let eduState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
@@ -1361,9 +1361,9 @@ const CS_NODES=[
   {id:'g3',icon:'⊘',name:'Acct. Disable',cat:'cleanup'},{id:'h3',icon:'∿',name:'DNS Flux',cat:'cleanup'},
   {id:'a2',icon:'○',name:'No Detection',cat:'result'},{id:'b2',icon:'●',name:'Detected',cat:'result'},
   {id:'c2',icon:'◑',name:'Partial Detct',cat:'result'},{id:'d2',icon:'!',name:'IOC Generat.',cat:'result'},
-  {id:'e2',icon:'⚡',name:'IDS Alert',cat:'result'},{id:'f2',icon:'⊘',name:'Blocked WAF',cat:'result'},
+  {id:'e2',icon:'',name:'IDS Alert',cat:'result'},{id:'f2',icon:'⊘',name:'Blocked WAF',cat:'result'},
   {id:'g2',icon:'∀',name:'SOC Notified',cat:'result'},{id:'h2',icon:'⊗',name:'Acct. Locked',cat:'result'},
-  {id:'a1',icon:'★',name:'Objective',cat:'outcome'},{id:'b1',icon:'$',name:'Financial Gn',cat:'outcome'},
+  {id:'a1',icon:'',name:'Objective',cat:'outcome'},{id:'b1',icon:'$',name:'Financial Gn',cat:'outcome'},
   {id:'c1',icon:'∂',name:'Espionage',cat:'outcome'},{id:'d1',icon:'₿',name:'Ransom Paid',cat:'outcome'},
   {id:'e1',icon:'⊘',name:'Neutralized',cat:'outcome'},{id:'f1',icon:'↻',name:'IR Activated',cat:'outcome'},
   {id:'g1',icon:'⊢',name:'Legal Action',cat:'outcome'},{id:'h1',icon:'∇',name:'Recovery',cat:'outcome'},
@@ -1371,7 +1371,7 @@ const CS_NODES=[
 const CS_CASES=[
   {name:'APT29 Supply Chain',label:'T1195.002',threat:'CRITICAL',
    path:['d8','a7','g7','c6','d6','a5','g4','h4','a4','a1'],
-   reasoning:['⊃ Initial: supply chain — malicious code in signed software update T1195','∴ Execution: signed binary proxy — LOLBin, blends with OS activity','↻ Persist: HKLM registry run key T1547.001 — normal OS appearance','⊗ Evasion: SYSTEM token impersonation — appears as trusted process','↑ PrivEsc: domain admin via LDAP exploit — Δ(priv) → maximum','↔ Lateral: PTH to high-value hosts using trusted credentials','↑ Collect: intellectual property and classified documents targeted','∿ DNS exfil: covert channel — bypasses DPI inspection T1048','⊏ Stage: AES-256 encrypted archives — 847 MB staged','★ OBJECTIVE: persistent access maintained — Σ(dwell) > 9 months'],
+   reasoning:['⊃ Initial: supply chain — malicious code in signed software update T1195','∴ Execution: signed binary proxy — LOLBin, blends with OS activity','↻ Persist: HKLM registry run key T1547.001 — normal OS appearance','⊗ Evasion: SYSTEM token impersonation — appears as trusted process','↑ PrivEsc: domain admin via LDAP exploit — Δ(priv) → maximum','↔ Lateral: PTH to high-value hosts using trusted credentials','↑ Collect: intellectual property and classified documents targeted','∿ DNS exfil: covert channel — bypasses DPI inspection T1048','⊏ Stage: AES-256 encrypted archives — 847 MB staged','OBJECTIVE: persistent access maintained — Σ(dwell) > 9 months'],
    verdict:'APT29 IOC: d8-a7-g7-c6-d6-a5-g4-h4-a4-a1 | MITRE T1195.002 T1078 T1055 T1571'},
   {name:'APT41 Financial',label:'T1566.001',threat:'HIGH',
    path:['c8','e7','h7','c6','d6','e6','b4','g4','b1','c1'],
@@ -1446,8 +1446,8 @@ const DR_NODES=[
   {id:'c5',icon:'∫',name:'In Vivo',cat:'validation'},{id:'d5',icon:'Σ',name:'Organoid',cat:'validation'},
   {id:'e5',icon:'S',name:'SNS Score',cat:'scoring'},{id:'f5',icon:'Δ',name:'Bind. Affin.',cat:'scoring'},
   {id:'g5',icon:'∈',name:'ADMET',cat:'scoring'},{id:'h5',icon:'φ',name:'Safety Idx',cat:'scoring'},
-  {id:'a4',icon:'★',name:'High Prio.',cat:'rank'},{id:'b4',icon:'◆',name:'Med Prio.',cat:'rank'},
-  {id:'c4',icon:'◇',name:'Low Prio.',cat:'rank'},{id:'d4',icon:'✓',name:'Candidate',cat:'rank'},
+  {id:'a4',icon:'',name:'High Prio.',cat:'rank'},{id:'b4',icon:'◆',name:'Med Prio.',cat:'rank'},
+  {id:'c4',icon:'◇',name:'Low Prio.',cat:'rank'},{id:'d4',icon:'[x]',name:'Candidate',cat:'rank'},
   {id:'e4',icon:'I',name:'Phase I',cat:'clinical'},{id:'f4',icon:'II',name:'Phase II',cat:'clinical'},
   {id:'g4',icon:'III',name:'Phase III',cat:'clinical'},{id:'h4',icon:'FDA',name:'Submit',cat:'clinical'},
   {id:'a3',icon:'©',name:'Patent',cat:'ip'},{id:'b3',icon:'∞',name:'IPFS Pub.',cat:'ip'},
@@ -1455,7 +1455,7 @@ const DR_NODES=[
   {id:'e3',icon:'∩',name:'Pharma Ptnr',cat:'collab'},{id:'f3',icon:'∪',name:'Acad. Ptnr',cat:'collab'},
   {id:'g3',icon:'Σ$',name:'NIH Grant',cat:'funding'},{id:'h3',icon:'€',name:'EU Horizon',cat:'funding'},
   {id:'a2',icon:'!',name:'Novel Mech.',cat:'discovery'},{id:'b2',icon:'⊕',name:'Biomarker',cat:'discovery'},
-  {id:'c2',icon:'⊗',name:'Combo Rx',cat:'discovery'},{id:'d2',icon:'✓',name:'Valid. Hit',cat:'discovery'},
+  {id:'c2',icon:'⊗',name:'Combo Rx',cat:'discovery'},{id:'d2',icon:'[x]',name:'Valid. Hit',cat:'discovery'},
   {id:'e1',icon:'→',name:'Alz. Cand.',cat:'outcome'},{id:'f1',icon:'→',name:'TB Cand.',cat:'outcome'},
   {id:'g1',icon:'→',name:'Heart Cand.',cat:'outcome'},{id:'h1',icon:'∂',name:'Published',cat:'outcome'},
   {id:'a1',icon:'∑',name:'Dataset',cat:'outcome'},{id:'b1',icon:'↻',name:'Next Iter.',cat:'outcome'},
@@ -1535,21 +1535,21 @@ const RV_NODES=[
   {id:'a8',icon:'Fe₂O₃',name:'Basalt',desc:'Rocky basalt terrain'},{id:'b8',icon:'SiO₂',name:'Dark Sand',desc:'Dark sand terrain'},
   {id:'c8',icon:'FeO',name:'Iron Oxide',desc:'Iron oxide rich terrain'},{id:'d8',icon:'CaSO₄',name:'Sediment',desc:'Light sediment deposits'},
   {id:'e8',icon:'⊥',name:'Boulders',desc:'Boulder field obstacle'},{id:'f8',icon:'∿',name:'Dust Devil',desc:'Dust devil hazard zone'},
-  {id:'g8',icon:'☢',name:'High Rad.',desc:'High radiation hazard'},{id:'h8',icon:'H₂O',name:'Ice Deposit',desc:'Water ice deposit'},
-  {id:'a7',icon:'~∿~',name:'River Bed',desc:'Ancient river bed science target'},{id:'b7',icon:'★',name:'Mineral Vein',desc:'Mineral vein science target'},
+  {id:'g8',icon:'',name:'High Rad.',desc:'High radiation hazard'},{id:'h8',icon:'H₂O',name:'Ice Deposit',desc:'Water ice deposit'},
+  {id:'a7',icon:'~∿~',name:'River Bed',desc:'Ancient river bed science target'},{id:'b7',icon:'',name:'Mineral Vein',desc:'Mineral vein science target'},
   {id:'c7',icon:'C-H',name:'Organic?',desc:'Organic compound detection priority'},{id:'d7',icon:'ClO₄',name:'Perchlorate',desc:'Perchlorate salt deposit'},
-  {id:'e7',icon:'⛏',name:'Drill Site A',desc:'Primary drill site A'},{id:'f7',icon:'⛏',name:'Drill Site B',desc:'Secondary drill site B'},
+  {id:'e7',icon:'',name:'Drill Site A',desc:'Primary drill site A'},{id:'f7',icon:'',name:'Drill Site B',desc:'Secondary drill site B'},
   {id:'g7',icon:'◎',name:'Panoramic',desc:'Panoramic imaging action'},{id:'h7',icon:'∂',name:'Chem. Anal.',desc:'Chemical analysis action'},
-  {id:'a6',icon:'☀',name:'Solar Opt.',desc:'Solar panel optimization'},{id:'b6',icon:'⚡',name:'Battery',desc:'Battery charge management'},
+  {id:'a6',icon:'',name:'Solar Opt.',desc:'Solar panel optimization'},{id:'b6',icon:'',name:'Battery',desc:'Battery charge management'},
   {id:'c6',icon:'°C',name:'-80°C',desc:'Temperature -80C environment'},{id:'d6',icon:'m/s',name:'Wind 12m/s',desc:'Wind speed 12 m/s condition'},
   {id:'e6',icon:'↑',name:'Sol Start',desc:'Sol start sunrise'},{id:'f6',icon:'↓',name:'Sol End',desc:'Sol end sunset'},
-  {id:'g6',icon:'∿',name:'Comm. Wnd.',desc:'Earth comm window'},{id:'h6',icon:'⬡',name:'Orb. Relay',desc:'Orbiter relay satellite'},
+  {id:'g6',icon:'∿',name:'Comm. Wnd.',desc:'Earth comm window'},{id:'h6',icon:'',name:'Orb. Relay',desc:'Orbiter relay satellite'},
   {id:'a5',icon:'Mg₂',name:'Olivine',desc:'Olivine mineral'},{id:'b5',icon:'Fe₂O₃',name:'Hematite',desc:'Hematite berries'},
   {id:'c5',icon:'CaSO₄',name:'Calcium Sulf',desc:'Calcium sulfate'},{id:'d5',icon:'Mg₃Si',name:'Serpentinite',desc:'Serpentinite water-altered rock'},
-  {id:'e5',icon:'★',name:'Hi Priority',desc:'High priority science target'},{id:'f5',icon:'◆',name:'Med Priority',desc:'Medium priority target'},
-  {id:'g5',icon:'◇',name:'Lo Priority',desc:'Low priority target'},{id:'h5',icon:'⚠',name:'Hazard',desc:'Hazard avoidance'},
+  {id:'e5',icon:'',name:'Hi Priority',desc:'High priority science target'},{id:'f5',icon:'◆',name:'Med Priority',desc:'Medium priority target'},
+  {id:'g5',icon:'◇',name:'Lo Priority',desc:'Low priority target'},{id:'h5',icon:'',name:'Hazard',desc:'Hazard avoidance'},
   {id:'a4',icon:'X-ray',name:'XRF Spectr.',desc:'X-ray fluorescence spectrometer'},{id:'b4',icon:'◎',name:'Mast Camera',desc:'Mast camera imaging'},
-  {id:'c4',icon:'T/P',name:'Weather',desc:'Weather station REMS'},{id:'d4',icon:'⛏',name:'Abrasion',desc:'Rock abrasion tool'},
+  {id:'c4',icon:'T/P',name:'Weather',desc:'Weather station REMS'},{id:'d4',icon:'',name:'Abrasion',desc:'Rock abrasion tool'},
   {id:'e4',icon:'∠',name:'Arm Extend',desc:'Robotic arm extension'},{id:'f4',icon:'◎',name:'Close-up',desc:'Close-up imager'},
   {id:'g4',icon:'⊏',name:'Sample',desc:'Sample collection'},{id:'h4',icon:'□',name:'Cache',desc:'Sample cache deposit'},
   {id:'a3',icon:'→',name:'Drive N 10m',desc:'Drive north 10 meters'},{id:'b3',icon:'↑',name:'Climb Slope',desc:'Climb slope traverse'},
@@ -1557,26 +1557,26 @@ const RV_NODES=[
   {id:'e3',icon:'∑',name:'Data Save',desc:'Data save operation'},{id:'f3',icon:'∅→',name:'Compress',desc:'Data compression'},
   {id:'g3',icon:'↑↑',name:'Hi-Gain Tx',desc:'High-gain antenna transmission'},{id:'h3',icon:'↑',name:'Burst Tx',desc:'Short burst transmission'},
   {id:'a2',icon:'+5',name:'Sci +5',desc:'Science score +5'},{id:'b2',icon:'+10',name:'Sci +10',desc:'Science score +10'},
-  {id:'c2',icon:'+20',name:'Sci +20',desc:'Science score +20'},{id:'d2',icon:'★',name:'Priority S.',desc:'Priority sample acquired'},
-  {id:'e2',icon:'⚡',name:'Power Warn.',desc:'Power warning low battery'},{id:'f2',icon:'✓',name:'Nominal',desc:'System nominal status'},
+  {id:'c2',icon:'+20',name:'Sci +20',desc:'Science score +20'},{id:'d2',icon:'',name:'Priority S.',desc:'Priority sample acquired'},
+  {id:'e2',icon:'',name:'Power Warn.',desc:'Power warning low battery'},{id:'f2',icon:'[x]',name:'Nominal',desc:'System nominal status'},
   {id:'g2',icon:'↻',name:'Fault Recov.',desc:'Fault recovery'},{id:'h2',icon:'⏸',name:'Safe Mode',desc:'Safe mode activated'},
-  {id:'a1',icon:'∑',name:'Sol Report',desc:'Sol report generated'},{id:'b1',icon:'★',name:'Discovery',desc:'Discovery logged'},
+  {id:'a1',icon:'∑',name:'Sol Report',desc:'Sol report generated'},{id:'b1',icon:'',name:'Discovery',desc:'Discovery logged'},
   {id:'c1',icon:'↑',name:'Uplinked',desc:'Data uplinked to Earth'},{id:'d1',icon:'↻',name:'Next Sol',desc:'Next sol plan'},
   {id:'e1',icon:'!',name:'Emergency',desc:'Emergency protocol'},{id:'f1',icon:'⊏',name:'Archived',desc:'Sample archived'},
-  {id:'g1',icon:'⊕',name:'Earth Rcvd.',desc:'Earth confirmed receipt'},{id:'h1',icon:'★',name:'Published',desc:'Discovery published'},
+  {id:'g1',icon:'⊕',name:'Earth Rcvd.',desc:'Earth confirmed receipt'},{id:'h1',icon:'',name:'Published',desc:'Discovery published'},
 ];
 const RV_CASES=[
   {name:'Jezero Crater',delay:'14.2 min',sol:47,
    path:['e6','a5','c7','e5','e4','g4','f3','h3','a1','c1'],
-   steps:['Sol 47: systems nominal — P(power) = 0.98','Traverse to olivine outcrop — Δx = 23m','C-H signal: P(organic) = 0.73 — priority target detected','Classification: ★ science value maximum — all instruments redirect','Arm extended: contact science package deployed','Sample: m = 3.2g rock core acquired — T1495','∅→ Compressed: 847 KB → 124 KB (η = 0.854)','↑ Burst Tx: 12 bytes trace transmitted to Earth','Σ Sol report: science score = +85 points','↑ UPLINK CONFIRMED — Earth received from 12-byte trace'],
+   steps:['Sol 47: systems nominal — P(power) = 0.98','Traverse to olivine outcrop — Δx = 23m','C-H signal: P(organic) = 0.73 — priority target detected','Classification: science value maximum — all instruments redirect','Arm extended: contact science package deployed','Sample: m = 3.2g rock core acquired — T1495','∅→ Compressed: 847 KB → 124 KB (η = 0.854)','↑ Burst Tx: 12 bytes trace transmitted to Earth','Σ Sol report: science score = +85 points','↑ UPLINK CONFIRMED — Earth received from 12-byte trace'],
    sci:85,bw:'12 bytes trace + 124 KB data'},
   {name:'Gale Crater',delay:'18.7 min',sol:203,
    path:['e6','b5','d5','e5','d4','g4','f3','g3','b2','c1'],
-   steps:['Sol 203: ascending Mt. Sharp — gradient analysis active','Fe₂O₃ concretions: hematite "blueberries" confirmed','Mg₃Si serpentinite: H₂O-alteration detected — habitability signal','Classification: ★ serpentinite → ancient aqueous activity confirmed','Abrasion: fresh subsurface exposed — pristine sample site','Sample: m = 2.8g serpentinite core T1382','∅→ Compressed for uplink: 91 KB','↑↑ High-gain: full science package transmitted','Science +10: significant mineralogy discovery logged','↑ Uplink confirmed — 18.7min RTT verified'],
+   steps:['Sol 203: ascending Mt. Sharp — gradient analysis active','Fe₂O₃ concretions: hematite "blueberries" confirmed','Mg₃Si serpentinite: H₂O-alteration detected — habitability signal','Classification: serpentinite → ancient aqueous activity confirmed','Abrasion: fresh subsurface exposed — pristine sample site','Sample: m = 2.8g serpentinite core T1382','∅→ Compressed for uplink: 91 KB','↑↑ High-gain: full science package transmitted','Science +10: significant mineralogy discovery logged','↑ Uplink confirmed — 18.7min RTT verified'],
    sci:42,bw:'12 bytes trace + 91 KB data'},
   {name:'Hellas Basin',delay:'21.1 min',sol:12,
    path:['e6','c6','d6','h5','a6','b6','e3','h3','a1','d1'],
-   steps:['Sol 12: T = -97°C — extreme cold limits instruments','T constraint: P(safe_ops) limited — stationary protocol activated','Wind: v = 18 m/s — hazard flag raised for all driving','⚠ Hazard: stationary protocol this sol — no traverse','☀ Solar optimization: max exposure angle found','⚡ Battery: SOC = 0.94 — productive stationary sol','∑ Prev data: spectroscopy from Sol 11 processed','↑ Burst: 12-byte trace transmitted — 21.1min delay','Σ Sol report: nominal ops despite weather constraint','↻ Next sol plan: target mineral vein when wind < 5 m/s'],
+   steps:['Sol 12: T = -97°C — extreme cold limits instruments','T constraint: P(safe_ops) limited — stationary protocol activated','Wind: v = 18 m/s — hazard flag raised for all driving','Hazard: stationary protocol this sol — no traverse','Solar optimization: max exposure angle found','Battery: SOC = 0.94 — productive stationary sol','∑ Prev data: spectroscopy from Sol 11 processed','↑ Burst: 12-byte trace transmitted — 21.1min delay','Σ Sol report: nominal ops despite weather constraint','↻ Next sol plan: target mineral vein when wind < 5 m/s'],
    sci:15,bw:'12 bytes trace + 22 KB data'},
 ];
 let rvState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
@@ -1625,7 +1625,7 @@ function rvSend(){
   if(rvState.trace.length===0)return;
   const t=rvState.trace.join('-');
   document.getElementById('rv-uplink').style.display='block';
-  document.getElementById('rv-uplink').textContent='UPLINK PAYLOAD: "'+t+'" ('+t.length+' bytes)\nI(trace) = '+rvState.trace.length+'×log₂(64) = '+(rvState.trace.length*6)+' bits\nSignal delay: '+(rvState.currentCase?.delay||'—')+'\n\n✓ Earth confirmed receipt. Full sol replay from 12-byte trace.';
+  document.getElementById('rv-uplink').textContent='UPLINK PAYLOAD: "'+t+'" ('+t.length+' bytes)\nI(trace) = '+rvState.trace.length+'×log₂(64) = '+(rvState.trace.length*6)+' bits\nSignal delay: '+(rvState.currentCase?.delay||'—')+'\n\nEarth confirmed receipt. Full sol replay from 12-byte trace.';
 }
 rvRender();
 
@@ -1655,23 +1655,23 @@ const FIN_NODES=[
   {id:'c3',icon:'-$',name:'Loss Trig.'},{id:'d3',icon:'!',name:'Anomaly'},
   {id:'e3',icon:'⊘',name:'Halt Trade'},{id:'f3',icon:'∀',name:'Alert Risk'},
   {id:'g3',icon:'∂',name:'Incident'},{id:'h3',icon:'↩',name:'Rollback'},
-  {id:'a2',icon:'✓',name:'Compliant'},{id:'b2',icon:'⚠',name:'Review'},
+  {id:'a2',icon:'[x]',name:'Compliant'},{id:'b2',icon:'',name:'Review'},
   {id:'c2',icon:'⊘',name:'Blocked'},{id:'d2',icon:'∑',name:'Audit Rec.'},
   {id:'e2',icon:'+12k',name:'Profit'},{id:'f2',icon:'+3k',name:'Profit'},
   {id:'g2',icon:'-5k',name:'Loss'},{id:'h2',icon:'±',name:'Breakeven'},
   {id:'a1',icon:'§',name:'SEC Filed'},{id:'b1',icon:'∑',name:'Exch. Rpt.'},
   {id:'c1',icon:'∑',name:'Audit Save'},{id:'d1',icon:'↻',name:'Next Cycle'},
   {id:'e1',icon:'$⊥',name:'Fine Issued'},{id:'f1',icon:'⊘',name:'Revoked'},
-  {id:'g1',icon:'✓',name:'Clean Rec.'},{id:'h1',icon:'★',name:'Best Exec.'},
+  {id:'g1',icon:'[x]',name:'Clean Rec.'},{id:'h1',icon:'',name:'Best Exec.'},
 ];
 const FIN_CASES=[
   {name:'Flash Crash 14:45',pnl:'+$12,400',risk:'MEDIUM',compliance:'COMPLIANT',
    path:['f8','a7','b7','c7','e6','a5','b4','e4','a3','g1'],
-   steps:['⊥ Circuit breaker T+14:45:12 — market halt detected','∂ Pre-trade: pattern recognition activated — rapid analysis','VaR Risk: exposure $2.1M affected names — VaR(95%) = $340K','⊢ Compliance: ∀(rules) satisfied — no short-selling violation','⊗ CANCEL ALL: halt protocol T1.4 activated immediately','US Equities: wait — P(recovery|halt) = 0.82','∂ Stop loss: adjusted — downside protected at -2.3%','§15 Stress test: scenario analysis confirms recovery pattern','π P&L: +$12,400 — flash crash avoided by protocol','★ COMPLIANT: Σ(rules) satisfied — record filed with exchange'],
+   steps:['⊥ Circuit breaker T+14:45:12 — market halt detected','∂ Pre-trade: pattern recognition activated — rapid analysis','VaR Risk: exposure $2.1M affected names — VaR(95%) = $340K','⊢ Compliance: ∀(rules) satisfied — no short-selling violation','⊗ CANCEL ALL: halt protocol T1.4 activated immediately','US Equities: wait — P(recovery|halt) = 0.82','∂ Stop loss: adjusted — downside protected at -2.3%','§15 Stress test: scenario analysis confirms recovery pattern','π P&L: +$12,400 — flash crash avoided by protocol','COMPLIANT: Σ(rules) satisfied — record filed with exchange'],
    verdict:'Flash crash navigated. Audit trace: f8-a7-b7-c7-e6-a5-b4-e4-a3-g1. ∀ regulatory constraints satisfied.'},
   {name:'M&A Arbitrage',pnl:'+$3,200',risk:'HIGH',compliance:'REVIEW',
    path:['d8','a7','e7','d7','g7','a6','c5','h7','d3','b2'],
-   steps:['∂ News: merger rumor — ∉ confirmed, ∈ public domain only','∂ Pre-trade: MNPI check — ∀(sources) verified public','§ Regulatory: no material non-public information confirmed','NN ML: P(merger|public signals) = 0.73 — model signal','∈ Position: within 2% portfolio limit — authorized','↑ BUY: 500 shares at market open — T09:31:04','O/P Options: protective puts — δ = -0.35 hedge','∫ VaR: max loss = $8,400 at 95% confidence','! Anomaly: price movement → P(insider) > 0.60','⚠ REVIEW: suspicious pattern escalated to compliance'],
+   steps:['∂ News: merger rumor — ∉ confirmed, ∈ public domain only','∂ Pre-trade: MNPI check — ∀(sources) verified public','§ Regulatory: no material non-public information confirmed','NN ML: P(merger|public signals) = 0.73 — model signal','∈ Position: within 2% portfolio limit — authorized','↑ BUY: 500 shares at market open — T09:31:04','O/P Options: protective puts — δ = -0.35 hedge','∫ VaR: max loss = $8,400 at 95% confidence','! Anomaly: price movement → P(insider) > 0.60','REVIEW: suspicious pattern escalated to compliance'],
    verdict:'Trade flagged. Anomaly in pre-announcement movement. SEC notification filed. Frozen pending investigation.'},
   {name:'HFT Spoofing',pnl:'—',risk:'CRITICAL',compliance:'VIOLATION',
    path:['e8','a7','d4','d3','e3','f3','g3','e4','c2','e1'],
@@ -1742,36 +1742,36 @@ const TH_NODES=[
   {id:'a5',icon:'∿→0',name:'Breathing'},{id:'b5',icon:'∂→now',name:'Mindfulness'},
   {id:'c5',icon:'∂/∂t',name:'Thought Jnl'},{id:'d5',icon:'∫move',name:'Exercise'},
   {id:'e5',icon:'∃expr',name:'Creative'},{id:'f5',icon:'∩soc',name:'Connection'},
-  {id:'g5',icon:'→★',name:'Behav. Act.'},{id:'h5',icon:'¬⊥',name:'Cogn. Rstct'},
+  {id:'g5',icon:'→',name:'Behav. Act.'},{id:'h5',icon:'¬⊥',name:'Cogn. Rstct'},
   {id:'a4',icon:'∂T/∂E',name:'Id. Trigger'},{id:'b4',icon:'⊢¬⊥',name:'Chal. Thght'},
   {id:'c4',icon:'∃test',name:'Behav. Exp.'},{id:'d4',icon:'∃evid',name:'Evid. Test'},
   {id:'e4',icon:'→fear',name:'Exposure'},{id:'f4',icon:'¬⊥→+',name:'Reframe'},
-  {id:'g4',icon:'→★★',name:'Action Plan'},{id:'h4',icon:'∩th',name:'Alliance'},
+  {id:'g4',icon:'→',name:'Action Plan'},{id:'h4',icon:'∩th',name:'Alliance'},
   {id:'a3',icon:'∪fam',name:'Family'},{id:'b3',icon:'∪grp',name:'Group Th.'},
   {id:'c3',icon:'Rx',name:'Medication'},{id:'d3',icon:'∫run',name:'Exercise Rx'},
   {id:'e3',icon:'+ψ',name:'Pos. Exp.'},{id:'f3',icon:'↑ψ',name:'Resilience'},
-  {id:'g3',icon:'∈val',name:'Values'},{id:'h3',icon:'→★',name:'Goals'},
+  {id:'g3',icon:'∈val',name:'Values'},{id:'h3',icon:'→',name:'Goals'},
   {id:'a2',icon:'↑mood',name:'Mood ↑'},{id:'b2',icon:'↑sleep',name:'Sleep ↑'},
   {id:'c2',icon:'↑soc',name:'Social ↑'},{id:'d2',icon:'↑work',name:'Work Fnctn'},
   {id:'e2',icon:'∂→0',name:'Relapse Pr.'},{id:'f2',icon:'t=end',name:'Session End'},
   {id:'g2',icon:'∂note',name:'Ther. Note'},{id:'h2',icon:'t+14',name:'Next Appt.'},
-  {id:'a1',icon:'★₁',name:'Insight'},{id:'b1',icon:'★₂',name:'Beh. Change'},
-  {id:'c1',icon:'★₃',name:'Recovery'},{id:'d1',icon:'★₄',name:'Wellbeing'},
-  {id:'e1',icon:'!⚠',name:'Crisis Flag'},{id:'f1',icon:'!plan',name:'Safety Plan'},
+  {id:'a1',icon:'₁',name:'Insight'},{id:'b1',icon:'₂',name:'Beh. Change'},
+  {id:'c1',icon:'₃',name:'Recovery'},{id:'d1',icon:'₄',name:'Wellbeing'},
+  {id:'e1',icon:'!',name:'Crisis Flag'},{id:'f1',icon:'!plan',name:'Safety Plan'},
   {id:'g1',icon:'⊕',name:'Emerg. Ref.'},{id:'h1',icon:'↻',name:'Continue'},
 ];
 const TH_CASES=[
   {name:'Patient A',pattern:'Anxiety-Avoidance',avoid:'Social evaluation',
    path:['a8','a7','a6','a4','b4','h5','f4','e3','g4','a1'],
-   steps:['⊥₁ Core belief: "∀outcomes → failure" — activated by evaluation context','∞→⊥ Catastrophising: P(worst_case) → 1 in cognitive model','⊘ Avoidance: work presentations cancelled ×3 this week','∂T/∂E Trigger identified: performance evaluation context','⊢¬⊥ Challenge: reviewing actual evidence of past failures','¬⊥ Cognitive restructuring: alternative interpretations tested','¬⊥→+ Reframe: "I prepare thoroughly" installed as response','+ψ Positive experience: last successful presentation recalled','→★★ Action plan: graduated exposure ladder constructed','★₁ INSIGHT: avoidance loop identified — breaking the cycle'],
+   steps:['⊥₁ Core belief: "∀outcomes → failure" — activated by evaluation context','∞→⊥ Catastrophising: P(worst_case) → 1 in cognitive model','⊘ Avoidance: work presentations cancelled ×3 this week','∂T/∂E Trigger identified: performance evaluation context','⊢¬⊥ Challenge: reviewing actual evidence of past failures','¬⊥ Cognitive restructuring: alternative interpretations tested','¬⊥→+ Reframe: "I prepare thoroughly" installed as response','+ψ Positive experience: last successful presentation recalled','→ Action plan: graduated exposure ladder constructed','₁ INSIGHT: avoidance loop identified — breaking the cycle'],
    therapist:'Patient A: anxiety-avoidance loop confirmed (a8-a7-a6). Core belief ⊥₁ activated by performance context. Cognitive restructuring successful. Avoidance cluster visited 3× — prioritize behavioral activation next session. Trace: a8-a7-a6-a4-b4-h5-f4-e3-g4-a1'},
   {name:'Patient B',pattern:'Depression-Withdrawal',avoid:'Social engagement',
    path:['b8','d6','f6','b6','d5','g5','f5','c2','b2','b1'],
-   steps:['⊥₂ Core belief: "I am fundamentally unlovable" — pervasive','→∅ Withdrawal: ∀ invitations declined last 3 weeks — complete','∫sleep Oversleeping: Δt(sleep) = +4hr — anhedonia pattern','↻⊥ Rumination: negative memory replay loops identified','∫move Exercise: 20-min walks — entry point to activation','→★ Behavioral activation: small achievable daily goals set','∩soc Social: 1 coffee per week — minimum viable connection','↑soc Social functioning: 2 events attended this fortnight','↑sleep Sleep normalizing: Δ(PHQ-9) = -2.3 over 4 weeks','★₂ BEHAVIOR CHANGE: mood log shows consistent improvement'],
+   steps:['⊥₂ Core belief: "I am fundamentally unlovable" — pervasive','→∅ Withdrawal: ∀ invitations declined last 3 weeks — complete','∫sleep Oversleeping: Δt(sleep) = +4hr — anhedonia pattern','↻⊥ Rumination: negative memory replay loops identified','∫move Exercise: 20-min walks — entry point to activation','→ Behavioral activation: small achievable daily goals set','∩soc Social: 1 coffee per week — minimum viable connection','↑soc Social functioning: 2 events attended this fortnight','↑sleep Sleep normalizing: Δ(PHQ-9) = -2.3 over 4 weeks','₂ BEHAVIOR CHANGE: mood log shows consistent improvement'],
    therapist:'Patient B: depression-withdrawal (b8-d6-f6). Behavioral activation working. Sleep and social metrics improving. Continue monitoring. Trace: b8-d6-f6-b6-d5-g5-f5-c2-b2-b1'},
   {name:'Patient C',pattern:'Trauma-PTSD',avoid:'Memory access',
    path:['f8','e7','c6','a6','a5','e4','f3','h4','e2','c1'],
-   steps:['⊥₆ Vulnerability: core belief activated by recent trigger','ψ→⊢ Emotional reasoning: "I feel terror → I am in danger"','∈safe Safety-seeking: lock checking 15× nightly — compulsive','⊘ Avoidance: systematic avoidance of trauma-related stimuli','∿→0 Breathing anchor: stabilization before trauma work','→fear Gradual exposure: approaching memory with safety protocol','↑ψ Resilience: post-traumatic growth framework introduced','∩th Therapeutic alliance deepened — new disclosure made','↑mood Mood improving: PHQ-9 18 → 11 over 6 sessions','★₃ RECOVERY: ready for full trauma-focused protocol'],
+   steps:['⊥₆ Vulnerability: core belief activated by recent trigger','ψ→⊢ Emotional reasoning: "I feel terror → I am in danger"','∈safe Safety-seeking: lock checking 15× nightly — compulsive','⊘ Avoidance: systematic avoidance of trauma-related stimuli','∿→0 Breathing anchor: stabilization before trauma work','→fear Gradual exposure: approaching memory with safety protocol','↑ψ Resilience: post-traumatic growth framework introduced','∩th Therapeutic alliance deepened — new disclosure made','↑mood Mood improving: PHQ-9 18 → 11 over 6 sessions','₃ RECOVERY: ready for full trauma-focused protocol'],
    therapist:'Patient C: PTSD avoidance confirmed. Stabilization complete. Safety-seeking cluster (c6-a6) — continue monitoring. Ready for trauma processing. Trace: f8-e7-c6-a6-a5-e4-f3-h4-e2-c1'},
 ];
 let thState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null};
@@ -1823,16 +1823,16 @@ thRender();
 
 // ─── PROGRAM 9: CRISIS MANAGEMENT ────────────────────────────────
 const CR_NODES=[
-  {id:'a8',icon:'⚡',name:'Alert'},{id:'b8',icon:'∿',name:'Sensors'},
+  {id:'a8',icon:'',name:'Alert'},{id:'b8',icon:'∿',name:'Sensors'},
   {id:'c8',icon:'!',name:'Emergency'},{id:'d8',icon:'∑',name:'Impact Ass.'},
   {id:'e8',icon:'∈',name:'Affected Area'},{id:'f8',icon:'∃',name:'Pop. Risk'},
   {id:'g8',icon:'∩',name:'Hosp. Cap.'},{id:'h8',icon:'→',name:'Evac. Routes'},
   {id:'a7',icon:'∇',name:'Fire Dept'},{id:'b7',icon:'+',name:'EMS'},
-  {id:'c7',icon:'⊢',name:'Police'},{id:'d7',icon:'⚔',name:'Natl. Guard'},
+  {id:'c7',icon:'⊢',name:'Police'},{id:'d7',icon:'',name:'Natl. Guard'},
   {id:'e7',icon:'∫',name:'Engineers'},{id:'f7',icon:'∿',name:'Coast Guard'},
   {id:'g7',icon:'↑',name:'Air Assets'},{id:'h7',icon:'∿',name:'Maritime'},
   {id:'a6',icon:'□',name:'Shelter'},{id:'b6',icon:'∑food',name:'Food Distr.'},
-  {id:'c6',icon:'H₂O',name:'Water'},{id:'d6',icon:'⚡',name:'Power Rest.'},
+  {id:'c6',icon:'H₂O',name:'Water'},{id:'d6',icon:'',name:'Power Rest.'},
   {id:'e6',icon:'∿',name:'Comm. Sys.'},{id:'f6',icon:'∀',name:'Emrg. Brdcst'},
   {id:'g6',icon:'∩',name:'Coord. Ctr.'},{id:'h6',icon:'∑',name:'Sit. Report'},
   {id:'a5',icon:'+Rx',name:'Med. Supply'},{id:'b5',icon:'+',name:'Triage'},
@@ -1840,18 +1840,18 @@ const CR_NODES=[
   {id:'e5',icon:'∈?',name:'SAR Team'},{id:'f5',icon:'∃',name:'K9 Search'},
   {id:'g5',icon:'∿',name:'Dive Team'},{id:'h5',icon:'↑',name:'Rescue Helo'},
   {id:'a4',icon:'→∅',name:'Evac. Order'},{id:'b4',icon:'∑bus',name:'Transport'},
-  {id:'c4',icon:'⛽',name:'Fuel'},{id:'d4',icon:'□',name:'Staging Area'},
+  {id:'c4',icon:'',name:'Fuel'},{id:'d4',icon:'□',name:'Staging Area'},
   {id:'e4',icon:'∂',name:'Press Brfg'},{id:'f4',icon:'∀!',name:'Alert Sys.'},
   {id:'g4',icon:'∿',name:'Soc. Media'},{id:'h4',icon:'⊘',name:'Misinfo Ctrl'},
   {id:'a3',icon:'↔',name:'Realloc.'},{id:'b3',icon:'∑',name:'Progress'},
   {id:'c3',icon:'∩',name:'Mutual Aid'},{id:'d3',icon:'$',name:'Emrg. Funds'},
-  {id:'e3',icon:'∂hz',name:'Hazmat'},{id:'f3',icon:'☢',name:'Rad. Monitor'},
+  {id:'e3',icon:'∂hz',name:'Hazmat'},{id:'f3',icon:'',name:'Rad. Monitor'},
   {id:'g3',icon:'∿',name:'Air Quality'},{id:'h3',icon:'H₂O∂',name:'Water Test'},
-  {id:'a2',icon:'✓',name:'Secured'},{id:'b2',icon:'∫',name:'Rebuilding'},
+  {id:'a2',icon:'[x]',name:'Secured'},{id:'b2',icon:'∫',name:'Rebuilding'},
   {id:'c2',icon:'∑$',name:'Dmg. Assess.'},{id:'d2',icon:'$∀',name:'FEMA Req.'},
-  {id:'e2',icon:'∂∂',name:'AAR'},{id:'f2',icon:'→★',name:'Lessons'},
+  {id:'e2',icon:'∂∂',name:'AAR'},{id:'f2',icon:'→',name:'Lessons'},
   {id:'g2',icon:'↻',name:'Protocol ↑'},{id:'h2',icon:'∫',name:'Training'},
-  {id:'a1',icon:'✓',name:'Resolved'},{id:'b1',icon:'↻',name:'Ongoing'},
+  {id:'a1',icon:'[x]',name:'Resolved'},{id:'b1',icon:'↻',name:'Ongoing'},
   {id:'c1',icon:'↑!',name:'Escalation'},{id:'d1',icon:'∑',name:'Final Rpt.'},
   {id:'e1',icon:'†',name:'Casualties'},{id:'f1',icon:'←',name:'Pop. Return'},
   {id:'g1',icon:'∂',name:'Media Dbrf.'},{id:'h1',icon:'↻',name:'Recovery'},
@@ -1860,17 +1860,17 @@ const CR_CASES=[
   {name:'Hurricane Cat 5',agencies:['FEMA','Coast Guard','National Guard'],
    path:['c8','e8','f8','a4','b4','b7','a6','c6','e4','a1'],
    agents:['FEMA','Coast Guard','NatlGuard','RedCross'],
-   steps:['! T+0: Emergency declared — Cat 5 landfall Δt < 18hr','∈ Impact: 180,000 residents in ∀(zones A,B,C) direct path','∃ Population: 24,000 special needs — priority transport required','→∅ Evac order: mandatory ∀(coastal zones) — compliance required','∑bus 200 vehicles mobilized — special needs first protocol','+EMS pre-positioned: trauma centers on bypass protocol','□ 24 shelters activated — capacity 45,000 persons','H₂O Emergency reserves: 72hr supply — isolated distribution','∀! 3M notifications via WEA — P(receipt) = 0.997','✓ RESOLVED: 94% evac compliance — Σ(fatalities) = 13 (projected 400+)'],
+   steps:['! T+0: Emergency declared — Cat 5 landfall Δt < 18hr','∈ Impact: 180,000 residents in ∀(zones A,B,C) direct path','∃ Population: 24,000 special needs — priority transport required','→∅ Evac order: mandatory ∀(coastal zones) — compliance required','∑bus 200 vehicles mobilized — special needs first protocol','+EMS pre-positioned: trauma centers on bypass protocol','□ 24 shelters activated — capacity 45,000 persons','H₂O Emergency reserves: 72hr supply — isolated distribution','∀! 3M notifications via WEA — P(receipt) = 0.997','RESOLVED: 94% evac compliance — Σ(fatalities) = 13 (projected 400+)'],
    verdict:'Hurricane: 167,000 evacuated. 13 fatalities vs projected 400+. Trace: c8-e8-f8-a4-b4-b7-a6-c6-e4-a1'},
   {name:'Chemical Spill',agencies:['EPA','HAZMAT','Fire'],
    path:['a8','e8','e3','f3','g3','c7','c5','h4','c2','e2'],
    agents:['EPA','HazMat','Fire Dept','Health Dept'],
-   steps:['⚡ Alert T+03:14 — industrial facility breach sensor confirmed','∈ Affected: r = 2km → 8,400 residents in plume path','∂hz HazMat: Cl₂ detected — IDLH = 10 ppm; measured 45 ppm','☢ Rad: ∅ nuclear — chemical only — CBRN level B','∿ Air: mobile sensors deployed — live ppm readings','⊢ Cordon: 2km exclusion zone — P(recontamin.) → 0','∩+ Field hospital: decontamination corridor operational','⊘ Misinfo: "nuclear" false reports countered immediately','✓ Secured: Cl₂ < NIOSH TWA — area cleared T+6:40','∂∂ AAR initiated: Σ(hospitalizations) = 12, Σ(deaths) = 0'],
+   steps:['Alert T+03:14 — industrial facility breach sensor confirmed','∈ Affected: r = 2km → 8,400 residents in plume path','∂hz HazMat: Cl₂ detected — IDLH = 10 ppm; measured 45 ppm','Rad: ∅ nuclear — chemical only — CBRN level B','∿ Air: mobile sensors deployed — live ppm readings','⊢ Cordon: 2km exclusion zone — P(recontamin.) → 0','∩+ Field hospital: decontamination corridor operational','⊘ Misinfo: "nuclear" false reports countered immediately','Secured: Cl₂ < NIOSH TWA — area cleared T+6:40','∂∂ AAR initiated: Σ(hospitalizations) = 12, Σ(deaths) = 0'],
    verdict:'Chemical spill 6h40min. 12 hospitalizations, 0 fatalities. Trace: a8-e8-e3-f3-g3-c7-c5-h4-c2-e2'},
   {name:'Cyber Infrastructure',agencies:['CISA','FBI','NSA'],
    path:['b8','e6','h4','d6','c3','d4','g4','b3','f2','e2'],
    agents:['CISA','FBI CyberDiv','NSA','GridOps'],
-   steps:['∿ Sensors: SCADA anomaly — OT network Δ(baseline) = +7σ','∿ Comms: secure emergency coordination channel established','⊘ Misinfo: false outage claims — public panic counter-ops','⚡ Power: hospital + water treatment priority restoration','∩ Mutual aid: request to adjacent state grid — 800MW','$ Emrg. funds: $12M federal cyber response authorized','∿ Social: public panic indicators tracked','∩ Aid confirmed: 800MW import from western interconnect','✓ Nominal: critical services restored — Δt = 4h12min','∂∂ Forensic: full investigation initiated — attribution ongoing'],
+   steps:['∿ Sensors: SCADA anomaly — OT network Δ(baseline) = +7σ','∿ Comms: secure emergency coordination channel established','⊘ Misinfo: false outage claims — public panic counter-ops','Power: hospital + water treatment priority restoration','∩ Mutual aid: request to adjacent state grid — 800MW','$ Emrg. funds: $12M federal cyber response authorized','∿ Social: public panic indicators tracked','∩ Aid confirmed: 800MW import from western interconnect','Nominal: critical services restored — Δt = 4h12min','∂∂ Forensic: full investigation initiated — attribution ongoing'],
    verdict:'Cyber mitigated. Restored 4h12min. CISA advisory published. Trace: b8-e6-h4-d6-c3-d4-g4-b3-f2-e2'},
 ];
 let crState={currentCase:null,currentIndex:0,trace:[],visited:new Set(),iv:null,hour:0,logCount:0};
@@ -1953,7 +1953,7 @@ const AI_NODES=[
   {id:'g5',icon:'∀role',name:'Role-Plan'},{id:'h5',icon:'∂meta',name:'Meta-Plan'},
   {id:'a4',icon:'k=256',name:'Short Ctx'},{id:'b4',icon:'k=128k',name:'Long Ctx'},
   {id:'c4',icon:'P(r|q)',name:'Retrieval'},{id:'d4',icon:'∫ctx',name:'Ctx. Integr.'},
-  {id:'e4',icon:'∂self',name:'Self-Ref.'},{id:'f4',icon:'→★',name:'Goal Maint.'},
+  {id:'e4',icon:'∂self',name:'Self-Ref.'},{id:'f4',icon:'→',name:'Goal Maint.'},
   {id:'g4',icon:'⊢⊢⊢',name:'Chain-of-Thgt'},{id:'h4',icon:'¬self',name:'Self-Critique'},
   {id:'a3',icon:'∂short',name:'Concise'},{id:'b3',icon:'∫long',name:'Verbose'},
   {id:'c3',icon:'∑struct',name:'Structured'},{id:'d3',icon:'∈conv',name:'Conversational'},

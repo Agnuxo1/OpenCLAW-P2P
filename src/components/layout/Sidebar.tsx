@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/store/uiStore";
 import {
@@ -23,7 +24,11 @@ import {
   PenLine,
   Database,
   Zap,
+  GraduationCap,
+  BarChart3,
+  ArrowUpRight,
 } from "lucide-react";
+import { BrandMark } from "@/components/marketing/BrandMark";
 
 interface NavItem {
   href: string;
@@ -48,17 +53,19 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { href: "/app/agents", label: "Agents", icon: Cpu },
       { href: "/app/leaderboard", label: "Leaderboard", icon: Trophy },
-      { href: "/app/benchmark", label: "Benchmark", icon: Trophy, badge: "NEW" },
-      { href: "https://benchclaw.vercel.app", label: "BenchClaw", icon: Zap, badge: "↗", external: true },
+      { href: "/app/benchmark", label: "Benchmark", icon: Trophy, badge: "New" },
+      { href: "/app/transparency", label: "Transparency", icon: BarChart3, badge: "New" },
+      { href: "https://benchclaw.vercel.app", label: "BenchClaw", icon: Zap, external: true },
       { href: "/app/network", label: "Network 3D", icon: Network },
     ],
   },
   {
     label: "Research",
     items: [
-      { href: "/app/verify", label: "Verify Proof", icon: ShieldCheck, badge: "LEAN4" },
+      { href: "/app/tribunal", label: "Tribunal", icon: GraduationCap, badge: "New" },
+      { href: "/app/verify", label: "Verify Proof", icon: ShieldCheck, badge: "Lean 4" },
       { href: "/app/swarm", label: "Swarm", icon: Beaker },
-      { href: "/app/dataset", label: "Dataset", icon: Database, badge: "NEW" },
+      { href: "/app/dataset", label: "Dataset", icon: Database, badge: "New" },
       { href: "/app/simulations", label: "Simulations", icon: FlaskConical },
       { href: "/app/knowledge", label: "Knowledge", icon: BookOpen },
       { href: "/app/governance", label: "Governance", icon: Scale },
@@ -90,105 +97,153 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarCollapsed, toggleSidebar } = useUIStore();
+  const { sidebarCollapsed: collapsedPreference, toggleSidebar, mobileNavOpen, setMobileNavOpen } = useUIStore();
+  // On small screens the sidebar is an off-canvas drawer and always shows labels.
+  const sidebarCollapsed = collapsedPreference && !mobileNavOpen;
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname, setMobileNavOpen]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMobileNavOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileNavOpen, setMobileNavOpen]);
 
   return (
+    <>
+    {mobileNavOpen && (
+      <div
+        aria-hidden="true"
+        onClick={() => setMobileNavOpen(false)}
+        className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px] md:hidden"
+      />
+    )}
     <aside
+      id="app-navigation"
+      aria-label="App navigation"
       className={cn(
-        "flex flex-col h-full border-r border-[#2c2c30] bg-[#0c0c0d]",
-        "transition-all duration-200 ease-in-out shrink-0",
-        sidebarCollapsed ? "w-[52px]" : "w-[220px]",
+        "flex h-full shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
+        "transition-[width,transform] duration-200 ease-out motion-reduce:transition-none",
+        sidebarCollapsed ? "w-[56px]" : "w-[232px]",
+        "max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:z-50 max-md:w-[272px] max-md:shadow-lifted",
+        mobileNavOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full",
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2 px-3 h-14 border-b border-[#2c2c30] shrink-0">
-        <div className="w-7 h-7 rounded bg-[#ff4e1a] flex items-center justify-center shrink-0 font-mono font-bold text-black text-xs">
-          🦞
-        </div>
+      <Link
+        href="/"
+        aria-label="P2PCLAW home"
+        className={cn(
+          "flex h-12 shrink-0 items-center gap-2.5 border-b border-sidebar-border px-4",
+          sidebarCollapsed && "justify-center px-0",
+        )}
+      >
+        <BrandMark className="h-6 w-6" title="" />
         {!sidebarCollapsed && (
-          <span className="font-mono font-bold text-sm text-[#f5f0eb] truncate">
+          <span className="truncate text-[15px] font-semibold tracking-tight">
             P2PCLAW
-            <span className="text-[#ff4e1a] text-xs ml-1">β</span>
+            <span className="ml-1.5 align-middle text-[11px] font-medium text-muted-foreground">Beta</span>
           </span>
         )}
-      </div>
+      </Link>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2">
-        {NAV_GROUPS.map((group) => (
+      <nav className="flex-1 overflow-y-auto px-2.5 py-3">
+        {NAV_GROUPS.map((group, gi) => (
           <div key={group.label} className="mb-4">
-            {!sidebarCollapsed && (
-              <p className="px-2 py-1 text-[10px] font-mono font-semibold text-[#52504e] uppercase tracking-widest">
+            {!sidebarCollapsed ? (
+              <p className="px-2.5 pb-1 pt-1 text-[11px] font-semibold text-muted-foreground">
                 {group.label}
               </p>
-            )}
-            {group.items.map((item) => {
-              const Icon = item.icon;
-              const active = !item.external && (pathname === item.href || pathname.startsWith(item.href + "/"));
-              const className = cn(
-                "flex items-center gap-2.5 px-2 py-1.5 rounded-md mb-0.5",
-                "font-mono text-xs transition-all duration-150",
-                active
-                  ? "bg-[#1a1a1c] text-[#ff4e1a] border border-[#ff4e1a]/20"
-                  : "text-[#9a9490] hover:text-[#f5f0eb] hover:bg-[#1a1a1c]",
-                sidebarCollapsed && "justify-center",
-              );
-              const inner = (
-                <>
-                  <Icon
-                    className={cn("w-4 h-4 shrink-0", active && "text-[#ff4e1a]")}
-                  />
-                  {!sidebarCollapsed && (
-                    <span className="truncate">{item.label}</span>
-                  )}
-                  {!sidebarCollapsed && item.badge && (
-                    <span className="ml-auto bg-[#ff4e1a]/20 text-[#ff4e1a] text-[10px] px-1.5 py-0.5 rounded font-mono">
-                      {item.badge}
-                    </span>
-                  )}
-                </>
-              );
-              if (item.external) {
-                return (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={sidebarCollapsed ? item.label : undefined}
-                    className={className}
-                  >
-                    {inner}
-                  </a>
+            ) : gi > 0 ? (
+              <div aria-hidden="true" className="mx-3 mb-2 h-px bg-sidebar-border" />
+            ) : null}
+            <ul>
+              {group.items.map((item) => {
+                const Icon = item.icon;
+                const active = !item.external && (pathname === item.href || pathname.startsWith(item.href + "/"));
+                const className = cn(
+                  "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 mb-px",
+                  "text-[13px] transition-colors duration-150",
+                  active
+                    ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                  sidebarCollapsed && "justify-center px-0",
                 );
-              }
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={sidebarCollapsed ? item.label : undefined}
-                  className={className}
-                >
-                  {inner}
-                </Link>
-              );
-            })}
+                const inner = (
+                  <>
+                    <Icon
+                      className={cn(
+                        "h-4 w-4 shrink-0",
+                        active ? "text-sidebar-primary" : "text-muted-foreground",
+                      )}
+                    />
+                    {!sidebarCollapsed && (
+                      <span className="truncate">{item.label}</span>
+                    )}
+                    {!sidebarCollapsed && item.badge && (
+                      <span className="ml-auto rounded-full bg-sidebar-accent px-1.5 py-px text-[10px] font-medium text-muted-foreground">
+                        {item.badge}
+                      </span>
+                    )}
+                    {!sidebarCollapsed && item.external && (
+                      <ArrowUpRight
+                        aria-label="Opens in a new tab"
+                        className={cn("h-3.5 w-3.5 shrink-0 text-muted-foreground", !item.badge && "ml-auto")}
+                      />
+                    )}
+                  </>
+                );
+                return (
+                  <li key={`${item.href}-${item.label}`}>
+                    {item.external ? (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={sidebarCollapsed ? item.label : undefined}
+                        aria-label={sidebarCollapsed ? item.label : undefined}
+                        className={className}
+                      >
+                        {inner}
+                      </a>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        title={sidebarCollapsed ? item.label : undefined}
+                        aria-label={sidebarCollapsed ? item.label : undefined}
+                        aria-current={active ? "page" : undefined}
+                        className={className}
+                      >
+                        {inner}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         ))}
       </nav>
 
       {/* Collapse toggle */}
       <button
+        type="button"
         onClick={toggleSidebar}
-        className="flex items-center justify-center h-10 border-t border-[#2c2c30] text-[#52504e] hover:text-[#f5f0eb] transition-colors"
+        className="hidden h-10 items-center justify-center border-t border-sidebar-border text-muted-foreground transition-colors hover:text-sidebar-foreground md:flex"
         title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {sidebarCollapsed ? (
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="h-4 w-4" />
         ) : (
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="h-4 w-4" />
         )}
       </button>
     </aside>
+    </>
   );
 }

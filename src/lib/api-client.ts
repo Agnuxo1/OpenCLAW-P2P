@@ -19,6 +19,36 @@ import {
   type PublishPaperPayload,
   type Paper,
 } from "@/types/api";
+import {
+  SCORE_DIMENSIONS,
+  LIFECYCLE_STAGES,
+  PERSISTENCE_TIERS,
+  type ApiWriteResult,
+  type AgreementInterpretation,
+  type CalibrationInfo,
+  type ConsensusProposal,
+  type ConsensusRule,
+  type ConsensusTally,
+  type DeceptionMatch,
+  type DepthInfo,
+  type FlagSeverity,
+  type GranularScores,
+  type HonestAgentCounts,
+  type InterJudgeAgreement,
+  type JudgeDetail,
+  type LifecycleStage,
+  type PaperScience,
+  type PersistenceTier,
+  type ProductionMetrics,
+  type ReferenceVerification,
+  type ScoreDimension,
+  type TribunalCategories,
+  type TribunalExaminers,
+  type TribunalPresentPayload,
+  type TribunalQuestionProposal,
+  type TribunalResult,
+  type TribunalSession,
+} from "@/types/api";
 
 /** Normalize a raw Railway paper record to our Paper schema */
 function normalizeRawPaper(p: Record<string, unknown>): Paper | null {
@@ -595,4 +625,558 @@ export function getStatusColor(status: Paper["status"]): string {
     UNVERIFIED: "#9a9490",
   };
   return map[status] ?? "#9a9490";
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// v8 scientific features — defensive readers (see .cognition/CONTRACT.md)
+// Every reader returns null when the endpoint/field is absent so the UI can
+// show "not available yet" instead of inventing numbers.
+// ════════════════════════════════════════════════════════════════════════
+
+type Rec = Record<string, unknown>;
+
+/** Accepts an object or a JSON-encoded object (Gun.js stores nested data as strings). */
+export function asRecord(value: unknown): Rec | null {
+  let v = value;
+  if (typeof v === "string") {
+    const s = v.trim();
+    if (!s.startsWith("{")) return null;
+    try { v = JSON.parse(s); } catch { return null; }
+  }
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Rec) : null;
+}
+
+function asArray(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && value.trim().startsWith("[")) {
+    try { const parsed: unknown = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+  }
+  return [];
+}
+
+function numOrNull(value: unknown): number | null {
+  const n = typeof value === "number" ? value
+    : typeof value === "string" && value.trim() !== "" ? Number(value) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+
+function boolOrNull(value: unknown): boolean | null {
+  if (typeof value === "boolean") return value;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  return null;
+}
+
+function strOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value : null;
+}
+
+function numericMap(value: unknown): Record<string, number> {
+  const rec = asRecord(value);
+  const out: Record<string, number> = {};
+  if (!rec) return out;
+  for (const [k, v] of Object.entries(rec)) {
+    const n = numOrNull(v);
+    if (n !== null) out[k] = n;
+  }
+  return out;
+}
+
+function stringList(value: unknown): string[] {
+  return asArray(value).filter((s): s is string => typeof s === "string" && s.trim() !== "");
+}
+
+function normalizeSeverity(value: unknown): FlagSeverity {
+  const s = String(value ?? "").toLowerCase();
+  return s === "critical" || s === "high" || s === "low" ? s : "medium";
+}
+
+export function interpretAlpha(alpha: number | null): AgreementInterpretation {
+  if (alpha === null) return "insufficient";
+  if (alpha >= 0.8) return "reliable";
+  if (alpha >= 0.667) return "tentative";
+  return "low";
+}
+
+function parseCalibration(value: unknown): CalibrationInfo | null {
+  const cal = asRecord(value);
+  if (!cal) return null;
+  const ss = asRecord(cal.signals_summary) ?? {};
+  const deception: DeceptionMatch[] = asArray(ss.deception_matches)
+    .map(asRecord)
+    .filter((d): d is Rec => d !== null)
+    .map((d) => ({
+      id: String(d.id ?? "unknown"),
+      name: strOrNull(d.name) ?? String(d.id ?? "Unnamed detector"),
+      severity: normalizeSeverity(d.severity),
+    }));
+  const adjustments: Record<string, string[]> = {};
+  const adj = asRecord(cal.adjustments);
+  if (adj) {
+    for (const [field, v] of Object.entries(adj)) {
+      const list = typeof v === "string" ? [v] : stringList(v);
+      if (list.length) adjustments[field] = list;
+    }
+  }
+  return {
+    field: strOrNull(cal.field),
+    field_confidence: numOrNull(cal.field_confidence),
+    red_flags: stringList(ss.red_flags),
+    red_flag_count: numOrNull(ss.red_flag_count),
+    deception_matches: deception,
+    sections_missing: stringList(ss.sections_missing),
+    adjustments,
+    adjustment_count: numOrNull(cal.adjustment_count),
+    false_positive_corrected: strOrNull(cal.false_positive_corrected),
+  };
+}
+
+function parseAgreement(value: unknown): InterJudgeAgreement | null {
+  const r = asRecord(value);
+  if (!r) return null;
+  const alpha = numOrNull(r.alpha);
+  const declared = String(r.interpretation ?? "");
+  const interpretation: AgreementInterpretation =
+    declared === "reliable" || declared === "tentative" || declared === "low" || declared === "insufficient"
+      ? declared : interpretAlpha(alpha);
+  return {
+    alpha,
+    metric: strOrNull(r.metric),
+    n_judges: numOrNull(r.n_judges),
+    n_dimensions: numOrNull(r.n_dimensions),
+    n_pairable_values: numOrNull(r.n_pairable_values),
+    interpretation,
+  };
+}
+
+function parseDepth(value: unknown): DepthInfo | null {
+  const r = asRecord(value);
+  if (!r) return null;
+  const t = asRecord(r.terms);
+  const score = numOrNull(r.score);
+  const extended = numOrNull(r.extended_score);
+  if (score === null && extended === null && !t) return null;
+  return {
+    score,
+    extended_score: extended,
+    terms: t ? {
+      sections: numOrNull(t.sections), eq: boolOrNull(t.eq), proof: boolOrNull(t.proof),
+      code: boolOrNull(t.code), stats: boolOrNull(t.stats), n_num: numOrNull(t.n_num),
+      n_ref: numOrNull(t.n_ref), doi: boolOrNull(t.doi), author: boolOrNull(t.author),
+      mono: boolOrNull(t.mono), low_vocab: boolOrNull(t.low_vocab),
+    } : null,
+  };
+}
+
+function parseReferenceVerification(value: unknown): ReferenceVerification | null {
+  const r = asRecord(value);
+  if (!r) return null;
+  return {
+    total: numOrNull(r.total),
+    verified: numOrNull(r.verified),
+    unverifiable: numOrNull(r.unverifiable),
+    unverifiable_ratio: numOrNull(r.unverifiable_ratio),
+    sources: numericMap(r.sources),
+    ghost_citation_flag: boolOrNull(r.ghost_citation_flag),
+    items: asArray(r.items)
+      .map(asRecord)
+      .filter((i): i is Rec => i !== null)
+      .map((i) => ({
+        ref: String(i.ref ?? i.title ?? ""),
+        status: String(i.status ?? "unknown").toLowerCase(),
+        source: strOrNull(i.source),
+        doi: strOrNull(i.doi),
+        title: strOrNull(i.title),
+      })),
+  };
+}
+
+/** Parse `granular_scores` (object or JSON string). Returns null when nothing usable is present. */
+export function parseGranularScores(value: unknown): GranularScores | null {
+  const r = asRecord(value);
+  if (!r) return null;
+  const sections = asRecord(r.sections) ?? {};
+  const dimensions: Partial<Record<ScoreDimension, number>> = {};
+  for (const d of SCORE_DIMENSIONS) {
+    const n = numOrNull(sections[d] ?? r[d]);
+    if (n !== null) dimensions[d] = n;
+  }
+  const overall = numOrNull(r.overall);
+  if (overall === null && Object.keys(dimensions).length === 0) return null;
+  const judge_details: JudgeDetail[] = asArray(r.judge_details)
+    .map(asRecord)
+    .filter((j): j is Rec => j !== null)
+    .map((j) => ({ judge: strOrNull(j.judge) ?? "Unnamed judge", scores: numericMap(j.scores) }));
+  return {
+    dimensions,
+    overall,
+    judges: stringList(r.judges),
+    judge_count: numOrNull(r.judge_count),
+    judge_details,
+    consensus: numericMap(r.consensus),
+    overall_consensus: numOrNull(r.overall_consensus),
+    scored_at: strOrNull(r.scored_at),
+    paper_type: strOrNull(r.paper_type),
+    calibration: parseCalibration(r.calibration),
+    inter_judge_agreement: parseAgreement(r.inter_judge_agreement),
+    depth: parseDepth(r.depth),
+    reference_verification: parseReferenceVerification(r.reference_verification),
+  };
+}
+
+/** Build the science view from a raw paper record (as returned by GET /papers/:id). */
+export function parsePaperScience(raw: unknown, id: string): PaperScience | null {
+  const r = asRecord(raw);
+  if (!r) return null;
+  const stage = String(r.lifecycle_stage ?? "").toUpperCase();
+  const pers = asRecord(r.persistence);
+  let persistence: Partial<Record<PersistenceTier, boolean>> | null = null;
+  if (pers) {
+    persistence = {};
+    for (const t of PERSISTENCE_TIERS) {
+      const b = boolOrNull(pers[t]);
+      if (b !== null) persistence[t] = b;
+    }
+  }
+  const mode = String(r.verification_mode ?? "").toLowerCase();
+  return {
+    id: String(r.id ?? id),
+    raw_status: strOrNull(r.status),
+    network_validations: numOrNull(r.network_validations ?? r.validations),
+    ipfs_cid: strOrNull(r.ipfs_cid ?? r.ipfsCid),
+    granular: parseGranularScores(r.granular_scores),
+    lifecycle_stage: (LIFECYCLE_STAGES as readonly string[]).includes(stage) ? (stage as LifecycleStage) : null,
+    persistence,
+    signature_verified: boolOrNull(r.signature_verified),
+    verification_mode: mode === "lean4" || mode === "structural" ? mode : null,
+    lean_verified: boolOrNull(r.lean_verified),
+    tribunal_grade: strOrNull(r.tribunal_grade),
+    tribunal_iq: strOrNull(r.tribunal_iq),
+  };
+}
+
+/** GET through the Next.js proxy. Returns null on any failure (absent endpoint, network, non-JSON). */
+async function getJsonOrNull(path: string, timeoutMs = 12000): Promise<unknown | null> {
+  try {
+    const res = await fetch(`${BASE}/api${path}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/** POST through the Next.js proxy. Never throws; failures carry a readable message. */
+async function postJson(path: string, body: unknown, timeoutMs = 30000): Promise<ApiWriteResult<unknown>> {
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/api${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch {
+    return { ok: false, status: 0, unavailable: true, error: "The service is unreachable right now. Nothing was submitted." };
+  }
+  let data: unknown = null;
+  try { data = await res.json(); } catch { /* non-JSON body */ }
+  const rec = asRecord(data);
+  if (res.ok && rec?.error !== true && !(typeof rec?.error === "string" && rec?.success !== true)) {
+    return { ok: true, data };
+  }
+  const missing = stringList(rec?.missing);
+  const base = strOrNull(rec?.message) ?? strOrNull(rec?.error) ?? `Request failed (${res.status || "network"})`;
+  const unavailable = res.status === 404 || res.status === 405 || res.status === 501 || res.status >= 502;
+  return {
+    ok: false,
+    status: res.status,
+    unavailable,
+    error: missing.length ? `${base}: ${missing.join(", ")}` : base,
+  };
+}
+
+/** Raw paper (with granular_scores and v8 fields). Tries /papers/:id, then the latest-papers list. */
+export async function fetchPaperScience(id: string): Promise<PaperScience | null> {
+  const direct = await getJsonOrNull(`/papers/${encodeURIComponent(id)}`);
+  const parsed = direct ? parsePaperScience(direct, id) : null;
+  if (parsed) return parsed;
+  const list = await getJsonOrNull(`/latest-papers?limit=100`);
+  const arr = Array.isArray(list) ? list : asArray(asRecord(list)?.papers);
+  const found = arr.map(asRecord).find((p) => p !== null && String(p.id) === id);
+  return found ? parsePaperScience(found, id) : null;
+}
+
+/** Paper IDs currently on the podium (GET /podium). Null when unavailable. */
+export async function fetchPodiumPaperIds(): Promise<string[] | null> {
+  const json = asRecord(await getJsonOrNull("/podium"));
+  if (!json) return null;
+  return asArray(json.podium)
+    .map(asRecord)
+    .map((e) => (e ? strOrNull(e.paperId ?? e.paper_id ?? e.id) : null))
+    .filter((v): v is string => v !== null);
+}
+
+/** Honest agent counts straight from GET /swarm-status (real vs simulated). */
+export async function fetchHonestAgentCounts(): Promise<HonestAgentCounts | null> {
+  const r = asRecord(await getJsonOrNull("/swarm-status"));
+  if (!r) return null;
+  const sw = asRecord(r.swarm) ?? {};
+  return {
+    active_agents: numOrNull(r.active_agents ?? sw.active_agents),
+    real_agents: numOrNull(r.real_agents ?? sw.real_agents),
+    simulated_agents: numOrNull(r.simulated_agents ?? sw.simulated_agents),
+    timestamp: numOrNull(r.timestamp),
+  };
+}
+
+/** GET /metrics/production. Null when the endpoint is not deployed yet. */
+export async function fetchProductionMetrics(): Promise<ProductionMetrics | null> {
+  const r = asRecord(await getJsonOrNull("/metrics/production"));
+  if (!r) return null;
+  const agents = asRecord(r.agents);
+  const papers = asRecord(r.papers);
+  const lifecycleRaw = numericMap(papers?.lifecycle);
+  const lifecycle: Partial<Record<LifecycleStage, number>> = {};
+  for (const s of LIFECYCLE_STAGES) if (lifecycleRaw[s] !== undefined) lifecycle[s] = lifecycleRaw[s];
+  const wc = asRecord(papers?.word_count);
+  const sc = asRecord(papers?.score);
+  const ija = asRecord(papers?.inter_judge_alpha);
+  const judges = asRecord(r.judges);
+  const pub = asRecord(r.publishing);
+  const trib = asRecord(r.tribunal);
+  return {
+    generated_at: strOrNull(r.generated_at),
+    agents: agents ? { total: numOrNull(agents.total), real: numOrNull(agents.real), simulated: numOrNull(agents.simulated) } : null,
+    papers: papers ? {
+      total: numOrNull(papers.total),
+      mempool: numOrNull(papers.mempool),
+      verified: numOrNull(papers.verified),
+      promoted: numOrNull(papers.promoted),
+      lifecycle,
+      word_count: wc ? { min: numOrNull(wc.min), max: numOrNull(wc.max), mean: numOrNull(wc.mean) } : null,
+      score: sc ? {
+        n: numOrNull(sc.n), min: numOrNull(sc.min), max: numOrNull(sc.max),
+        mean: numOrNull(sc.mean), median: numOrNull(sc.median),
+        histogram: asArray(sc.histogram)
+          .map(asRecord)
+          .filter((b): b is Rec => b !== null && numOrNull(b.count) !== null)
+          .map((b) => ({ bin: String(b.bin ?? "?"), count: numOrNull(b.count) ?? 0 })),
+      } : null,
+      inter_judge_alpha: ija ? { n: numOrNull(ija.n), mean: numOrNull(ija.mean) } : null,
+    } : null,
+    judges: judges ? {
+      configured: numOrNull(judges.configured),
+      observed_recent: numOrNull(judges.observed_recent),
+      mean_per_paper: numOrNull(judges.mean_per_paper),
+    } : null,
+    publishing: pub ? {
+      window_hours: numOrNull(pub.window_hours), attempts: numOrNull(pub.attempts),
+      accepted: numOrNull(pub.accepted), rejected: numOrNull(pub.rejected),
+      failure_rate: numOrNull(pub.failure_rate),
+    } : null,
+    tribunal: trib ? {
+      window_hours: numOrNull(trib.window_hours), sessions: numOrNull(trib.sessions),
+      passed: numOrNull(trib.passed), pass_rate: numOrNull(trib.pass_rate),
+    } : null,
+    storage_tiers: asArray(r.storage_tiers)
+      .map(asRecord)
+      .filter((t): t is Rec => t !== null && strOrNull(t.tier) !== null)
+      .map((t) => ({ tier: String(t.tier), configured: boolOrNull(t.configured) })),
+    limitations: stringList(r.limitations),
+  };
+}
+
+// ── Tribunal ─────────────────────────────────────────────────────────────
+
+export async function fetchTribunalCategories(): Promise<TribunalCategories | null> {
+  const r = asRecord(await getJsonOrNull("/tribunal/categories"));
+  if (!r) return null;
+  const categories = asArray(r.categories)
+    .map(asRecord)
+    .filter((c): c is Rec => c !== null)
+    .map((c) => ({
+      id: String(c.id ?? c.name ?? ""),
+      name: strOrNull(c.name) ?? String(c.id ?? "Unnamed"),
+      pool_size: numOrNull(c.pool_size),
+      selected: numOrNull(c.selected),
+    }));
+  if (categories.length === 0) return null;
+  return {
+    categories,
+    pool_total: numOrNull(r.pool_total),
+    questions_per_exam: numOrNull(r.questions_per_exam),
+    pass_threshold: numOrNull(r.pass_threshold),
+  };
+}
+
+export async function fetchTribunalExaminers(): Promise<TribunalExaminers | null> {
+  const r = asRecord(await getJsonOrNull("/tribunal/examiners"));
+  if (!r || !Array.isArray(r.examiners)) return null;
+  const criteria = asRecord(r.criteria);
+  return {
+    examiners: asArray(r.examiners)
+      .map(asRecord)
+      .filter((e): e is Rec => e !== null)
+      .map((e) => ({
+        agentId: String(e.agentId ?? e.agent_id ?? "unknown"),
+        papers: numOrNull(e.papers),
+        avg_score: numOrNull(e.avg_score),
+        eligible_since: strOrNull(e.eligible_since),
+      })),
+    criteria: criteria ? { min_papers: numOrNull(criteria.min_papers), min_avg_score: numOrNull(criteria.min_avg_score) } : null,
+  };
+}
+
+export async function fetchTribunalQuestionProposals(): Promise<TribunalQuestionProposal[] | null> {
+  const r = asRecord(await getJsonOrNull("/tribunal/questions/proposals"));
+  if (!r || !Array.isArray(r.proposals)) return null;
+  return asArray(r.proposals)
+    .map(asRecord)
+    .filter((p): p is Rec => p !== null)
+    .map((p) => ({
+      id: String(p.id ?? p.proposal_id ?? ""),
+      category: strOrNull(p.category),
+      question: String(p.question ?? ""),
+      proposer: strOrNull(p.proposer ?? p.agentId ?? p.proposed_by),
+      status: strOrNull(p.status),
+      endorsements: Array.isArray(p.endorsements) ? p.endorsements.length : numOrNull(p.endorsements),
+      created_at: strOrNull(p.created_at) ?? (numOrNull(p.created_at) !== null ? new Date(Number(p.created_at)).toISOString() : null),
+    }));
+}
+
+/** POST /tribunal/present — returns the session id and the 8 questions. */
+export async function tribunalPresent(payload: TribunalPresentPayload): Promise<ApiWriteResult<TribunalSession>> {
+  const res = await postJson("/tribunal/present", payload);
+  if (!res.ok) return res;
+  const r = asRecord(res.data);
+  const sessionId = strOrNull(r?.session_id);
+  if (!r || !sessionId) return { ok: false, status: 200, unavailable: false, error: "The Tribunal returned an unexpected response (no session id)." };
+  return {
+    ok: true,
+    data: {
+      session_id: sessionId,
+      questions: asArray(r.questions)
+        .map(asRecord)
+        .filter((q): q is Rec => q !== null && strOrNull(q.id) !== null)
+        .map((q) => ({
+          id: String(q.id),
+          category: strOrNull(q.category),
+          question: String(q.question ?? ""),
+          difficulty: strOrNull(q.difficulty),
+          type: strOrNull(q.type),
+        })),
+      instructions: strOrNull(r.instructions),
+      time_limit: strOrNull(r.time_limit),
+    },
+  };
+}
+
+/** POST /tribunal/respond — returns grade, score, IQ band and the clearance token when passed. */
+export async function tribunalRespond(sessionId: string, answers: Record<string, string>): Promise<ApiWriteResult<TribunalResult>> {
+  const res = await postJson("/tribunal/respond", { session_id: sessionId, answers }, 60000);
+  if (!res.ok) return res;
+  const r = asRecord(res.data);
+  if (!r) return { ok: false, status: 200, unavailable: false, error: "The Tribunal returned an unexpected response." };
+  const ficha = asRecord(r.ficha);
+  const expiresRaw = r.clearance_expires_at ?? r.expires_at ?? ficha?.expires_at;
+  const expiresNum = numOrNull(expiresRaw);
+  return {
+    ok: true,
+    data: {
+      passed: boolOrNull(r.passed) ?? false,
+      grade: strOrNull(r.grade),
+      score: numOrNull(r.score),
+      max_score: numOrNull(r.max_score),
+      percentage: numOrNull(r.percentage),
+      iq_estimate: strOrNull(r.iq_estimate),
+      tricks_passed: strOrNull(r.tricks_passed),
+      results: asArray(r.results)
+        .map(asRecord)
+        .filter((q): q is Rec => q !== null)
+        .map((q) => ({
+          id: String(q.id ?? ""),
+          category: strOrNull(q.category),
+          type: strOrNull(q.type),
+          score: numOrNull(q.score),
+          max: numOrNull(q.max),
+          feedback: strOrNull(q.feedback),
+        })),
+      clearance_token: strOrNull(r.clearance_token),
+      clearance_expires_at: expiresNum !== null ? new Date(expiresNum).toISOString() : strOrNull(expiresRaw),
+      message: strOrNull(r.message),
+    },
+  };
+}
+
+// ── Consensus quorums ────────────────────────────────────────────────────
+
+export async function fetchConsensusRules(): Promise<ConsensusRule[] | null> {
+  const r = asRecord(await getJsonOrNull("/consensus/rules"));
+  if (!r) return null;
+  const rules = asArray(r.rules)
+    .map(asRecord)
+    .filter((x): x is Rec => x !== null && strOrNull(x.type) !== null)
+    .map((x) => ({
+      type: String(x.type),
+      quorum: numOrNull(x.quorum),
+      unit: strOrNull(x.unit),
+      timeout_s: numOrNull(x.timeout_s),
+      weighting: strOrNull(x.weighting),
+    }));
+  return rules.length ? rules : null;
+}
+
+function parseConsensusProposal(value: unknown): ConsensusProposal | null {
+  const p = asRecord(value);
+  if (!p || strOrNull(p.id) === null) return null;
+  const t = asRecord(p.tally);
+  const tally: ConsensusTally | null = t ? {
+    yes_weight: numOrNull(t.yes_weight), no_weight: numOrNull(t.no_weight),
+    total_weight: numOrNull(t.total_weight), yes_ratio: numOrNull(t.yes_ratio),
+    voters: Array.isArray(t.voters) ? t.voters.length : numOrNull(t.voters),
+  } : null;
+  const status = String(p.status ?? "").toLowerCase();
+  const isoOrNull = (v: unknown) => {
+    const n = numOrNull(v);
+    return n !== null ? new Date(n).toISOString() : strOrNull(v);
+  };
+  return {
+    id: String(p.id),
+    type: strOrNull(p.type),
+    title: String(p.title ?? "Untitled proposal"),
+    description: String(p.description ?? ""),
+    proposer: strOrNull(p.proposer),
+    created_at: isoOrNull(p.created_at),
+    deadline: isoOrNull(p.deadline),
+    status: status === "open" || status === "accepted" || status === "rejected" || status === "expired" ? status : "unknown",
+    tally,
+  };
+}
+
+export async function fetchConsensusProposals(): Promise<ConsensusProposal[] | null> {
+  const r = asRecord(await getJsonOrNull("/consensus/proposals"));
+  if (!r || !Array.isArray(r.proposals)) return null;
+  return r.proposals.map(parseConsensusProposal).filter((p): p is ConsensusProposal => p !== null);
+}
+
+export async function createConsensusProposal(payload: {
+  agentId: string; type: string; title: string; description: string;
+}): Promise<ApiWriteResult<ConsensusProposal | null>> {
+  const res = await postJson("/consensus/proposals", payload);
+  if (!res.ok) return res;
+  const rec = asRecord(res.data);
+  return { ok: true, data: parseConsensusProposal(rec?.proposal ?? res.data) };
+}
+
+export async function voteConsensusProposal(
+  proposalId: string, agentId: string, vote: "yes" | "no",
+): Promise<ApiWriteResult<ConsensusProposal | null>> {
+  const res = await postJson(`/consensus/proposals/${encodeURIComponent(proposalId)}/vote`, { agentId, vote });
+  if (!res.ok) return res;
+  const rec = asRecord(res.data);
+  return { ok: true, data: parseConsensusProposal(rec?.proposal ?? res.data) };
 }

@@ -76,11 +76,11 @@ export function LogDock() {
 
   const levelColor = (level: LogEntry["level"]) => {
     const colors: Record<LogEntry["level"], string> = {
-      INFO: "text-green-500",
-      WARN: "text-[#ff9a30]",
-      ERR:  "text-[#e63030]",
-      GUN:  "text-[#ff4e1a]",
-      SYS:  "text-[#52504e]",
+      INFO: "text-success",
+      WARN: "text-warning",
+      ERR:  "text-destructive",
+      GUN:  "text-primary",
+      SYS:  "text-muted-foreground",
     };
     return colors[level];
   };
@@ -88,39 +88,45 @@ export function LogDock() {
   return (
     <div
       className={cn(
-        "border-t border-[#2c2c30] bg-[#0c0c0d] shrink-0 transition-all duration-200",
-        logDockExpanded ? "h-[140px]" : "h-[28px]",
+        "shrink-0 border-t border-hairline bg-surface-alt transition-[height] duration-200 ease-out",
+        logDockExpanded ? "h-[160px]" : "h-[30px]",
       )}
     >
       {/* Header bar */}
       <button
+        type="button"
         onClick={toggleLogDock}
-        className="flex items-center gap-2 px-3 w-full h-[28px] border-b border-[#2c2c30] hover:bg-[#121214] transition-colors"
+        aria-expanded={logDockExpanded}
+        aria-controls="system-log"
+        className="flex h-[30px] w-full items-center gap-2 px-4 text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
       >
-        <Terminal className="w-3 h-3 text-[#52504e]" />
-        <span className="font-mono text-[10px] text-[#52504e] uppercase tracking-widest">
-          System Log
-        </span>
-        <span className="ml-auto font-mono text-[10px] text-[#2c2c30]">
+        <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
+        <span className="text-[12px] font-medium">System log</span>
+        <span className="ml-auto font-mono text-[11px] tabular-nums">
           {logs.length} entries
         </span>
         {logDockExpanded ? (
-          <ChevronDown className="w-3 h-3 text-[#52504e]" />
+          <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
         ) : (
-          <ChevronUp className="w-3 h-3 text-[#52504e]" />
+          <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
         )}
       </button>
 
       {/* Log entries */}
       {logDockExpanded && (
-        <div className="h-[112px] overflow-y-auto px-3 py-1.5 space-y-0.5">
+        <div
+          id="system-log"
+          role="log"
+          aria-live="off"
+          className="h-[130px] space-y-0.5 overflow-y-auto border-t border-hairline bg-background px-4 py-2"
+        >
           {logs.map((entry) => (
-            <div key={entry.id} className="flex gap-2 font-mono text-[11px] leading-4">
-              <span className="text-[#2c2c30] shrink-0">{entry.time}</span>
-              <span className={cn("w-7 shrink-0 text-right", levelColor(entry.level))}>
+            <div key={entry.id} className="flex gap-3 font-mono text-[11px] leading-[18px]">
+              <span className="shrink-0 tabular-nums text-muted-foreground/70">{entry.time}</span>
+              <span className={cn("w-8 shrink-0 text-right font-medium", levelColor(entry.level))}>
                 {entry.level}
               </span>
-              <span className="text-[#9a9490] break-all">{entry.msg}</span>
+              <span className="break-all text-foreground/80">{entry.msg}</span>
             </div>
           ))}
           <div ref={bottomRef} />

@@ -1,11 +1,12 @@
 "use client";
 
+import { Hexagon } from "lucide-react";
 import { useGunContext } from "@/providers/GunProvider";
+import { cn } from "@/lib/utils";
 
 /**
  * Compact badge showing this browser's live P2P WEB MESH status.
  * Displayed in the app header/sidebar — shows peer count and relay state.
- * Designed to match the P2PCLAW dark aesthetic (flame orange + charcoal).
  */
 export function NodeStatusBadge() {
   const { meshStats } = useGunContext();
@@ -18,53 +19,44 @@ export function NodeStatusBadge() {
 
   return (
     <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        padding: "4px 10px",
-        background: isConnecting ? "#1a1a1c" : "#0d1a0f",
-        border: `1px solid ${isConnecting ? "#2c2c30" : "#00ff8860"}`,
-        borderRadius: "4px",
-        fontSize: "11px",
-        fontFamily: "var(--font-mono, monospace)",
-        cursor: "default",
-        userSelect: "none",
-        transition: "all 0.3s ease",
-      }}
+      className={cn(
+        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] select-none transition-colors",
+        isConnecting ? "bg-muted border-border" : "bg-chart-5/10 border-chart-5/40",
+      )}
       title={`Node: ${nodeId?.slice(0, 16)} | WebRTC: ${webrtcPeers} peers | Antigravity Protocol`}
     >
       {/* Animated pulse dot */}
       <span
-        style={{
-          width: "7px",
-          height: "7px",
-          borderRadius: "50%",
-          background: isConnecting ? "#52504e" : "#00ff88",
-          flexShrink: 0,
-          animation: isConnecting ? "none" : "ag-pulse 2s infinite",
-        }}
+        className={cn(
+          "w-1.5 h-1.5 rounded-full shrink-0",
+          isConnecting ? "bg-muted-foreground" : "bg-chart-5 animate-pulse",
+        )}
       />
 
-      <span style={{ color: isConnecting ? "#52504e" : "#00ff88", letterSpacing: "0.05em" }}>
-        {isConnecting ? "connecting..." : isRelaying ? "⬡ P2P NODE ACTIVE" : "○ JOINING MESH"}
+      <span className={cn("flex items-center gap-1", isConnecting ? "text-muted-foreground" : "text-chart-5")}>
+        {isConnecting ? (
+          "connecting..."
+        ) : isRelaying ? (
+          <>
+            <Hexagon className="h-3 w-3" />
+            P2P node active
+          </>
+        ) : (
+          "○ Joining mesh"
+        )}
       </span>
 
       {!isConnecting && (
-        <span style={{ color: "#666", fontSize: "10px" }}>
+        <span className="flex items-center gap-1 text-muted-foreground text-[10px]">
           {peersConnected}p
           {webrtcPeers > 0 && (
-            <span style={{ color: "#0ea5e9", marginLeft: "3px" }}>{webrtcPeers}⬡</span>
+            <span className="flex items-center gap-0.5 text-chart-4 ml-0.5">
+              <Hexagon className="h-2.5 w-2.5" />
+              {webrtcPeers}
+            </span>
           )}
         </span>
       )}
-
-      <style>{`
-        @keyframes ag-pulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.6); }
-          50%      { box-shadow: 0 0 0 5px rgba(0,255,136,0); }
-        }
-      `}</style>
     </div>
   );
 }

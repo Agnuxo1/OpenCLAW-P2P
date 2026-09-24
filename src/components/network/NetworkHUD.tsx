@@ -19,27 +19,27 @@ export function NetworkHUD() {
   return (
     <div className="absolute top-4 left-4 z-10 space-y-2 pointer-events-none">
       {/* Network status card */}
-      <div className="bg-[#0c0c0d]/90 border border-[#2c2c30] rounded-lg px-3 py-2.5 backdrop-blur-sm min-w-[160px]">
-        <div className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider mb-2">
+      <div className="bg-popover/90 border border-border rounded-2xl px-3 py-2.5 backdrop-blur-sm min-w-[160px]">
+        <div className="text-xs font-medium text-muted-foreground mb-2">
           Network Status
         </div>
         <div className="space-y-1">
           <div className="flex justify-between">
-            <span className="font-mono text-[11px] text-[#9a9490]">Nodes online</span>
-            <span className="font-mono text-[11px] font-bold text-[#ff4e1a]">
+            <span className="text-[11px] text-muted-foreground">Nodes online</span>
+            <span className="font-mono text-[11px] font-bold text-primary">
               {activeAgents.length}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="font-mono text-[11px] text-[#9a9490]">Total nodes</span>
-            <span className="font-mono text-[11px] text-[#9a9490]">{agents.length}</span>
+            <span className="text-[11px] text-muted-foreground">Total nodes</span>
+            <span className="font-mono text-[11px] text-muted-foreground">{agents.length}</span>
           </div>
           <div className="flex justify-between">
-            <span className="font-mono text-[11px] text-[#9a9490]">Relay peers</span>
+            <span className="text-[11px] text-muted-foreground">Relay peers</span>
             <span
               className={cn(
                 "font-mono text-[11px]",
-                onlineCount > 0 ? "text-green-500" : "text-[#e63030]",
+                onlineCount > 0 ? "text-green-500" : "text-destructive",
               )}
             >
               {onlineCount}/{peers.length}
@@ -49,25 +49,24 @@ export function NetworkHUD() {
       </div>
 
       {/* Rank legend */}
-      <div className="bg-[#0c0c0d]/90 border border-[#2c2c30] rounded-lg px-3 py-2.5 backdrop-blur-sm">
-        <div className="font-mono text-[10px] text-[#52504e] uppercase tracking-wider mb-2">
+      <div className="bg-popover/90 border border-border rounded-2xl px-3 py-2.5 backdrop-blur-sm">
+        <div className="text-xs font-medium text-muted-foreground mb-2">
           Rank Legend
         </div>
         {[
-          { rank: "DIRECTOR",   color: "#ffd740", label: "Director" },
-          { rank: "ARCHITECT",  color: "#ff4e1a", label: "Architect" },
-          { rank: "RESEARCHER", color: "#ff7020", label: "Researcher" },
-          { rank: "ANALYST",    color: "#448aff", label: "Analyst" },
-          { rank: "CITIZEN",    color: "#9a9490", label: "Citizen" },
-        ].map(({ rank, color, label }) => (
+          { rank: "DIRECTOR",   className: "bg-chart-3", textClassName: "text-chart-3", label: "Director" },
+          { rank: "ARCHITECT",  className: "bg-primary", textClassName: "text-primary", label: "Architect" },
+          { rank: "RESEARCHER", className: "bg-accent", textClassName: "text-accent-foreground", label: "Researcher" },
+          { rank: "ANALYST",    className: "bg-chart-4", textClassName: "text-chart-4", label: "Analyst" },
+          { rank: "CITIZEN",    className: "bg-muted-foreground", textClassName: "text-muted-foreground", label: "Citizen" },
+        ].map(({ rank, className, textClassName, label }) => (
           <div key={rank} className="flex items-center gap-2 mb-0.5">
             <span
-              className="w-2 h-2 rounded-full shrink-0"
-              style={{ backgroundColor: color }}
+              className={`w-2 h-2 rounded-full shrink-0 ${className}`}
             />
-            <span className="font-mono text-[11px] text-[#9a9490]">{label}</span>
+            <span className="text-[11px] text-muted-foreground">{label}</span>
             {rankCounts[rank] ? (
-              <span className="ml-auto font-mono text-[11px]" style={{ color }}>
+              <span className={`ml-auto font-mono text-[11px] ${textClassName}`}>
                 {rankCounts[rank]}
               </span>
             ) : null}

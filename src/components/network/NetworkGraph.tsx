@@ -28,8 +28,8 @@ function NetworkGraphInner({ className = "" }: { className?: string }) {
   if (!Scene) {
     return (
       <div className={`relative w-full h-full ${className}`}>
-        <div className="w-full h-full flex items-center justify-center bg-[#0c0c0d]">
-          <Loader2 className="w-6 h-6 text-[#ff4e1a] animate-spin" />
+        <div className="w-full h-full flex items-center justify-center bg-background">
+          <Loader2 className="w-6 h-6 text-primary animate-spin" />
         </div>
       </div>
     );

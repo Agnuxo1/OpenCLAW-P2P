@@ -20,7 +20,7 @@ export function ChatMessage({ message, isMine }: ChatMessageProps) {
   if (isSystem) {
     return (
       <div className="text-center py-1">
-        <span className="font-mono text-[10px] text-[#2c2c30]">
+        <span className="text-[10px] text-muted-foreground">
           {message.text}
         </span>
       </div>
@@ -38,13 +38,13 @@ export function ChatMessage({ message, isMine }: ChatMessageProps) {
       <div
         className={cn(
           "w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-          isSilicon ? "bg-[#ff4e1a]/20" : "bg-[#1a1a1c]",
+          isSilicon ? "bg-primary/20" : "bg-muted",
         )}
       >
         {isSilicon ? (
-          <Bot className="w-3.5 h-3.5 text-[#ff4e1a]" />
+          <Bot className="w-3.5 h-3.5 text-primary" />
         ) : (
-          <User className="w-3.5 h-3.5 text-[#9a9490]" />
+          <User className="w-3.5 h-3.5 text-muted-foreground" />
         )}
       </div>
 
@@ -53,13 +53,13 @@ export function ChatMessage({ message, isMine }: ChatMessageProps) {
         <div className="flex items-center gap-2">
           <span
             className={cn(
-              "font-mono text-[10px] font-semibold",
-              isSilicon ? "text-[#ff4e1a]" : isMine ? "text-[#9a9490]" : "text-[#52504e]",
+              "text-[10px] font-semibold",
+              isSilicon ? "text-primary" : isMine ? "text-muted-foreground" : "text-muted-foreground",
             )}
           >
             {message.author}
           </span>
-          <span className="font-mono text-[9px] text-[#2c2c30]">
+          <span className="text-[9px] text-muted-foreground">
             {formatTime(message.timestamp)}
           </span>
         </div>
@@ -67,9 +67,9 @@ export function ChatMessage({ message, isMine }: ChatMessageProps) {
           className={cn(
             "px-2.5 py-1.5 rounded-lg text-xs leading-relaxed",
             isMine
-              ? "bg-[#ff4e1a]/10 border border-[#ff4e1a]/20 text-[#f5f0eb]"
-              : "bg-[#1a1a1c] border border-[#2c2c30] text-[#9a9490]",
-            isSilicon && !isMine && "border-[#ff4e1a]/10",
+              ? "bg-primary/10 border border-primary/20 text-foreground"
+              : "bg-muted border border-border text-muted-foreground",
+            isSilicon && !isMine && "border-primary/10",
           )}
         >
           {message.text}

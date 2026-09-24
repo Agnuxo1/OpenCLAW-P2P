@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { datasetPageUrl, datasetJsonl, fetchPublicJson, filterDatasetPage, parseDatasetPage, type DatasetRecord } from "@/lib/live-data";
@@ -81,25 +81,42 @@ function ScoreBar({ value, max = 10, label, consensus, feedback }: {
   const [expanded, setExpanded] = useState(false);
   const pct = Math.round((value / max) * 100);
   const color =
-    value >= 7 ? "bg-green-500" : value >= 4 ? "bg-amber-500" : "bg-red-500";
+    value >= 7 ? "bg-chart-2" : value >= 4 ? "bg-chart-3" : "bg-destructive";
+  const hasFeedback = !!feedback && feedback.length > 0;
   return (
     <div>
-      <div className="flex items-center gap-2 text-xs cursor-pointer" onClick={() => feedback && setExpanded(!expanded)}>
-        <span className="w-24 text-[#9a9490] font-mono truncate">{label}</span>
-        <div className="flex-1 h-2 bg-[#1a1a1c] rounded-full overflow-hidden">
+      <div
+        className={`flex items-center gap-2 text-xs ${hasFeedback ? "cursor-pointer" : ""}`}
+        {...(hasFeedback
+          ? {
+              role: "button" as const,
+              tabIndex: 0,
+              "aria-expanded": expanded,
+              onClick: () => setExpanded(!expanded),
+              onKeyDown: (e: KeyboardEvent) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setExpanded(!expanded);
+                }
+              },
+            }
+          : {})}
+      >
+        <span className="w-24 text-muted-foreground truncate">{label}</span>
+        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
           <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
         </div>
-        <span className="w-8 text-right font-mono text-[#f5f0eb]">{value}</span>
+        <span className="w-8 text-right font-mono text-foreground">{value}</span>
         <ConsensusIcon value={consensus} />
-        {feedback && feedback.length > 0 && (
-          <span className="text-[10px] text-[#52504e]">{expanded ? "\u25B2" : "\u25BC"}</span>
+        {hasFeedback && (
+          <span className="text-[10px] text-muted-foreground">{expanded ? "\u25B2" : "\u25BC"}</span>
         )}
       </div>
       {expanded && feedback && (
         <div className="ml-26 mt-1 mb-1 space-y-0.5">
           {feedback.map((f, i) => (
-            <div key={i} className="text-[10px] font-mono text-[#9a9490] flex gap-2 pl-26">
-              <span className="text-[#52504e] shrink-0">{f.judge}:</span>
+            <div key={i} className="text-[10px] font-mono text-muted-foreground flex gap-2 pl-26">
+              <span className="text-muted-foreground shrink-0">{f.judge}:</span>
               <span>{f.comment}</span>
             </div>
           ))}
@@ -186,11 +203,11 @@ export default function DatasetPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-mono font-bold text-[#f5f0eb] flex items-center gap-2">
-            <Database className="w-6 h-6 text-[#ff4e1a]" />
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <Database className="w-6 h-6 text-primary" />
             Dataset Factory
           </h1>
-          <p className="text-sm text-[#9a9490] font-mono mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Quality-scored papers for ML training pipelines
           </p>
         </div>
@@ -198,7 +215,7 @@ export default function DatasetPage() {
           <button
             onClick={refreshData}
             disabled={papersQuery.isFetching}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1a1a1c] border border-[#2c2c30] rounded-md text-xs font-mono text-[#9a9490] hover:text-[#f5f0eb] hover:border-[#ff4e1a]/30 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-muted border border-border rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${papersQuery.isFetching ? "animate-spin" : ""}`} />
             Refresh
@@ -207,7 +224,7 @@ export default function DatasetPage() {
             type="button"
             onClick={exportVisible}
             disabled={!filtered.length || papersQuery.isFetching}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#ff4e1a] rounded-md text-xs font-mono text-black font-semibold hover:bg-[#ff6a3a] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary rounded-full text-xs text-primary-foreground font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             <Download className="w-3.5 h-3.5" />
             Export shown papers ({filtered.length})
@@ -215,10 +232,10 @@ export default function DatasetPage() {
         </div>
       </div>
 
-      <div className="text-xs font-mono text-[#9a9490] space-y-2">
+      <div className="text-xs text-muted-foreground space-y-2">
         <p>Export shown papers downloads exactly the records visible on this page, including the page search and selected filters.</p>
         <p>
-          <a className="text-[#ff4e1a] underline" href={`${API}/dataset/export?min_score=${minScore}&limit=5000&fields=title,content,abstract,author,author_id,status,tier,timestamp,granular_scores,lean_verified,ipfs_cid,ed25519_signature,version,revision_of,license`}>
+          <a className="text-primary underline" href={`${API}/dataset/export?min_score=${minScore}&limit=5000&fields=title,content,abstract,author,author_id,status,tier,timestamp,granular_scores,lean_verified,ipfs_cid,ed25519_signature,version,revision_of,license`}>
             Export verified corpus JSONL
           </a>
           {" — minimum score " + minScore + "; up to 5,000 papers. This separate export always includes verified papers only and does not use the page search."}
@@ -242,10 +259,10 @@ export default function DatasetPage() {
           ].map((card) => (
             <div
               key={card.label}
-              className="bg-[#111113] border border-[#2c2c30] rounded-lg p-4 text-center"
+              className="bg-card border border-border rounded-2xl p-4 text-center"
             >
-              <div className="text-2xl font-mono font-bold text-[#f5f0eb]">{card.value}</div>
-              <div className="text-[10px] font-mono text-[#52504e] uppercase tracking-wider mt-1">
+              <div className="text-2xl font-mono font-bold text-foreground">{card.value}</div>
+              <div className="text-xs font-medium text-muted-foreground mt-1">
                 {card.label}
               </div>
             </div>
@@ -254,25 +271,25 @@ export default function DatasetPage() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 bg-[#111113] border border-[#2c2c30] rounded-lg p-3">
+      <div className="flex flex-wrap items-center gap-3 bg-card border border-border rounded-2xl p-3">
         <div className="flex items-center gap-2">
-          <Search className="w-4 h-4 text-[#52504e]" />
+          <Search className="w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             aria-label="Search title or author on this page"
             placeholder="Search this page…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-transparent border-none text-sm font-mono text-[#f5f0eb] placeholder-[#9a9490] focus-visible:outline-2 focus-visible:outline-[#ff4e1a] w-48"
+            className="bg-transparent border-none text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-primary w-48"
           />
         </div>
-        <div className="h-4 w-px bg-[#2c2c30]" />
-        <label className="flex items-center gap-2 text-xs font-mono text-[#9a9490] cursor-pointer">
+        <div className="h-4 w-px bg-border" />
+        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
           <span>Min Score:</span>
           <select
             value={minScore}
             onChange={(e) => setFilters(current => ({ ...current, minScore: Number(e.target.value), offset: 0 }))}
-            className="bg-[#1a1a1c] border border-[#2c2c30] rounded px-2 py-1 text-xs font-mono text-[#f5f0eb]"
+            className="bg-muted border border-border rounded-md px-2 py-1 text-xs text-foreground"
           >
             {[0, 3, 5, 7, 8].map((v) => (
               <option key={v} value={v}>
@@ -281,26 +298,26 @@ export default function DatasetPage() {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 text-xs font-mono text-[#9a9490] cursor-pointer">
+        <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
           <input
             type="checkbox"
             checked={verifiedOnly}
             onChange={(e) => setFilters(current => ({ ...current, verifiedOnly: e.target.checked, offset: 0 }))}
-            className="rounded border-[#2c2c30] bg-[#1a1a1c] text-[#ff4e1a]"
+            className="rounded border-border bg-muted text-primary"
           />
           Verified only
         </label>
-        <div className="ml-auto text-xs font-mono text-[#9a9490]" role="status" aria-live="polite">
+        <div className="ml-auto text-xs text-muted-foreground" role="status" aria-live="polite">
           {page ? `${filtered.length} shown on this page · ${page.total} papers with selected score/verification filters` : loading ? "Loading page…" : "Paper count unavailable"}
         </div>
       </div>
-      <p className="text-xs font-mono text-[#9a9490]">Search checks the title and author on the current page only. Use the page controls to browse the complete filtered dataset.</p>
+      <p className="text-xs text-muted-foreground">Search checks the title and author on the current page only. Use the page controls to browse the complete filtered dataset.</p>
 
       {/* Podium — Top 3 Best Papers (persistent, only replaced by better) */}
       {podium.length > 0 && (
         <div>
-          <h2 className="font-mono text-sm font-semibold text-[#f5f0eb] mb-3 flex items-center gap-2">
-            <Trophy className="w-4 h-4 text-yellow-400" />
+          <h2 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-chart-3" />
             Hall of Fame — Top 3 Papers
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -323,19 +340,19 @@ export default function DatasetPage() {
                     <Medal className={`w-5 h-5 ${mc.icon}`} />
                     {entry.overall_score > 0 && (
                       <div className="ml-auto flex items-center gap-1">
-                        <span className="font-mono text-xl font-bold text-[#f5f0eb]">{entry.overall_score.toFixed(1)}</span>
-                        <span className="text-[10px] text-[#52504e] font-mono">/10</span>
+                        <span className="font-mono text-xl font-bold text-foreground">{entry.overall_score.toFixed(1)}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">/10</span>
                       </div>
                     )}
                   </div>
-                  <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] line-clamp-2 mb-1">
+                  <h3 className="font-mono text-sm font-semibold text-foreground line-clamp-2 mb-1">
                     {entry.title}
                   </h3>
-                  <div className="text-[10px] font-mono text-[#52504e]">
+                  <div className="text-[10px] font-mono text-muted-foreground">
                     {entry.author} {entry.timestamp ? `\u00B7 ${new Date(entry.timestamp).toLocaleDateString()}` : ""}
                   </div>
                   {entry.granular_scores && entry.granular_scores.judges && (
-                    <div className="mt-2 text-[10px] font-mono text-[#52504e]">
+                    <div className="mt-2 text-[10px] font-mono text-muted-foreground">
                       {entry.granular_scores.judge_count || entry.granular_scores.judges.length} judges
                     </div>
                   )}
@@ -349,58 +366,58 @@ export default function DatasetPage() {
       {/* Papers Table */}
       <div className="space-y-3" aria-busy={papersQuery.isFetching}>
         {loading ? (
-          <div className="text-center py-12 text-[#52504e] font-mono text-sm">
+          <div className="text-center py-12 text-muted-foreground text-sm">
             Loading dataset...
           </div>
         ) : error && !page ? (
-          <div className="text-center py-12 text-red-400 font-mono text-sm">
+          <div className="text-center py-12 text-destructive text-sm">
             {error}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-[#52504e] font-mono text-sm">
+          <div className="text-center py-12 text-muted-foreground text-sm">
             {searchQuery.trim() ? "No papers on this page match your search. Clear the search or try another page." : offset > 0 ? "This page has no papers. Try the previous page or refresh." : "No papers match the selected score and verification filters."}
           </div>
         ) : (
           filtered.map((paper) => (
             <div
               key={paper.id}
-              className="bg-[#111113] border border-[#2c2c30] rounded-lg p-4 hover:border-[#ff4e1a]/20 transition-colors"
+              className="bg-card border border-border rounded-2xl p-4 hover:border-primary/20 transition-colors"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] truncate">
-                      <Link href={`/app/papers/${encodeURIComponent(paper.id)}`} className="hover:text-[#ff4e1a] hover:underline">{paper.title}</Link>
+                    <h3 className="text-sm font-semibold text-foreground truncate">
+                      <Link href={`/app/papers/${encodeURIComponent(paper.id)}`} className="hover:text-primary hover:underline">{paper.title}</Link>
                     </h3>
                     {paper.lean_verified ? (
-                      <span className="shrink-0 bg-green-500/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded font-mono"
+                      <span className="shrink-0 bg-green-500/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded-full"
                         title={paper.lean4_status === 'LEAN4_VERIFIED' ? 'Formally verified with Lean4 compiler' : 'Structurally verified (claims consistent, evidence supported)'}>
                         {paper.lean4_status === 'LEAN4_VERIFIED' ? 'Lean4' : 'Verified'} &#x2713;
                       </span>
                     ) : paper.lean4_status === 'ERROR' || !paper.lean4_status ? (
-                      <span className="shrink-0 bg-yellow-500/20 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Verification pending">
+                      <span className="shrink-0 bg-yellow-500/20 text-yellow-400 text-[10px] px-1.5 py-0.5 rounded-full" title="Verification pending">
                         Pending
                       </span>
                     ) : (
-                      <span className="shrink-0 bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded font-mono" title="Verification failed — claims not supported by content">
+                      <span className="shrink-0 bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded-full" title="Verification failed — claims not supported by content">
                         Failed &#x2717;
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-[10px] font-mono text-[#52504e]">
+                  <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                     <span>{paper.author}</span>
                     <span>{paper.tier}</span>
-                    <span>{paper.word_count} words</span>
+                    <span className="font-mono">{paper.word_count} words</span>
                     <span>{new Date(paper.timestamp).toLocaleDateString()}</span>
                   </div>
                 </div>
                 {paper.granular_scores && (
                   <div className="shrink-0 flex items-center gap-1">
-                    <BarChart3 className="w-4 h-4 text-[#ff4e1a]" />
-                    <span className="font-mono text-lg font-bold text-[#f5f0eb]">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                    <span className="font-mono text-lg font-bold text-foreground">
                       {paper.granular_scores.overall}
                     </span>
-                    <span className="text-[10px] text-[#52504e] font-mono">/10</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">/10</span>
                   </div>
                 )}
               </div>
@@ -428,7 +445,7 @@ export default function DatasetPage() {
                       consensus={paper.granular_scores.consensus?.citation_quality}
                       feedback={paper.granular_scores.feedback?.citation_quality} />
                   </div>
-                  <div className="flex items-center gap-3 text-[10px] font-mono text-[#52504e]">
+                  <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
                     <span>Judges: {(paper.granular_scores.judges ?? []).join(", ")} ({paper.granular_scores.judge_count})</span>
                     {paper.granular_scores.overall_consensus !== undefined && (
                       <span className={`px-1.5 py-0.5 rounded ${
@@ -462,7 +479,7 @@ export default function DatasetPage() {
               )}
 
               {!paper.granular_scores && (
-                <div className="mt-2 text-[10px] font-mono text-[#52504e] italic">
+                <div className="mt-2 text-[10px] text-muted-foreground italic">
                   Not yet scored — scores are computed asynchronously when papers are published
                 </div>
               )}
@@ -471,20 +488,20 @@ export default function DatasetPage() {
         )}
       </div>
 
-      <nav aria-label="Dataset pages" className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-[#9a9490]">
+      <nav aria-label="Dataset pages" className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-muted-foreground">
         <button type="button" disabled={offset === 0 || papersQuery.isFetching}
           onClick={() => setFilters(current => ({ ...current, offset: Math.max(0, current.offset - (page?.limit ?? PAGE_SIZE)) }))}
-          className="rounded border border-[#2c2c30] px-3 py-2 disabled:opacity-40 hover:text-[#f5f0eb]">Previous page</button>
+          className="rounded border border-border px-3 py-2 disabled:opacity-40 hover:text-foreground">Previous page</button>
         <span>{page ? `Records ${page.count ? page.offset + 1 : 0}–${page.count ? page.offset + page.count : 0} of ${page.total}` : `Page ${Math.floor(offset / PAGE_SIZE) + 1}`}</span>
         <button type="button" disabled={!page || page.count === 0 || offset + page.count >= page.total || papersQuery.isFetching}
           onClick={() => setFilters(current => ({ ...current, offset: current.offset + (page?.limit ?? PAGE_SIZE) }))}
-          className="rounded border border-[#2c2c30] px-3 py-2 disabled:opacity-40 hover:text-[#f5f0eb]">Next page</button>
+          className="rounded border border-border px-3 py-2 disabled:opacity-40 hover:text-foreground">Next page</button>
       </nav>
 
       {/* API Reference */}
-      <div className="bg-[#111113] border border-[#2c2c30] rounded-lg p-4">
-        <h3 className="font-mono text-sm font-semibold text-[#f5f0eb] mb-3 flex items-center gap-2">
-          <ExternalLink className="w-4 h-4 text-[#ff4e1a]" />
+      <div className="bg-card border border-border rounded-2xl p-4">
+        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <ExternalLink className="w-4 h-4 text-primary" />
           API Reference
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
@@ -500,12 +517,12 @@ export default function DatasetPage() {
             { method: "POST", path: "/lab/review", desc: "Submit peer review" },
             { method: "POST", path: "/verify-lean", desc: "Lean 4 formal verification" },
           ].map((ep) => (
-            <div key={ep.path} className="flex items-center gap-2 text-[#9a9490]">
+            <div key={ep.path} className="flex items-center gap-2 text-muted-foreground">
               <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${ep.method === "GET" ? "bg-green-500/20 text-green-400" : "bg-amber-500/20 text-amber-400"}`}>
                 {ep.method}
               </span>
-              <span className="text-[#f5f0eb]">{ep.path}</span>
-              <span className="text-[#52504e]">— {ep.desc}</span>
+              <span className="text-foreground">{ep.path}</span>
+              <span className="text-muted-foreground">— {ep.desc}</span>
             </div>
           ))}
         </div>

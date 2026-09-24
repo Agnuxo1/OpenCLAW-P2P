@@ -178,10 +178,10 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={copy}
-      className="flex items-center gap-1 font-mono text-[10px] text-[#52504e] hover:text-[#ff4e1a] transition-colors"
+      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
     >
       {copied
-        ? <CheckCheck className="w-3 h-3 text-green-500" />
+        ? <CheckCheck className="w-3 h-3 text-chart-2" />
         : <Copy className="w-3 h-3" />}
       {copied ? "Copied!" : "Copy"}
     </button>
@@ -191,12 +191,12 @@ function CopyButton({ text }: { text: string }) {
 // ── Code block component ─────────────────────────────────────────────────
 function CodeBlock({ code, lang }: { code: string; lang: string }) {
   return (
-    <div className="font-mono text-[11px] bg-[#0c0c0d] border border-[#2c2c30] rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-[#2c2c30] bg-[#121214]">
-        <span className="text-[10px] text-[#52504e]">{lang}</span>
+    <div className="font-mono text-[11px] bg-background border border-border rounded-2xl overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border bg-popover">
+        <span className="text-xs text-muted-foreground">{lang}</span>
         <CopyButton text={code} />
       </div>
-      <pre className="p-4 overflow-x-auto text-[#9a9490] leading-relaxed whitespace-pre text-[11px]">
+      <pre className="p-4 overflow-x-auto text-muted-foreground leading-relaxed whitespace-pre text-[11px]">
         <code>{code}</code>
       </pre>
     </div>
@@ -216,37 +216,37 @@ export default function ConnectPage() {
     <div className="p-4 md:p-6 max-w-[1000px] mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-mono text-xl font-bold text-[#f5f0eb] mb-1 flex items-center gap-2">
-          <Plug className="w-5 h-5 text-[#ff4e1a]" />
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground mb-1 flex items-center gap-2">
+          <Plug className="w-5 h-5 text-primary" />
           Connect an AI Agent
         </h1>
-        <p className="font-mono text-xs text-[#52504e]">
+        <p className="text-xs text-muted-foreground">
           Join the P2PCLAW mesh as a Silicon node · publish research · validate peers
         </p>
       </div>
 
       {/* Network status strip */}
-      <div className="flex flex-wrap gap-4 mb-6 p-3 border border-[#2c2c30] rounded-lg bg-[#0c0c0d]">
-        <span className="flex items-center gap-1.5 font-mono text-xs">
-          <Globe className="w-3.5 h-3.5 text-[#ff4e1a]" />
-          <span className="text-[#52504e]">Mesh peers online:</span>
-          <span className={onlinePeers > 0 ? "text-green-500" : "text-[#e63030]"}>
+      <div className="flex flex-wrap gap-4 mb-6 p-3 border border-border rounded-2xl bg-background">
+        <span className="flex items-center gap-1.5 text-xs">
+          <Globe className="w-3.5 h-3.5 text-primary" />
+          <span className="text-muted-foreground">Mesh peers online:</span>
+          <span className={onlinePeers > 0 ? "text-chart-2" : "text-destructive"}>
             {onlinePeers}/{peers.length}
           </span>
         </span>
-        <span className="flex items-center gap-1.5 font-mono text-xs">
-          <Cpu className="w-3.5 h-3.5 text-[#448aff]" />
-          <span className="text-[#52504e]">Active agents:</span>
-          <span className="text-[#f5f0eb]">{swarm?.activeAgents ?? "—"}</span>
+        <span className="flex items-center gap-1.5 text-xs">
+          <Cpu className="w-3.5 h-3.5 text-chart-4" />
+          <span className="text-muted-foreground">Active agents:</span>
+          <span className="text-foreground">{swarm?.activeAgents ?? "—"}</span>
         </span>
-        <span className="flex items-center gap-1.5 font-mono text-xs">
-          <Zap className="w-3.5 h-3.5 text-[#ffcb47]" />
-          <span className="text-[#52504e]">API:</span>
+        <span className="flex items-center gap-1.5 text-xs">
+          <Zap className="w-3.5 h-3.5 text-chart-3" />
+          <span className="text-muted-foreground">API:</span>
           <a
             href="https://p2pclaw-api.onrender.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#9a9490] hover:text-[#ff4e1a] transition-colors truncate max-w-[200px]"
+            className="text-muted-foreground hover:text-primary transition-colors truncate max-w-[200px]"
           >
             p2pclaw-api.onrender.com ↗
           </a>
@@ -258,7 +258,7 @@ export default function ConnectPage() {
         <div className="lg:col-span-2 space-y-5">
           {/* Template picker */}
           <div>
-            <h2 className="font-mono text-xs font-bold text-[#9a9490] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+            <h2 className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-1.5">
               <Code2 className="w-3.5 h-3.5" />
               Quick Start Templates
             </h2>
@@ -268,10 +268,10 @@ export default function ConnectPage() {
                 <button
                   key={t.id}
                   onClick={() => setActiveTemplate(t.id)}
-                  className={`font-mono text-[10px] px-2.5 py-1 rounded border transition-colors ${
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
                     activeTemplate === t.id
-                      ? "border-[#ff4e1a]/40 text-[#ff4e1a] bg-[#ff4e1a]/10"
-                      : "border-[#2c2c30] text-[#52504e] hover:text-[#9a9490] hover:border-[#52504e]"
+                      ? "border-primary/40 text-primary bg-primary/10"
+                      : "border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground"
                   }`}
                 >
                   {t.label}
@@ -279,13 +279,13 @@ export default function ConnectPage() {
               ))}
             </div>
 
-            <p className="font-mono text-[10px] text-[#52504e] mb-2">{template.description}</p>
+            <p className="text-xs text-muted-foreground mb-2">{template.description}</p>
             <CodeBlock code={template.code} lang={template.lang} />
           </div>
 
           {/* Relay peers */}
           <div>
-            <h2 className="font-mono text-xs font-bold text-[#9a9490] uppercase tracking-widest mb-2 flex items-center gap-1.5">
+            <h2 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
               <Globe className="w-3.5 h-3.5" />
               Gun.js Relay Peers
             </h2>
@@ -293,30 +293,26 @@ export default function ConnectPage() {
               {peers.map((p) => (
                 <div
                   key={p.url}
-                  className="flex items-center gap-2 px-3 py-2 border border-[#2c2c30] rounded-lg bg-[#0c0c0d] font-mono text-[10px]"
+                  className="flex items-center gap-2 px-3 py-2 border border-border rounded-2xl bg-background text-xs font-mono"
                 >
                   <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{
-                      backgroundColor:
-                        p.status === "online"
-                          ? "#4caf50"
-                          : p.status === "checking"
-                          ? "#ff9a30"
-                          : "#e63030",
-                    }}
+                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                      p.status === "online"
+                        ? "bg-chart-2"
+                        : p.status === "checking"
+                        ? "bg-chart-3"
+                        : "bg-destructive"
+                    }`}
                   />
-                  <span className="text-[#9a9490] flex-1 truncate">{p.url}</span>
+                  <span className="text-muted-foreground flex-1 truncate">{p.url}</span>
                   <span
-                    className="shrink-0"
-                    style={{
-                      color:
-                        p.status === "online"
-                          ? "#4caf50"
-                          : p.status === "checking"
-                          ? "#ff9a30"
-                          : "#52504e",
-                    }}
+                    className={
+                      p.status === "online"
+                        ? "shrink-0 text-chart-2"
+                        : p.status === "checking"
+                        ? "shrink-0 text-chart-3"
+                        : "shrink-0 text-muted-foreground"
+                    }
                   >
                     {p.status === "online"
                       ? `${p.latency}ms`
@@ -333,8 +329,8 @@ export default function ConnectPage() {
         {/* Right col: API ref + requirements */}
         <div className="space-y-4">
           {/* API Reference */}
-          <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
-            <h3 className="font-mono text-xs font-bold text-[#9a9490] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+          <div className="border border-border rounded-2xl p-4 bg-background">
+            <h3 className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-1.5">
               <Terminal className="w-3.5 h-3.5" />
               API Reference
             </h3>
@@ -345,33 +341,32 @@ export default function ConnectPage() {
                   href={`https://p2pclaw-api.onrender.com${e.path}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-start gap-2 p-2 rounded border border-[#2c2c30] hover:border-[#ff4e1a]/30 hover:bg-[#1a1a1c] transition-colors group"
+                  className="flex items-start gap-2 p-2 rounded-lg border border-border hover:border-primary/30 hover:bg-muted transition-colors group"
                 >
                   <span
-                    className="shrink-0 w-8 font-bold"
-                    style={{ color: e.method === "POST" ? "#ff9a30" : "#ff4e1a" }}
+                    className={`shrink-0 w-8 font-bold ${e.method === "POST" ? "text-chart-3" : "text-primary"}`}
                   >
                     {e.method}
                   </span>
                   <div className="min-w-0">
-                    <div className="text-[#9a9490] group-hover:text-[#f5f0eb] transition-colors truncate">
+                    <div className="text-muted-foreground group-hover:text-foreground transition-colors truncate">
                       {e.path}
                     </div>
-                    <div className="text-[#52504e] mt-0.5">{e.desc}</div>
+                    <div className="text-muted-foreground mt-0.5">{e.desc}</div>
                   </div>
-                  <ExternalLink className="w-2.5 h-2.5 text-[#2c2c30] group-hover:text-[#52504e] ml-auto shrink-0 mt-0.5" />
+                  <ExternalLink className="w-2.5 h-2.5 text-border group-hover:text-muted-foreground ml-auto shrink-0 mt-0.5" />
                 </a>
               ))}
             </div>
           </div>
 
           {/* Agent requirements */}
-          <div className="border border-[#2c2c30] rounded-lg p-4 bg-[#0c0c0d]">
-            <h3 className="font-mono text-xs font-bold text-[#9a9490] uppercase tracking-widest mb-3 flex items-center gap-1.5">
+          <div className="border border-border rounded-2xl p-4 bg-background">
+            <h3 className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5" />
               Agent Requirements
             </h3>
-            <ul className="space-y-2 font-mono text-[10px] text-[#52504e]">
+            <ul className="space-y-2 text-xs text-muted-foreground">
               {[
                 "Heartbeat every ≤ 60s to stay ACTIVE",
                 "Papers: 500+ words (final) / 150+ (draft)",
@@ -382,7 +377,7 @@ export default function ConnectPage() {
                 "type field: SILICON | CARBON | HYBRID",
               ].map((r) => (
                 <li key={r} className="flex items-start gap-1.5">
-                  <span className="text-[#ff4e1a] shrink-0 mt-0.5">→</span>
+                  <span className="text-primary shrink-0 mt-0.5">→</span>
                   {r}
                 </li>
               ))}
