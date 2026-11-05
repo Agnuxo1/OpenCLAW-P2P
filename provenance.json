@@ -1,0 +1,368 @@
+{
+  "schema_version": "1.0",
+  "project": "OpenCLAW-P2P / P2PCLAW",
+  "author": "Francisco Angulo de Lafuente",
+  "orcid": "https://orcid.org/0009-0001-1634-7063",
+  "recorded_on": "2026-11-05",
+  "copyright_year": 2026,
+  "canonical_url": "https://github.com/Agnuxo1/OpenCLAW-P2P",
+  "visibility_at_review": "public",
+  "default_branch_at_review": "main",
+  "baseline_commit": "3a71b0888773dda5de6329c6278618594d2b8edc",
+  "verified_versions": {
+    "package_json": "3.0.0",
+    "repository_tag": {
+      "name": "v6.0-research-preview",
+      "tagged_commit": "e8f11e60f041e2cd0800969b1239be69e465cb87",
+      "tagger_date": "2026-06-06T14:43:10+02:00"
+    },
+    "paper_as_presented_in_readme": "OpenCLAW-P2P v7.0 / P2PCLAW",
+    "arxiv_version_cited": "v2"
+  },
+  "authorship_scope": {
+    "basis": "Git and GitHub commit history was reviewed per selected path. The 33 code paths and 7 Markdown paths listed in provenance-baseline.json have histories attributable only to Francisco Angulo de Lafuente through the Agnuxo1 account; their bodies were verified byte-for-byte against the pre-edit checkout after header removal. Raw Git blob hashes are recorded separately.",
+    "limit": "This is not a claim of sole authorship of the repository. A distinct GitHub account named Agnuxo contributed commits, but no identity link to Francisco has been verified; its work is left unclaimed. The README receives project-lead/maintainer credit and contains a separately credited Quick Start contribution. The associated paper has six authors and is cited with its official arXiv metadata; the manuscript files are unchanged."
+  },
+  "attribution_summary": {
+    "baseline_tracked_paths": 327,
+    "code_headers_added": 33,
+    "markdown_metadata_headers_added": 7,
+    "readme_visible_project_credit": true,
+    "citation_cff_updated": true,
+    "selected_attributed_paths": 40,
+    "generated_shadcn_ui_components_skipped": 11,
+    "paper_tex_and_pdf_modified": false
+  },
+  "license_scope": {
+    "status": "existing_MIT_preserved_with_path_scoped_new_headers",
+    "github_spdx_metadata": "MIT",
+    "root_license_file_added_or_modified": false,
+    "existing_license_files_preserved": [
+      {
+        "path": "LICENSE",
+        "git_blob": "e2190f4359f3365837d0bc3cbb5ad64686aab8c5",
+        "sha256": "778b7ba4430e7b078977ea8ffeb8f64b462280d7fb65ae761b7c8a0183a45edf",
+        "size_bytes": 1086,
+        "status": "preserved_unchanged"
+      },
+      {
+        "path": "paperclaw/LICENSE",
+        "git_blob": "6b6ab2d06c257064813b7b72f11780ffebee1046",
+        "sha256": "afa3de7e3edd0ad130afc2f31d1f8dbc0a4bda40899f7ecce9c032310e4701c5",
+        "size_bytes": 1085,
+        "status": "preserved_unchanged"
+      },
+      {
+        "path": "paperclaw/vscode-extension/LICENSE",
+        "git_blob": "6b6ab2d06c257064813b7b72f11780ffebee1046",
+        "sha256": "afa3de7e3edd0ad130afc2f31d1f8dbc0a4bda40899f7ecce9c032310e4701c5",
+        "size_bytes": 1085,
+        "status": "preserved_unchanged"
+      }
+    ],
+    "new_spdx_headers_scope": "Only the 40 selected paths listed in provenance-baseline.json; each was individually reviewed for history. No new MIT notice was added to ambiguous, generated, or known third-party paths.",
+    "scope_note": "The existing root LICENSE and repository metadata identify MIT. This provenance record does not broaden the scope of that license to independently authored papers, third-party contributions, generated/vendor content, or materials with separate terms."
+  },
+  "citation_scope": {
+    "citation_cff_updated": true,
+    "software_author": "Francisco Angulo de Lafuente",
+    "software_author_orcid": "https://orcid.org/0009-0001-1634-7063",
+    "preferred_citation": {
+      "title": "OpenCLAW-P2P v2: Resilient Multi-Layer Persistence, Live Reference Verification, and Production-Scale Evaluation of Decentralized AI Peer Review",
+      "version": "2",
+      "doi": "10.48550/arXiv.2604.19792",
+      "url": "https://arxiv.org/abs/2604.19792v2",
+      "author_count": 6
+    },
+    "paper_source": "Official arXiv record; local TeX/PDF were preserved unchanged."
+  },
+  "third_party_contributions": [
+    {
+      "contributor": "shristibajpai",
+      "commit": "34c79e9",
+      "scope": "Quick Start text in README.md; explicitly acknowledged there."
+    },
+    {
+      "contributor": "Kimi-Claw-GitOps",
+      "commit": "6151172",
+      "scope": ".github/FUNDING.yml; preserved unchanged."
+    }
+  ],
+  "distribution_rules_review": {
+    "status": "no_contest_submission_or_contest_specific_material_identified",
+    "official_contest_rules_consulted": []
+  },
+  "security_review": {
+    "scope": "Text-like files at the public baseline HEAD; historical blobs and binary assets were not exhaustively scanned.",
+    "finding": "No high-confidence exposed secret or personal contact value was identified. A test fixture intentionally exercises URL-userinfo redaction with dummy credentials; raw values are not recorded here.",
+    "historical_scan_complete": false,
+    "binary_scan_complete": false
+  },
+  "validation": {
+    "header_roundtrip": "PASS: 40/40 edited code/document bodies restore to their pre-edit checkout SHA-256 after removing only the inserted header.",
+    "baseline_manifest": "PASS: 40 raw Git blob SHA-256 values, 4 line-addressed excerpts, and 3 unchanged license blobs verified.",
+    "citation_cff_schema": "PASS: validated against the Citation File Format 1.2.0 schema.",
+    "git_diff_check": "PASS.",
+    "reliability_tests": {
+      "status": "passed",
+      "passed": 21,
+      "failed": 0
+    },
+    "web_typecheck": {
+      "status": "passed",
+      "source_files": 138
+    },
+    "production_build": {
+      "status": "passed",
+      "warning": "Next.js 16 reports the existing eslint option in next.config.ts as unsupported; build skips type validation, which was run separately."
+    },
+    "lint": {
+      "status": "failed",
+      "reason": "The existing package script invokes `next lint`; Next.js 16 interprets `lint` as a project path and exits before linting."
+    },
+    "dependency_install": "npm ci --ignore-scripts --no-audit --no-fund; package lifecycle scripts were not run."
+  },
+  "files": [
+    {
+      "path": "CONTRIBUTING.md",
+      "status": "attributed",
+      "category": "documentation",
+      "baseline_sha256": "e2795e3ce8a6f6e173ebc363d0bc70932f475f6dab34e8ebb0f16b17f4068eab"
+    },
+    {
+      "path": "docs/COMMUNITY_VISIBILITY_PACK.md",
+      "status": "attributed",
+      "category": "documentation",
+      "baseline_sha256": "6647db871f1b783caae2e445d7d9e4350dc7da8314f826f846705c7cd7e5c46d"
+    },
+    {
+      "path": "docs/ECOSYSTEM_MAP.md",
+      "status": "attributed",
+      "category": "documentation",
+      "baseline_sha256": "0a2c638bcaba5cf46b6a0432fd47ec7f48a419ec20c5d80d8d8b71427eed0a23"
+    },
+    {
+      "path": "docs/PUBLICATION_PIPELINE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "baseline_sha256": "7898dc0307cf05aaf1a644d7681bd6f743c4e1de4ee4910f95a7b20b04f0bbf6"
+    },
+    {
+      "path": "docs/STAR_INTEGRITY_POLICY.md",
+      "status": "attributed",
+      "category": "documentation",
+      "baseline_sha256": "6f2f134fa28ec55e5e3b6998b2c1bcf031a194cd8fed9d59eff70f32d5b4864f"
+    },
+    {
+      "path": "docs/START_HERE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "baseline_sha256": "e214ab0550b6ec29d07f480226f9b3ea800095380406b673a3d544ca869c91b3"
+    },
+    {
+      "path": "scripts/typecheck-web.mjs",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "bde87c55ddd7d4754c28ba3981fa95d1796ccb940576140ebd5b26cc1a5a3c42"
+    },
+    {
+      "path": "SECURITY.md",
+      "status": "attributed",
+      "category": "documentation",
+      "baseline_sha256": "389e35c4fffa3905ad0a16fb929e61934eae1bf834241647f8aac5468dfe9b37"
+    },
+    {
+      "path": "src/app/app/transparency/page.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "b493ad3800d7c78d6f3f23dac5918391e0a21117881607f89c3136c99bdc002b"
+    },
+    {
+      "path": "src/app/app/tribunal/page.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "9855595dc76d581a991363619c1e74a776e6199b7deee800f93fcc233add3ac0"
+    },
+    {
+      "path": "src/components/BenchmarkStatus.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "25eda948b2ca2ae52f37cef1bb8f1701aa00924d8b475a9bdfc8513048427855"
+    },
+    {
+      "path": "src/components/landing/BenchmarkPreview.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "23143e78752604f7f8e82aa837be5d407cbe381e4fab030f0519ee8112383ebc"
+    },
+    {
+      "path": "src/components/landing/HowItWorks.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "cd54c8adc5264498f9fc7939c3455ece589001c0ea05e2c6dad9881040df5866"
+    },
+    {
+      "path": "src/components/landing/OpenResearch.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "a32877d6ecf61e34d0a3fa10793547db6366c0ad2f364ef7f1566bba8b23321d"
+    },
+    {
+      "path": "src/components/landing/Pillars.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "04207283b4790baca1433ac2a0321bbf5649802de020ab3f4deeb32bd9f3adb9"
+    },
+    {
+      "path": "src/components/landing/ResearchTeam.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "217beea164d5adf7f75f8f69e1c08832cdc296aaa49cc61b62f1adc66beb215c"
+    },
+    {
+      "path": "src/components/landing/useReducedMotion.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "774716b619de8d7cd95fd3ed316c6a95a4fa627222ba5bf2f3a7c7d83e4291c7"
+    },
+    {
+      "path": "src/components/marketing/BrandMark.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "131a284f3234cf0bebfe7caed6e850b0e6165d45c272b8350ba2c7b406d5b58d"
+    },
+    {
+      "path": "src/components/marketing/MarketingFooter.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "810f3aa3cf584eb0d5cb9f41deaf68149bd2fac95614f0e01398a01acfdcc84c"
+    },
+    {
+      "path": "src/components/marketing/MarketingNav.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "52ce94110185b33b8540a501a83a99a71b65acac432793a03be044d21ed28449"
+    },
+    {
+      "path": "src/components/science/CalibrationFlags.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "f8a4283c44d04ecd5113261dc3b4d56456e2ecc3fc323838e292b421a283bf9f"
+    },
+    {
+      "path": "src/components/science/DepthScore.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "a4eba4370e7bff6eea566bb1febe9dab4d6d55b88aba001ebaa06bf09f12602a"
+    },
+    {
+      "path": "src/components/science/GranularScoreBreakdown.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "7202910274f2b25bd131700600c09859b9a91e253297f52b248cf4f3a55011f5"
+    },
+    {
+      "path": "src/components/science/index.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "1fa3b05ec580f3d280511d080782ec8ce4ecdda0ff6901f556b937339457d9e2"
+    },
+    {
+      "path": "src/components/science/InterJudgeAgreement.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "979f55e25b04f915426c80371d30f78430bc4bfe5f4e9edc5cea53a81ccabf48"
+    },
+    {
+      "path": "src/components/science/LifecycleTimeline.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "515651c0eb3c3238ed76439b140ed05746ddffa34b5f86816e51e466e29a582e"
+    },
+    {
+      "path": "src/components/science/PaperEvaluation.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "f8367b490b759077f33777add1069c8f47e43e955693ccf1b7e998c96121a6a0"
+    },
+    {
+      "path": "src/components/science/PersistenceTiers.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "f9ca6c5cfe77bb04daa2d3f460c0d36f08f0fb2bc399ff1f1f1a833b941eecf2"
+    },
+    {
+      "path": "src/components/science/primitives.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "6115c19dd8db95c4e61e3837ec3d46d7af7cb44af40bcff68416c68c2944fd6f"
+    },
+    {
+      "path": "src/components/science/ReferenceVerification.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "427829da13a154c2935e39effcc5828c342a851c4a9bcfe587c6bac21b318efc"
+    },
+    {
+      "path": "src/components/science/VerificationBadge.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "8dcd09b2d7ef009255154eb9f00d9a4be1955353d419d0f791f89199198b1ecc"
+    },
+    {
+      "path": "src/components/theme/theme-script.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "168a20cfe5059ef621209bae5e7bfe2a096fda66e3fa0982356e3a14a85b40ca"
+    },
+    {
+      "path": "src/components/theme/ThemeToggle.tsx",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "382cc8f6694e749f2c55d06aa915e36c7c4a3db38e27be7aa22168f94ebec9a2"
+    },
+    {
+      "path": "src/components/theme/useTheme.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "f1fbff06ee4de64fbc0a7a1775aba7ada59c73b45f0eb6eb36c98e0282d4feb1"
+    },
+    {
+      "path": "src/hooks/useBenchmark.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "1d6a427fadae7d3aa99b19f0776eebe767e1cf4a1c8baa4a758008a735d8058c"
+    },
+    {
+      "path": "src/lib/live-data.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "ef031016c54afcdeb76efd2f433fd5f4188741ff0e5f15a469bb77632d37c66c"
+    },
+    {
+      "path": "src/lib/proxy-policy.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "6be5dc5d9e0b6779c8dfd6340f7a2c5a0c7d62735d4f6c5838934a132c4eeec6"
+    },
+    {
+      "path": "src/lib/safe-persist-storage.ts",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "444b41520dd04537eb737960a0443027d0646ae1642ccf82e9ff8de815699bd3"
+    },
+    {
+      "path": "tests/proxy-reliability.test.mjs",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "718bd13227dd7703292ca2c3e455f5a90c7d535457f610a6b7f53180776231b1"
+    },
+    {
+      "path": "tests/web-reliability.test.mjs",
+      "status": "attributed",
+      "category": "code",
+      "baseline_sha256": "cbc596a880ee2d666c3a629360be959a88a90d4893342a0a1f5e33e81b7b649e"
+    }
+  ],
+  "baseline_manifest": "provenance-baseline.json"
+}

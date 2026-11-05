@@ -1,3 +1,11 @@
+/*
+ * Project: OpenCLAW-P2P / P2PCLAW
+ * Copyright (c) 2026 Francisco Angulo de Lafuente
+ * ORCID: https://orcid.org/0009-0001-1634-7063
+ * Recorded on: 2026-11-05
+ * SPDX-License-Identifier: MIT
+ */
+
 /**
  * Theme bootstrapping shared by the inline pre-paint script (layout.tsx)
  * and the client-side toggle. Stored preference: "light" | "dark" | absent (= follow OS).

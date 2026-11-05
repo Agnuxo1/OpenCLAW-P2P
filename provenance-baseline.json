@@ -1,0 +1,467 @@
+{
+  "schema_version": "1.0",
+  "repository": "Agnuxo1/OpenCLAW-P2P",
+  "canonical_url": "https://github.com/Agnuxo1/OpenCLAW-P2P",
+  "baseline_commit": "3a71b0888773dda5de6329c6278618594d2b8edc",
+  "baseline_tree": "d82b1d89beb799dd1b32b27ac009a58b1227722c",
+  "recorded_on": "2026-11-05",
+  "hash_algorithm": "SHA-256",
+  "source_bytes": "sha256 is computed over raw Git blob bytes at the pre-attribution baseline commit. pre_edit_worktree_sha256 preserves the original checkout-byte digest used for body-roundtrip verification; Windows checkout line endings can make those digests differ.",
+  "scope": "Forty selected original code and Markdown paths with verified Francisco-only histories. This is a selected-path provenance baseline, not a full repository inventory.",
+  "files": [
+    {
+      "path": "CONTRIBUTING.md",
+      "status": "attributed",
+      "category": "documentation",
+      "git_blob": "ebd234e8fb6732793e5e24acb96dc2b1a82016c3",
+      "sha256": "e2795e3ce8a6f6e173ebc363d0bc70932f475f6dab34e8ebb0f16b17f4068eab",
+      "pre_edit_worktree_sha256": "f0c9debdefcffc891b1f7464caaf6623fade89e50bdf8ec05da36c2eee644139",
+      "size_bytes": 1686,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "docs/COMMUNITY_VISIBILITY_PACK.md",
+      "status": "attributed",
+      "category": "documentation",
+      "git_blob": "f7b1dfc85400fc80c90db7583b80a18d337cbf3e",
+      "sha256": "6647db871f1b783caae2e445d7d9e4350dc7da8314f826f846705c7cd7e5c46d",
+      "pre_edit_worktree_sha256": "9ef276e9d2721e2845884e7d9aad510647ff2fae648279a9dc4e4edd28276bb6",
+      "size_bytes": 5226,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "docs/ECOSYSTEM_MAP.md",
+      "status": "attributed",
+      "category": "documentation",
+      "git_blob": "270efbdf6505327d54f0d6a81fa8b6dc6dc62aec",
+      "sha256": "0a2c638bcaba5cf46b6a0432fd47ec7f48a419ec20c5d80d8d8b71427eed0a23",
+      "pre_edit_worktree_sha256": "682c89c7a145003a98f0ba09a4f6ab4026050c4d40babf3081a4aa5be47e56a3",
+      "size_bytes": 3762,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "docs/PUBLICATION_PIPELINE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "git_blob": "5fc6e11d2b337a0b7a42863bb7ae0599e401ed05",
+      "sha256": "7898dc0307cf05aaf1a644d7681bd6f743c4e1de4ee4910f95a7b20b04f0bbf6",
+      "pre_edit_worktree_sha256": "954ddfd5141198c004f7b8cccc434a5180fd67400096b4b177c57f4759259bd7",
+      "size_bytes": 3874,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "docs/STAR_INTEGRITY_POLICY.md",
+      "status": "attributed",
+      "category": "documentation",
+      "git_blob": "24c42d040048a2353f40e5ea920262e0ca34a3c6",
+      "sha256": "6f2f134fa28ec55e5e3b6998b2c1bcf031a194cd8fed9d59eff70f32d5b4864f",
+      "pre_edit_worktree_sha256": "3862883a7edea3e3e0f7bc304a26dbb0cc17710059c50652e23b50121b5addb2",
+      "size_bytes": 1831,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "docs/START_HERE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "git_blob": "71423fcbe15b42a7bae815a664a31ad9163d7ffd",
+      "sha256": "e214ab0550b6ec29d07f480226f9b3ea800095380406b673a3d544ca869c91b3",
+      "pre_edit_worktree_sha256": "2d0e42f2a85e0a57b6643aade78717e84719b89a1dccbf9c4ad22b060e1d9503",
+      "size_bytes": 2974,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "scripts/typecheck-web.mjs",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "1ebb3e664fa91367a2a487ffe285d57c231181f2",
+      "sha256": "bde87c55ddd7d4754c28ba3981fa95d1796ccb940576140ebd5b26cc1a5a3c42",
+      "pre_edit_worktree_sha256": "711fbdf3e3114f3732287634d1323a023978c08613e2f93c1f447844c826a69f",
+      "size_bytes": 1228,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "SECURITY.md",
+      "status": "attributed",
+      "category": "documentation",
+      "git_blob": "5d14e517c1dd34c6eb72820b510ccdc48532fb95",
+      "sha256": "389e35c4fffa3905ad0a16fb929e61934eae1bf834241647f8aac5468dfe9b37",
+      "pre_edit_worktree_sha256": "8841839584baea55d7b84a0c0c958e566699da281c384d89fbb829a86b44d5f5",
+      "size_bytes": 1605,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/app/app/transparency/page.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "b77155502a6fb564c8a5fb502d2958edc71fcd06",
+      "sha256": "b493ad3800d7c78d6f3f23dac5918391e0a21117881607f89c3136c99bdc002b",
+      "pre_edit_worktree_sha256": "34cd19d8a11ef9b8ef9b104569798f97020407efc0f0f0dbe43fc7d951c406f3",
+      "size_bytes": 14426,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/app/app/tribunal/page.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "cd2bf6d4311350a27a8797964dd8db73e3755efe",
+      "sha256": "9855595dc76d581a991363619c1e74a776e6199b7deee800f93fcc233add3ac0",
+      "pre_edit_worktree_sha256": "2e57ddeff843d977ec11a80eb00f92b34dd1034d0db344ae14976c1dcb0595cd",
+      "size_bytes": 30544,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/BenchmarkStatus.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "d2ddb2b0d72e881559c0add159218a6b420c3703",
+      "sha256": "25eda948b2ca2ae52f37cef1bb8f1701aa00924d8b475a9bdfc8513048427855",
+      "pre_edit_worktree_sha256": "c4fee95d641e10efef925e435f8f5577af03cb23aa8f516d34cb74100412e7ba",
+      "size_bytes": 1055,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/landing/BenchmarkPreview.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "435d338316b44961978b2d5f12cb21b5c5f225e0",
+      "sha256": "23143e78752604f7f8e82aa837be5d407cbe381e4fab030f0519ee8112383ebc",
+      "pre_edit_worktree_sha256": "49592c8836c5ee35b2bd48507a2ae2a4e8bcf95fe60610b08594a78426a0b16a",
+      "size_bytes": 5625,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/landing/HowItWorks.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "97f8a3bd258c3c9f050fa45f3cc46708cfc9492d",
+      "sha256": "cd54c8adc5264498f9fc7939c3455ece589001c0ea05e2c6dad9881040df5866",
+      "pre_edit_worktree_sha256": "6b1147607c6550ebcde0399debe3c54c82544405f40e8024a4f4386202e52f11",
+      "size_bytes": 4249,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/landing/OpenResearch.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "2d6b092fcda4c2d5c596827d5cdb2bd6dfd64b16",
+      "sha256": "a32877d6ecf61e34d0a3fa10793547db6366c0ad2f364ef7f1566bba8b23321d",
+      "pre_edit_worktree_sha256": "03a4db88772c4a144f25feb9c01213178a293e3a64aaf51432153dfe69c0246b",
+      "size_bytes": 1861,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/landing/Pillars.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "d1632d5201e7a9bd4d471f4040b1051a63df80c9",
+      "sha256": "04207283b4790baca1433ac2a0321bbf5649802de020ab3f4deeb32bd9f3adb9",
+      "pre_edit_worktree_sha256": "27b41d727c6b49fd0ff29a9efaf7b12150fe667e4f5ef93b46b343275c288ba6",
+      "size_bytes": 2510,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/landing/ResearchTeam.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "f628168824aaf970e7b885cc609d9a82b65a8ea4",
+      "sha256": "217beea164d5adf7f75f8f69e1c08832cdc296aaa49cc61b62f1adc66beb215c",
+      "pre_edit_worktree_sha256": "a28d479f721397c837ffbdb702c189f75653a2dfefbc6cc2ec832fa19d380c7c",
+      "size_bytes": 7428,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/landing/useReducedMotion.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "d7f09b8e6648dc790dce0c5c07dd5f17c1668978",
+      "sha256": "774716b619de8d7cd95fd3ed316c6a95a4fa627222ba5bf2f3a7c7d83e4291c7",
+      "pre_edit_worktree_sha256": "8bfbb566f47a60f78ca4fb3a632b22c14754c9bd7ec4c73d54b262b6c3f32136",
+      "size_bytes": 623,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/marketing/BrandMark.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "176515bb4e4e54287cebc8f6472b81d6b3fa0adc",
+      "sha256": "131a284f3234cf0bebfe7caed6e850b0e6165d45c272b8350ba2c7b406d5b58d",
+      "pre_edit_worktree_sha256": "81a84e76e8ab0027083f24fe1144a61d26fae5032df35ab7a07c8c83fe5e4064",
+      "size_bytes": 1297,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/marketing/MarketingFooter.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "cbe00531e2329424db70ce8cda7c190b887f1067",
+      "sha256": "810f3aa3cf584eb0d5cb9f41deaf68149bd2fac95614f0e01398a01acfdcc84c",
+      "pre_edit_worktree_sha256": "010740ba21fe2fe2edc3c4fe399b2e55b68e4fec5394647fb7da9fb60cfec8b8",
+      "size_bytes": 3543,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/marketing/MarketingNav.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "650474ad2f025c5ac8c4742884dd1533e46de1ce",
+      "sha256": "52ce94110185b33b8540a501a83a99a71b65acac432793a03be044d21ed28449",
+      "pre_edit_worktree_sha256": "7bf5138dd36756c6ee3e8effdf86a8843771191fe7d9f70d4831da4b8ad6c522",
+      "size_bytes": 3245,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/CalibrationFlags.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "c7ab8904e1907a74fc2635a7b7b818dffacc01f0",
+      "sha256": "f8a4283c44d04ecd5113261dc3b4d56456e2ecc3fc323838e292b421a283bf9f",
+      "pre_edit_worktree_sha256": "9154e8bbbea71733c4112fd936cb7c9b1bae7daa9cf3d30dff6adf66b684b798",
+      "size_bytes": 5373,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/DepthScore.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "1a4775d5bec88feae58829c0c9895bb787760c05",
+      "sha256": "a4eba4370e7bff6eea566bb1febe9dab4d6d55b88aba001ebaa06bf09f12602a",
+      "pre_edit_worktree_sha256": "a2f8ae99aebd766d6348aa7a4d3eaa7a4b154bfc83c48e09e787d7965d7bf2be",
+      "size_bytes": 6316,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/GranularScoreBreakdown.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "b17e6550407a1cdf504f3d2619bb378394f8ecc0",
+      "sha256": "7202910274f2b25bd131700600c09859b9a91e253297f52b248cf4f3a55011f5",
+      "pre_edit_worktree_sha256": "e32a70fda585e13146dbad3714984c26ada701a6d3987160489767a4fc532c1a",
+      "size_bytes": 5206,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/index.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "b83886ce347aa9699c294761e2c1f00dbbae9806",
+      "sha256": "1fa3b05ec580f3d280511d080782ec8ce4ecdda0ff6901f556b937339457d9e2",
+      "pre_edit_worktree_sha256": "46e55b5412d3d442bb2d5ab3d6509fa9999ee459e5be93cb6c30e98f1c166cb2",
+      "size_bytes": 690,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/InterJudgeAgreement.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "2947af5b10ab62371f03de09cf10d2628c024287",
+      "sha256": "979f55e25b04f915426c80371d30f78430bc4bfe5f4e9edc5cea53a81ccabf48",
+      "pre_edit_worktree_sha256": "230a9413b1d7ff9fec53c705fdc66a822563c7992282c96f34783aee8cf0c5a7",
+      "size_bytes": 5218,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/LifecycleTimeline.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "9779001a58040db513b454fc0124fef464093f24",
+      "sha256": "515651c0eb3c3238ed76439b140ed05746ddffa34b5f86816e51e466e29a582e",
+      "pre_edit_worktree_sha256": "0ebe8ad0139eb2f156fd536301ec4a231e2b8bc04fb9ed6d5163bcaf51b7c642",
+      "size_bytes": 4537,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/PaperEvaluation.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "b85787f4f69e2aafb40c5bee46e44e6c47f3043f",
+      "sha256": "f8367b490b759077f33777add1069c8f47e43e955693ccf1b7e998c96121a6a0",
+      "pre_edit_worktree_sha256": "4b0829f676a04af91cc10cee78a1de8a38e08ae5ca9964f6aabb6bb1e990cb1a",
+      "size_bytes": 3561,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/PersistenceTiers.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "a2f7542afec364b86a74eda710584a18baff7350",
+      "sha256": "f9ca6c5cfe77bb04daa2d3f460c0d36f08f0fb2bc399ff1f1f1a833b941eecf2",
+      "pre_edit_worktree_sha256": "330e662d8e3407f5187edbf8601e03d52eb1fabf7e3b24cfcbd655c6180bc9a0",
+      "size_bytes": 2361,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/primitives.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "aa5f8ddab5c31893fe28528d1035651cd2295b10",
+      "sha256": "6115c19dd8db95c4e61e3837ec3d46d7af7cb44af40bcff68416c68c2944fd6f",
+      "pre_edit_worktree_sha256": "68e11feaac47d2e77f9667e907da1e3c20fc56dba6cc4d43a60a8ff4af779295",
+      "size_bytes": 4741,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/ReferenceVerification.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "499171e8327e6cd5e5353863ecb1d8f87045274f",
+      "sha256": "427829da13a154c2935e39effcc5828c342a851c4a9bcfe587c6bac21b318efc",
+      "pre_edit_worktree_sha256": "b372fcd5858e08e2dd23beb707a3c503278a70794a162022aabe0cb7d8177ebb",
+      "size_bytes": 6179,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/science/VerificationBadge.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "85512e5c1d538f31333e30e3541b6ff8fb7e0fbb",
+      "sha256": "8dcd09b2d7ef009255154eb9f00d9a4be1955353d419d0f791f89199198b1ecc",
+      "pre_edit_worktree_sha256": "bc347640ded088e2e1f157fa4f0a42f89812d738dde612ae369c7d8237357be3",
+      "size_bytes": 1830,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/theme/theme-script.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "8f5d7c7791f4e03feda0a67de6b1b250c23104eb",
+      "sha256": "168a20cfe5059ef621209bae5e7bfe2a096fda66e3fa0982356e3a14a85b40ca",
+      "pre_edit_worktree_sha256": "740e4928e37fefcdf8718563da657e04ad579b9409d793452ebf1a4aa6f3a95f",
+      "size_bytes": 872,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/theme/ThemeToggle.tsx",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "a361bd63a0e0bbc2b40786554a67e0e6e3a88926",
+      "sha256": "382cc8f6694e749f2c55d06aa915e36c7c4a3db38e27be7aa22168f94ebec9a2",
+      "pre_edit_worktree_sha256": "eac5df0a6d36d56230ea3ed00272a1ff1ddbe2c154d7eec62af3528aec5e09e9",
+      "size_bytes": 1393,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/components/theme/useTheme.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "f2a58056ca620ec9ded612e624268e9a818ff9fc",
+      "sha256": "f1fbff06ee4de64fbc0a7a1775aba7ada59c73b45f0eb6eb36c98e0282d4feb1",
+      "pre_edit_worktree_sha256": "b08ff50f043e04cef2b3cdbff8ff2f2cacfa87623061e666899900975ae43e31",
+      "size_bytes": 2052,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/hooks/useBenchmark.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "50c675bd0639f94655ad832d95da9845f581c332",
+      "sha256": "1d6a427fadae7d3aa99b19f0776eebe767e1cf4a1c8baa4a758008a735d8058c",
+      "pre_edit_worktree_sha256": "22d73bbc2883a9bba78fb6eac8c1a68652c413958c456b791e92bc49dc4e8c25",
+      "size_bytes": 835,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/lib/live-data.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "b82c135f571ed266cadd7cbab8817158a4bf8a2f",
+      "sha256": "ef031016c54afcdeb76efd2f433fd5f4188741ff0e5f15a469bb77632d37c66c",
+      "pre_edit_worktree_sha256": "4b55647922fc76c28053a31ea269ad2a61a3bde91a8acc22b941854fa2f97fad",
+      "size_bytes": 6723,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/lib/proxy-policy.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "e04c978e9c3090c910e58a283c502beba3ab1f54",
+      "sha256": "6be5dc5d9e0b6779c8dfd6340f7a2c5a0c7d62735d4f6c5838934a132c4eeec6",
+      "pre_edit_worktree_sha256": "781abbb4bf4e319f149e5c340225644023857128b62d18f6fa8b6f88de0b5d12",
+      "size_bytes": 1472,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "src/lib/safe-persist-storage.ts",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "24b96b665e324af1795cc72134b55b6417fd6c1c",
+      "sha256": "444b41520dd04537eb737960a0443027d0646ae1642ccf82e9ff8de815699bd3",
+      "pre_edit_worktree_sha256": "62b903d77bc2e5037455f158f6762ab2527df67ab340af4f1634d7ea90fc43f9",
+      "size_bytes": 673,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "tests/proxy-reliability.test.mjs",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "485d6e663e9a52d8df09eed5e1de949376a79461",
+      "sha256": "718bd13227dd7703292ca2c3e455f5a90c7d535457f610a6b7f53180776231b1",
+      "pre_edit_worktree_sha256": "9349425def1a2a388ec2e58319c0cf9a3ed4220999b4f63f07e825cbdeefbff2",
+      "size_bytes": 5857,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    },
+    {
+      "path": "tests/web-reliability.test.mjs",
+      "status": "attributed",
+      "category": "code",
+      "git_blob": "bac330835d4d867ef94fcef0246ab170158ce072",
+      "sha256": "cbc596a880ee2d666c3a629360be959a88a90d4893342a0a1f5e33e81b7b649e",
+      "pre_edit_worktree_sha256": "b52f3ce4ed82969a19822366e44a8b6921d0be4c858bad97a1086b85c07b042f",
+      "size_bytes": 7606,
+      "attribution_basis": "File history was reviewed and maps exclusively to Francisco Angulo de Lafuente / the Agnuxo1 GitHub account."
+    }
+  ],
+  "preserved_license_files": [
+    {
+      "path": "LICENSE",
+      "git_blob": "e2190f4359f3365837d0bc3cbb5ad64686aab8c5",
+      "sha256": "778b7ba4430e7b078977ea8ffeb8f64b462280d7fb65ae761b7c8a0183a45edf",
+      "size_bytes": 1086,
+      "status": "preserved_unchanged"
+    },
+    {
+      "path": "paperclaw/LICENSE",
+      "git_blob": "6b6ab2d06c257064813b7b72f11780ffebee1046",
+      "sha256": "afa3de7e3edd0ad130afc2f31d1f8dbc0a4bda40899f7ecce9c032310e4701c5",
+      "size_bytes": 1085,
+      "status": "preserved_unchanged"
+    },
+    {
+      "path": "paperclaw/vscode-extension/LICENSE",
+      "git_blob": "6b6ab2d06c257064813b7b72f11780ffebee1046",
+      "sha256": "afa3de7e3edd0ad130afc2f31d1f8dbc0a4bda40899f7ecce9c032310e4701c5",
+      "size_bytes": 1085,
+      "status": "preserved_unchanged"
+    }
+  ],
+  "distinctive_original_passages": [
+    {
+      "path": "src/lib/proxy-policy.ts",
+      "line_start": 19,
+      "line_end": 28,
+      "text": "/** Never put query credentials (or URL userinfo) in operational logs. */\nexport function proxyLogUrl(url: string): string {\n  try {\n    const parsed = new URL(url);\n    return parsed.origin + parsed.pathname;\n  } catch {\n    return \"[invalid upstream URL]\";\n  }\n}\n",
+      "excerpt_sha256_lf_normalized": "015d2b4dca67b558bdfc12c9b63488d53335c8fe6a83144cf352664be3dca72b"
+    },
+    {
+      "path": "src/components/science/DepthScore.tsx",
+      "line_start": 45,
+      "line_end": 52,
+      "text": "    { label: \"Mandatory sections\", value: t.sections === null ? \"Unknown\" : `${fmtInt(t.sections)} / 7`, ok: t.sections === null ? null : t.sections >= 7, points: t.sections === null ? null : (Math.max(0, Math.min(7, t.sections)) / 7) * 2, max: \"2\" },\n    { label: \"Equations\", value: yesNo(t.eq), ok: t.eq, points: b(t.eq, 1.5), max: \"1.5\" },\n    { label: \"Formal proofs\", value: yesNo(t.proof), ok: t.proof, points: b(t.proof, 1.5), max: \"1.5\" },\n    { label: \"Executable code\", value: yesNo(t.code), ok: t.code, points: b(t.code, 1.5), max: \"1.5\" },\n    { label: \"Statistical tests\", value: yesNo(t.stats), ok: t.stats, points: b(t.stats, 1.5), max: \"1.5\" },\n    { label: \"Numeric claims\", value: t.n_num === null ? \"Unknown\" : fmtInt(t.n_num), ok: t.n_num === null ? null : t.n_num >= 5, points: t.n_num === null ? null : Math.min(1, t.n_num / 5), max: \"1\" },\n    { label: \"References\", value: t.n_ref === null ? \"Unknown\" : fmtInt(t.n_ref), ok: t.n_ref === null ? null : t.n_ref >= 8, points: t.n_ref === null ? null : Math.min(1, t.n_ref / 8), max: \"1\" },\n    { label: \"DOIs present\", value: yesNo(t.doi), ok: t.doi, points: b(t.doi, 0.5), max: \"0.5\" },",
+      "excerpt_sha256_lf_normalized": "2e5068390fae86c9b60d526a6d70dc5fae3a3d1e81d869d7e11d1b848a595317"
+    },
+    {
+      "path": "tests/proxy-reliability.test.mjs",
+      "line_start": 21,
+      "line_end": 25,
+      "text": "test(\"anonymous GET retries a failed primary and returns the next read response\", async t => {\n  quiet(t);\n  const calls = [];\n  t.mock.method(globalThis, \"fetch\", async (url, options) => {\n    calls.push({ url, options });",
+      "excerpt_sha256_lf_normalized": "4c864bc5f3b4250395f01cf0ecc015577a5403dd1f9e8d044872c76d7bf4097b"
+    },
+    {
+      "path": "docs/ECOSYSTEM_MAP.md",
+      "line_start": 3,
+      "line_end": 3,
+      "text": "OpenCLAW-P2P is the canonical front door for the P2PCLAW research ecosystem. The ecosystem is easier to understand when each repository and platform surface has one clear job.",
+      "excerpt_sha256_lf_normalized": "babceb655c31205557ce4ec5d935b3a5734eba845e606e1f1fd84ec83cca50e3"
+    }
+  ],
+  "excerpt_method": "Exact line ranges were selected from baseline Git blobs for a proxy credential/logging policy, a depth-score formula, an anonymous-read retry test, and the ecosystem entry-point description. Excerpts are LF-normalized for their own SHA-256; source file hashes use raw blob bytes. No paper, generated UI, vendored, or known third-party text was selected."
+}

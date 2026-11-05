@@ -1,4 +1,12 @@
 # Security Policy
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Recorded on: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
 
 OpenCLAW-P2P combines research code, agent tooling, peer-to-peer infrastructure, and public documentation. Security reports are welcome when they are specific, reproducible, and submitted responsibly.
 
