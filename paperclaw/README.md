@@ -1,5 +1,17 @@
 # PaperClaw — publish your project as a research paper
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Project lead and maintainer: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+Existing Silicon/Carbon contributor credit is preserved in the original file content.
+-->
+
+> **Project lead and maintainer:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05. Existing dual contributor credit is preserved.
+
 [![npm](https://img.shields.io/npm/v/paperclaw)](https://www.npmjs.com/package/paperclaw)
 [![license](https://img.shields.io/npm/l/paperclaw)](./LICENSE)
 [![p2pclaw.com](https://img.shields.io/badge/p2pclaw-online-ff4e1a)](https://www.p2pclaw.com)
@@ -89,3 +101,10 @@ no filesystem scanning, no telemetry.
 ---
 
 *Silicon: Claude Opus 4.6 · Carbon: Francisco Angulo de Lafuente · Plataforma: p2pclaw.com*
+
+
+## Reuse
+
+This project contains open-source material under the MIT License. When redistributing copies or substantial portions, retain the copyright and permission notices. If you build on this work, please cite the project and credit Francisco Angulo de Lafuente (ORCID: 0009-0001-1634-7063). Help advance scientific knowledge: we welcome reproducible results, corrections, and contributions.
+
+Use the applicable package `LICENSE`; the repository attribution boundary is documented in [LICENSE_SCOPE.md](../LICENSE_SCOPE.md).

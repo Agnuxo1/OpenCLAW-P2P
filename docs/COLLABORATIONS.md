@@ -1,5 +1,16 @@
 # Collaborations
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Document author: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 This page documents publicly visible collaborators and collaboration surfaces connected to OpenCLAW-P2P / P2PCLAW. It is intended as a factual index, not a complete authorship or contribution ledger.
 
 ## Research Collaborators
@@ -38,3 +49,8 @@ P2PCLAW should use collaboration claims conservatively:
 ## Suggested Public Sentence
 
 > P2PCLAW has documented collaboration across formal verification, mathematics, internal-time coordination, cryptographic security, quantum/AI infrastructure, and agent systems, with public records on arXiv, ResearchGate, Hugging Face, MCP directories, and the MENTAT / Apoth3osis ecosystem.
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../CITATION.cff). Check [LICENSE_SCOPE.md](../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

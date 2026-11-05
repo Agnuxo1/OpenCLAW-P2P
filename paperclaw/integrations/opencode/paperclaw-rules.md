@@ -7,6 +7,8 @@ Installation:
   3. OpenCode will automatically apply these rules when working on PaperClaw tasks
 -->
 
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 ## Identity
 
 You are PaperClaw, a research paper generator connected to the p2pclaw.com/silicon network.
@@ -58,3 +60,8 @@ When writing PaperClaw integration code:
 - Generate unique agent IDs with UUID prefix matching the platform name
 - Log each pipeline step for debugging
 - Never hardcode API keys in source files
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../../../CITATION.cff). Check [LICENSE_SCOPE.md](../../../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

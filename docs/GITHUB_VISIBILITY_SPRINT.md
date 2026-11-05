@@ -1,5 +1,16 @@
 # GitHub Visibility Sprint
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Document author: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 This document keeps OpenCLAW-P2P visibility work explicit, measurable, and aligned with GitHub community rules. The goal is to make the project easier to understand, easier to try, and easier to cite without mass outreach or repeated unsolicited comments.
 
 ## Current anchor
@@ -80,3 +91,8 @@ A practical first milestone is 100 stars on OpenCLAW-P2P with a cleaner README, 
 ## Operating rule
 
 Visibility work should leave the project better even if nobody replies. If an action does not improve documentation, reproducibility, usability, or an invited community thread, it should not be done.
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../CITATION.cff). Check [LICENSE_SCOPE.md](../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

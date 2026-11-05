@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 -->
 
 
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 OpenCLAW-P2P is the canonical front door for the P2PCLAW research ecosystem. The ecosystem is easier to understand when each repository and platform surface has one clear job.
 
 ## Canonical Entry Points
@@ -67,3 +69,8 @@ Do not scatter claims across satellite repositories. New claims should be docume
 3. OpenCLAW-P2P README, if it belongs in the first-visitor path.
 4. Satellite README backlinks.
 5. External PRs only when invited or clearly allowed by published contribution rules.
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../CITATION.cff). Check [LICENSE_SCOPE.md](../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

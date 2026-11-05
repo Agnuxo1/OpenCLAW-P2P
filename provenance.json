@@ -20,18 +20,24 @@
     "arxiv_version_cited": "v2"
   },
   "authorship_scope": {
-    "basis": "Git and GitHub commit history was reviewed per selected path. The 33 code paths and 7 Markdown paths listed in provenance-baseline.json have histories attributable only to Francisco Angulo de Lafuente through the Agnuxo1 account; their bodies were verified byte-for-byte against the pre-edit checkout after header removal. Raw Git blob hashes are recorded separately.",
-    "limit": "This is not a claim of sole authorship of the repository. A distinct GitHub account named Agnuxo contributed commits, but no identity link to Francisco has been verified; its work is left unclaimed. The README receives project-lead/maintainer credit and contains a separately credited Quick Start contribution. The associated paper has six authors and is cited with its official arXiv metadata; the manuscript files are unchanged."
+    "basis": "For 258 text-like paths, GitHub author histories map to the two accounts the owner confirmed as his: Agnuxo (user ID 165324954) and Agnuxo1 (user ID 166046035). Some additional commits have author.login=null; 37 such commits across 23 paths carry raw Git author name Agnuxo1. The owner confirmed that account, and those paths use contribution wording with this limitation recorded. Per-file raw Git blob IDs and SHA-256 are in provenance-baseline.json.",
+    "limit": "Git history and owner confirmation establish the attribution basis used here, but do not prove originality in a legal sense. The root README has shared history including shristibajpai and receives project-lead/maintainer credit only. The associated paper has six authors and is preserved unchanged. Third-party funding data, a third-party portrait, generated components, lockfiles, and mixed or other-account paths remain excluded."
   },
   "attribution_summary": {
     "baseline_tracked_paths": 327,
-    "code_headers_added": 33,
-    "markdown_metadata_headers_added": 7,
-    "readme_visible_project_credit": true,
-    "citation_cff_updated": true,
-    "selected_attributed_paths": 40,
+    "previous_native_header_paths": 40,
+    "new_native_header_paths": 179,
+    "total_native_header_paths": 219,
+    "new_sidecar_attribution_paths": 42,
+    "dual_credit_paths": 21,
+    "dual_credit_text_or_code_paths": 19,
+    "dual_credit_svg_paths": 2,
+    "owner_name_fallback_paths": 23,
+    "owner_name_fallback_commits_with_null_github_login": 37,
     "generated_shadcn_ui_components_skipped": 11,
-    "paper_tex_and_pdf_modified": false
+    "generated_lockfiles_skipped": 3,
+    "paper_tex_and_pdf_modified": false,
+    "root_readme_credit": "project-lead/maintainer only; shared history preserved"
   },
   "license_scope": {
     "status": "existing_MIT_preserved_with_path_scoped_new_headers",
@@ -60,8 +66,8 @@
         "status": "preserved_unchanged"
       }
     ],
-    "new_spdx_headers_scope": "Only the 40 selected paths listed in provenance-baseline.json; each was individually reviewed for history. No new MIT notice was added to ambiguous, generated, or known third-party paths.",
-    "scope_note": "The existing root LICENSE and repository metadata identify MIT. This provenance record does not broaden the scope of that license to independently authored papers, third-party contributions, generated/vendor content, or materials with separate terms."
+    "new_spdx_headers_scope": "219 native-comment attribution paths; exact per-file baseline records are in provenance-baseline.json. Strict formats and SVGs are recorded by sidecar only. Existing root/nested MIT texts and GitHub/CFF metadata remain unchanged; excluded, generated, third-party, coauthored, or mixed-history material is not newly claimed.",
+    "scope_note": "LICENSE_SCOPE.md documents the attribution review boundary and does not amend or replace any existing license. The root README contains the user-provided MIT reuse notice; PaperClaw README files now carry the same notice against their existing nested MIT licenses."
   },
   "citation_scope": {
     "citation_cff_updated": true,
@@ -74,7 +80,9 @@
       "url": "https://arxiv.org/abs/2604.19792v2",
       "author_count": 6
     },
-    "paper_source": "Official arXiv record; local TeX/PDF were preserved unchanged."
+    "paper_source": "Official arXiv record: https://arxiv.org/abs/2604.19792; local TeX/PDF and six-author citation were preserved unchanged.",
+    "citation_cff_preserved_unchanged": true,
+    "citation_cff_preserved_unchanged_in_expansion": true
   },
   "third_party_contributions": [
     {
@@ -86,6 +94,11 @@
       "contributor": "Kimi-Claw-GitOps",
       "commit": "6151172",
       "scope": ".github/FUNDING.yml; preserved unchanged."
+    },
+    {
+      "path": "public/teerth.jpg",
+      "status": "preserved_unmodified",
+      "scope": "third-party portrait; rights not established by repository commit history"
     }
   ],
   "distribution_rules_review": {
@@ -93,8 +106,8 @@
     "official_contest_rules_consulted": []
   },
   "security_review": {
-    "scope": "Text-like files at the public baseline HEAD; historical blobs and binary assets were not exhaustively scanned.",
-    "finding": "No high-confidence exposed secret or personal contact value was identified. A test fixture intentionally exercises URL-userinfo redaction with dummy credentials; raw values are not recorded here.",
+    "scope": "Current public baseline text-like files; no historical or full binary sweep was performed for this attribution update.",
+    "finding": "The existing scanner reports one URL-userinfo-pattern match in a reliability-test fixture; the source line contains the dummy value admin-test, not a credential. No credential value was emitted or changed. The repository was already public.",
     "historical_scan_complete": false,
     "binary_scan_complete": false
   },
@@ -110,259 +123,3011 @@
     },
     "web_typecheck": {
       "status": "passed",
-      "source_files": 138
+      "source_files": 139
     },
     "production_build": {
       "status": "passed",
-      "warning": "Next.js 16 reports the existing eslint option in next.config.ts as unsupported; build skips type validation, which was run separately."
+      "next_version": "16.1.6",
+      "static_pages_generated": 28,
+      "warning": "Next.js 16 reports the existing eslint option in next.config.ts as unsupported; type validation is skipped by the build and was run separately."
     },
     "lint": {
       "status": "failed",
       "reason": "The existing package script invokes `next lint`; Next.js 16 interprets `lint` as a project path and exits before linting."
     },
-    "dependency_install": "npm ci --ignore-scripts --no-audit --no-fund; package lifecycle scripts were not run."
+    "dependency_install": "npm ci --ignore-scripts --no-audit --no-fund; package lifecycle scripts were not run.",
+    "expanded_attribution": "PASS: 219 native attribution paths recorded, 42 strict sidecars documented, and shared, generated, coauthored, licensed, and third-party material preserved or excluded according to the scope audit.",
+    "expanded_header_roundtrip": "PASS: 186/186 edited text/code paths restore byte-for-byte to their pre-expansion checkout contents after removing only the exact inserted attribution material.",
+    "expanded_manifest": "PASS: 261/261 selected raw baseline records verified (219 native paths plus 42 strict sidecars); four distinctive excerpt hashes verified.",
+    "expanded_sidecars": "PASS: 42/42 strict-format sidecars remain unchanged; their attribution is recorded in the provenance manifest.",
+    "expanded_licenses": "PASS: 3/3 existing MIT license files remain byte-identical to the raw baseline.",
+    "expanded_static_checks": {
+      "status": "passed",
+      "python_ast_files": 12,
+      "node_syntax_files": 18,
+      "html_files": 9,
+      "yaml_files": 10,
+      "json_files": 2,
+      "failed_checks": 0,
+      "git_diff_check": "passed",
+      "git_diff_check_exit_code": 0,
+      "known_autocrlf_warnings": 8,
+      "warning_note": "Git reported nine local LF-to-CRLF conversion warnings with core.autocrlf=true; no whitespace errors."
+    },
+    "anonymous_remote_verification": "The post-publication anonymous verification outcome is recorded in the external progress log; this file records pre-publication checks and does not embed its own commit ID."
   },
   "files": [
+    {
+      "path": ".github/ISSUE_TEMPLATE/bug_report.yml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "852f8413009c9e923400e62f1fbcd16a6e77806acff2b79935f52b0fb3406e9e",
+      "git_blob": "278d7b7961715487499cdaa7a2b5b4f4ce72fe83",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/config.yml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b0b37660cac2852211d7a140ccaaad6e0000dd13d5f44a989cad23c22efae14f",
+      "git_blob": "b28c428ce99e1b4f90a42263ed73b83c8db2551a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/demo_reproducibility.yml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "8ab1aa377a4bfd78e0aafd892c0c32fba21fcccf314f201fd932e21001197f38",
+      "git_blob": "c597a1b4b6ac4488bdc60016e25248cf32bc4a8d",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/documentation.yml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "90c7b2b8af62b7959462c01b89fc666d43a1b7a3e68402692f97c5e977117c8b",
+      "git_blob": "33997837584a4310961cc600b153a79518d75aca",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": ".github/ISSUE_TEMPLATE/integration_proposal.yml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "54d128f31edc75f105ab7a3b2ac515c3993d2dd9df764a355fb3b756fe2ac897",
+      "git_blob": "9c227b3bdaf6ba1e8db607bbb6451781c81d80c6",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "fed546e7579bbfd061a7f8e42b5e931c2c2493d28a286870c796bbbad834c9ba",
+      "git_blob": "31a70868ed13650e0a2d51e6443b75e149977841",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": ".github/workflows/intellectual_shifts.yml.disabled",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "8a836a2d2171f39f07c0fd8ad8218b1f1394c846d043f06e02796a3eb5d9174c",
+      "git_blob": "8aa698a253d563d838749c6bca894e478273577f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": ".github/workflows/relay-pinger.yml",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7a46a2b84a87f4a1d1f5b0d0a95086d00b8347fa1d1e0b0f49a4727f34cbd0cb",
+      "git_blob": "746ab24336fd86dc7ada9741ccc0410b4cd27059",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": ".github/workflows/seed_growth.yml.disabled",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "a76c6ea1b18ea6350112f6cf8a02b93b334ede406abe46670fab0c00a658ce81",
+      "git_blob": "9ecb5b3b511783e784241737099c0ad04335cfa9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": ".gitignore",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "57a8ad32d47b73a38e794f0295090e5a99716616c1ce7372cacd120ee9227c08",
+      "git_blob": "2ba5f20976ad78167a58a0d2be200ec909dd4be4",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
     {
       "path": "CONTRIBUTING.md",
       "status": "attributed",
       "category": "documentation",
-      "baseline_sha256": "e2795e3ce8a6f6e173ebc363d0bc70932f475f6dab34e8ebb0f16b17f4068eab"
+      "sha256": "e2795e3ce8a6f6e173ebc363d0bc70932f475f6dab34e8ebb0f16b17f4068eab",
+      "git_blob": "ebd234e8fb6732793e5e24acb96dc2b1a82016c3",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "existing_comment_plus_visible_document_credit"
     },
     {
-      "path": "docs/COMMUNITY_VISIBILITY_PACK.md",
-      "status": "attributed",
+      "path": "PAPER_QUALITY_FIX.md",
+      "status": "contribution_attributed",
       "category": "documentation",
-      "baseline_sha256": "6647db871f1b783caae2e445d7d9e4350dc7da8314f826f846705c7cd7e5c46d"
+      "sha256": "d01bb3ddca9061714b977473b8990c40a10517ba824db43456e5d3022a3db288",
+      "git_blob": "8bd52b9a9caa5ddb78f1aae7cfd4de656c42b33c",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
-      "path": "docs/ECOSYSTEM_MAP.md",
-      "status": "attributed",
+      "path": "PROTOCOL.md",
+      "status": "contribution_attributed",
       "category": "documentation",
-      "baseline_sha256": "0a2c638bcaba5cf46b6a0432fd47ec7f48a419ec20c5d80d8d8b71427eed0a23"
-    },
-    {
-      "path": "docs/PUBLICATION_PIPELINE.md",
-      "status": "attributed",
-      "category": "documentation",
-      "baseline_sha256": "7898dc0307cf05aaf1a644d7681bd6f743c4e1de4ee4910f95a7b20b04f0bbf6"
-    },
-    {
-      "path": "docs/STAR_INTEGRITY_POLICY.md",
-      "status": "attributed",
-      "category": "documentation",
-      "baseline_sha256": "6f2f134fa28ec55e5e3b6998b2c1bcf031a194cd8fed9d59eff70f32d5b4864f"
-    },
-    {
-      "path": "docs/START_HERE.md",
-      "status": "attributed",
-      "category": "documentation",
-      "baseline_sha256": "e214ab0550b6ec29d07f480226f9b3ea800095380406b673a3d544ca869c91b3"
-    },
-    {
-      "path": "scripts/typecheck-web.mjs",
-      "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "bde87c55ddd7d4754c28ba3981fa95d1796ccb940576140ebd5b26cc1a5a3c42"
+      "sha256": "26b752208b8ceb5feee421c7a0a0ab218b91871434e974bbdc5a2bff172f1b27",
+      "git_blob": "73cec8a49b70b12215d3c6d20d398c30762f0d06",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "SECURITY.md",
       "status": "attributed",
       "category": "documentation",
-      "baseline_sha256": "389e35c4fffa3905ad0a16fb929e61934eae1bf834241647f8aac5468dfe9b37"
+      "sha256": "389e35c4fffa3905ad0a16fb929e61934eae1bf834241647f8aac5468dfe9b37",
+      "git_blob": "5d14e517c1dd34c6eb72820b510ccdc48532fb95",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "existing_comment_plus_visible_document_credit"
+    },
+    {
+      "path": "components.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "66a3a48694af66913f8cdbb7fb37ebf27ac793e5063acf97f8c1d41c289899bb",
+      "git_blob": "03909d9d110439b118b8521e50026509ff7028f8",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "docs/COLLABORATIONS.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "862c220dabd43b0aa01daec4e7d822b1fa9b12e03c3db64289633e278b2b08bb",
+      "git_blob": "16ce0f3f315cf94b2621b9476b59e6942564d67c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "docs/COMMUNITY_VISIBILITY_PACK.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "6647db871f1b783caae2e445d7d9e4350dc7da8314f826f846705c7cd7e5c46d",
+      "git_blob": "f7b1dfc85400fc80c90db7583b80a18d337cbf3e",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "existing_comment_plus_visible_document_credit"
+    },
+    {
+      "path": "docs/DEMO.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "fc54b2fe67acdf4a88daf9bbda8bf822e3181b769212f3f58a2a9365cca57386",
+      "git_blob": "f076f25e55001fd750248594fcf800b41c2795ce",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "docs/ECOSYSTEM_MAP.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "0a2c638bcaba5cf46b6a0432fd47ec7f48a419ec20c5d80d8d8b71427eed0a23",
+      "git_blob": "270efbdf6505327d54f0d6a81fa8b6dc6dc62aec",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "existing_comment_plus_visible_document_credit"
+    },
+    {
+      "path": "docs/FRANCISCO_ANGULO_PROFILE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "d5815da60b2a2bc23fb56f409ee9fb2ddd6ff62c64a59dfb92bb5fe385442cbc",
+      "git_blob": "aea1298b0b374e5183084007ade9f8f1b706350b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "docs/GITHUB_VISIBILITY_SPRINT.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "9221f5dc37593b2c3a1fa3abc648e21008ff5bf3c8a812c85a5b51132d147e26",
+      "git_blob": "a8fa76e02dd02a3f6e3e8f76219ed8c2861b00f2",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "docs/PUBLICATION_PIPELINE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "7898dc0307cf05aaf1a644d7681bd6f743c4e1de4ee4910f95a7b20b04f0bbf6",
+      "git_blob": "5fc6e11d2b337a0b7a42863bb7ae0599e401ed05",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "existing_comment_plus_visible_document_credit"
+    },
+    {
+      "path": "docs/RELEASE_v6.0_RESEARCH_PREVIEW.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "f0b3f00b0d25d5563ba8da8a4269e6c6ae117ee348b813633af48556959da07f",
+      "git_blob": "9fc03761d11c493aea188b63b5198b007cb75b0c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "docs/RESEARCH_MILESTONES.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "d414f064501181e8d6e781c9b255dc8184efa95c831219fb6431202c4c06638f",
+      "git_blob": "e67a01c9635087a389e15bbef612b771b669478a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "docs/START_HERE.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "e214ab0550b6ec29d07f480226f9b3ea800095380406b673a3d544ca869c91b3",
+      "git_blob": "71423fcbe15b42a7bae815a664a31ad9163d7ffd",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "existing_comment_plus_visible_document_credit"
+    },
+    {
+      "path": "docs/STAR_INTEGRITY_POLICY.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "6f2f134fa28ec55e5e3b6998b2c1bcf031a194cd8fed9d59eff70f32d5b4864f",
+      "git_blob": "24c42d040048a2353f40e5ea920262e0ca34a3c6",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "existing_comment_plus_visible_document_credit"
+    },
+    {
+      "path": "llms.txt",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "a3088585729a66d00ffd25d589d23ae4d9ea249e81a5db39f4f401d29ebee50f",
+      "git_blob": "54aec420c273d610293eb13cad51b131e1065bbb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "next.config.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "21c31fdc721da2b4db13902483cf078b74cda0a7a8b6a9ae076dac9476b3a4aa",
+      "git_blob": "7002489f0458a023a21358ad19af4d2ec7349e7b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "package.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "917696453f5a5cd3a73967bf00decdf33e193bd2187febe46d9dd0e63715baa3",
+      "git_blob": "fce180ce361b7cf36d87539b5856ce471d3b154b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/.github/workflows/publish.yml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "99d72f069a6430ee6b5d6a1e05340867acc7430273d8561ff337533d50c469b1",
+      "git_blob": "2e24dcafadfc864515a4e99be73280da1b241768",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/.gitignore",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "c792e6ebb5ccf51e8f9eda02cb7ea6f85ebdf746e6460d7d1cdbb9934e69efae",
+      "git_blob": "f9af4d0d98f983a299be1607e9c5a32f457e58ba",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/README.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "a9d25675ee9fd0a421579dcc0e11663ac7524a9567df570a37b31d0f0722420b",
+      "git_blob": "7aae5b69de5766ea2ea9f9789d18cae4c7db8e85",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/brand/icon.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "04dd06d1aa463680dec6d840e4c5d4fd43a38fe514f014e5f4eaceb72d5a878b",
+      "git_blob": "c6da376cc4a6932a5a2b415c38957d6efadd46f9",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/cli/index.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "eca2b0ff53ef87050613afaef5b74dcc0ac41673c6fa4f09f223294688e5c4ba",
+      "git_blob": "baa0e7189923765980162be3722d5e20e5534802",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/cli/mcp.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a1f2ec1512ac4506f0928dfbed42beded2c48170d83d25c72157760c405a0114",
+      "git_blob": "53b974b82d107f60cae24d984b83b86eba15ada0",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/core/index.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "6cd31af7d886cf675e94924a882501ae344b166720e518c35f6c5350bf60f5a8",
+      "git_blob": "baf1fd4ca1ecbc7e71885d3087556b77f0a5795f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/core/pdf-generator.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "6172d2c7e1ba0d6245c79df273d1d8026f6fd936ea5096a3c255f9b8d9e01dc5",
+      "git_blob": "993085688cbd96f49a5bd959f8b01a3fa75f7b65",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/core/prompts.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b46de182c88a4dce187a0e1d9e8891b2894a6ed516bfce8b4656df9d7a09523c",
+      "git_blob": "8b5ee9fcd1854b2a1adc16859d042f779acddf71",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/aider/.aider.conf.yml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a894860a4bbdfe4a6cd9ad98fba4829717956d3e41091f292057f78143208987",
+      "git_blob": "80e93fadf7d30c0d984b0fdca3ef47c2fcfd1b8c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/aider/CONVENTIONS-PAPERCLAW.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "8d8afcb215f948502ebc7367f46872a3a5e7c5badad315d4d8c5b988079874ba",
+      "git_blob": "924710bf392819ffd356587b1ab2bb4707f9fe31",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/anythingllm/paperclaw-agent.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "7b68d5bad621524834b22b7f13d2a09c7ace34b617be2f29bd3c645f56dc87aa",
+      "git_blob": "16dbd8464f9315f8e1201518282c7a5e2642a6ca",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/autogen/paperclaw_tool.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "5e8707a68ece0b8c1a879dbdbbf0d3b71fb88b1370a3e74f97f10e119fa330bc",
+      "git_blob": "fc73ed2d3051b90bf39399fb01f60d3a51f39a01",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/browser-extension/background.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "5e79232a804a81698986bfbd145850b3b3a868014eebf1ff37d95ae81443cd01",
+      "git_blob": "8fd28c531142dc6eade4fd91bafcf67411c60ee6",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/browser-extension/content.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "f4abea456950fd82948c5b456d2bfe9e02a231b9a7c9035c24e11dc36ded6168",
+      "git_blob": "eccef2007439649b54d3bb8d1357b304b550a7bb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/browser-extension/manifest.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "264c75bd2ade4481b06ef34be9d0a417cbd0134af26a39106cee45251cec6011",
+      "git_blob": "7815084d13aa357aa4a38a810122e8cf64414f96",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/browser-extension/popup.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "83b7f17e8018dd069b95559232cf4a0d1e43fbf7bb4955ea8df2216efcc0a877",
+      "git_blob": "f981489f8349d2ed10ef9874dcecf25abf1318d1",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/browser-extension/popup.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "31b15152c1c5aed4bed18e0f486a30a1d098f0f34a91f4330fda133b137d751a",
+      "git_blob": "14ae155ed737aa3ffa6913298b1fbe9a82e73940",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/chatbox/paperclaw-provider.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "25695bd8f4c2ebee7b41539f5ecb03041680d014bdfe99918f4cd9bb54227f1d",
+      "git_blob": "458279e1cc6bdc88ff0d98d25216011f10e4e932",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/cline/paperclaw-prompt.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "de12404e00334fc2daba4895ca94cb68950034cbd136f3e7e42b79a6372f87b4",
+      "git_blob": "425858a6917ce9d2fe51f49ae2ccdd202727761f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/composio/paperclaw-action.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "0cebb791b557346731896d64420edb3a6f2b587b73e8f7d5d336b94ac6f808e4",
+      "git_blob": "456ee3898da6d3d4482e1b2dfda643656a14938d",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/continue/paperclaw-config.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "dc11dd02de6b99309ed87eb41fe7d5615a68a1d1173e3692c353de7dd41bef07",
+      "git_blob": "8a18c1e5eac0bed94a0d77793b0d19dece699186",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/crewai/paperclaw_tool.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "c11ce090bde92bb74de8372b0b3c8d5d37ba3ebc77d56af626799a31a3c47347",
+      "git_blob": "30bd5c5eaa8a4d74f57108b3eb66c04daac062d7",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/cursor/paperclaw-rules.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "5b909d6b09cad8ba45d3149dc0f476f2862d771250ee767500f034672a2d61dc",
+      "git_blob": "40b6259e878f616d6ae2b8b529689b39d75510d2",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/exo/paperclaw-cluster.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "dae0c60fecdeaf15ce4411aa02c9cc8d1d483eed491bea7f8e603c869bb0c05d",
+      "git_blob": "d10684df343daf24cb6f7f0345afe0884cb9c7a0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/google-adk/paperclaw_tool.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "bc4ca92dcc63d39524ee2b664eaa820a3411b30badee96ff09a22609ec741a25",
+      "git_blob": "56700e0b6c307547fdea96b30449079656e9eff8",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/gpt4all/paperclaw-prompt.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "d08d2a1f3826c8dfefd8d5d8013dffa8261c24223a151877df115b4115aaf163",
+      "git_blob": "ac05f4dbfde03d43a9f7b56301e0fd1f49e4d837",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/haystack/paperclaw_component.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "6e6b1f50da92c54eea2a3fa8ce024682ec7d810cdc92e5468e6b4e67235d6412",
+      "git_blob": "43be905959aaac7cca369c23401162c7e1070513",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/huggingface/app.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "f66fa255c17c7f1d1d5b47c9a5615a70094c92d878ca98476afd8a05afaa4b89",
+      "git_blob": "323deab77a9461147143a4723312a2ca8c8433e0",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/jan/paperclaw-assistant.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "371b5e8ae4970865ba9cafe879780e8b621f5c6ce3c0aeeb518a1178916a0fe0",
+      "git_blob": "7366690a955f567095f2600ff87aebd8eb20d10f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/koboldcpp/paperclaw-preset.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "d24a67d48be89a371db2b7e82f7c67827bdeff186c3a474cd425af50c2731f91",
+      "git_blob": "538b55df77af717852f426670d64b1a3d7498a24",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/langgraph/paperclaw_tool.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "bf2a5c27fc499e094e9c27767537af141206f524e042c29c3c9f1717ab7bc1e5",
+      "git_blob": "3f5747a8598a63bef176b1b406fb5948a1ef362d",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/librechat/paperclaw-endpoint.yaml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a724494ce14a603de4bc56615a68b7f5fdd367320306e7962c08706fcfa8f94f",
+      "git_blob": "62e44d75b91b271559c49b329d3aad58ce5bb2fc",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/llamacpp/paperclaw-server.sh",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "782d55798ba7722830ec244e82fa70a2224f6d2a00bdbb6995583d0704f640c7",
+      "git_blob": "58bde6c1044a01e54744bbd03422ab77ef9fe065",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/llamafile/paperclaw-run.sh",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7d95e2d9a6c18bc6898b8024f9389ba90974b947219888d2fd4ab0cd87a68cae",
+      "git_blob": "dbf6139837603e696c17bc68dab5d0d5e4efb105",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/llamaindex/paperclaw_tool.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "5f5a871726321aa18771ff9a1b50eed9770c361518bb414121fc929d05ad80ac",
+      "git_blob": "31d0bd0a15089396b35b8d12da27a5e61982affb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/lm-studio/paperclaw-preset.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "4e913f3ee724bad5cfeaf3331533beee505b6c26ac0942c8bb7dd0298cfb4865",
+      "git_blob": "39c919df9e406a15738e843104696afa95c8b331",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/lobechat/paperclaw-api.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "4288137f76c1bd40edc9765fd41386b7e19c5ace9454f405ce8b8ec222956f90",
+      "git_blob": "584c8ffd3dbe815deebdefb3e65cdbd14bc5bec6",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/lobechat/paperclaw-plugin.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "a3e3f0b094a815814d54f78330204d0febc6e5da55f4bfe1c395fe799e1b9e6c",
+      "git_blob": "036a2161be2cee4f0af798b16720c50e5bf4ea40",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/localai/paperclaw-model.yaml",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "d9a8041fe20bb26083500cf3003b22dfb69c7eea106589354bd2f51b93d94bed",
+      "git_blob": "d9716f859ed8012ca92829bde7ee2012e79c3f30",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/mastra/paperclaw-tool.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "c4502a84d94e9bf26e605dbdaa735349883620227ad7e3ff0ef4eb4e4a7b5afa",
+      "git_blob": "bc36a8dc0fc5b5fae607ea5ec843d76ae15d7153",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/mcp-server/paperclaw-mcp.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a1f2ec1512ac4506f0928dfbed42beded2c48170d83d25c72157760c405a0114",
+      "git_blob": "53b974b82d107f60cae24d984b83b86eba15ada0",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/mlc-llm/paperclaw-config.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "4f7ace4e403a17ba40db3978e747d40f107a28a2df88e8bd39ee95fd99fc9a69",
+      "git_blob": "8b7b7c1fdcc7cc65369c7d265423d808506de0e5",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/n8n/nodes/PaperClaw/PaperClaw.node.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "271c34f21b1086738622ef449c7bacebff0ee46d2a82916b6b5cc7b46a4fdf17",
+      "git_blob": "4b1ad0f9ec439887a335d5f2ba3dda0249c3f61c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/n8n/nodes/PaperClaw/paperclaw.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "4635854acc4c982fb00d9c47a16c052ba1d37a76c68bdb7bb7c878dc60bbca8c",
+      "git_blob": "90771396bdd252c0b9ee0a3e0450e2b1d668d622",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/n8n/package.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "ebc608d79ada56e1c81ae8b17ea89ee2400b7ced6e5eedf078727830867dcc52",
+      "git_blob": "b5a3c8fd149f21fb0792e2f55dc21f9a95685e9b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/n8n/paperclaw-node.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "216e09d8051463748370a89a3b734b488c1b457ef27289ea7b46ee487c513ac7",
+      "git_blob": "3224fb4bb703e37005f1943121b6dc96f8ba0471",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/n8n/tsconfig.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "23f9e8a061fa818f22b7b65473f55211946f7f04a60353deb52a32b3c4de0f8b",
+      "git_blob": "43271daadd50bf674ccc718de678947fef2a5796",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/ollama/Modelfile",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "bb1629321d1d75b3740d0a2b463de07c51f3a4c8c78ac44fd41c45d15e59c75d",
+      "git_blob": "4ffb351a9dbfedd740ec99f972da6a2b092e5a4c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/open-webui/README.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "7de363ca918bc2eedf673f2b5bc08f00b13065bf5fa454bd561c19ed30fad338",
+      "git_blob": "641b59bfe3eb8807234096f555f4ab52fdcde9bc",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/open-webui/paperclaw_pipe.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "32a04d92482ce3d03b164b94fdf4d7f7a14c406dc1c24a8c6510510c0f339bd3",
+      "git_blob": "f41f0b20ad86637bd2251668c0b8dcd7c1477c6d",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/openai-agents/paperclaw_tool.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "e19f7f5901c9751a8828760e93eb15e86bad5c0ddcbfd65a5780b3de9b8ec2ab",
+      "git_blob": "cf39eee02a56e962528fab350edbbbba76ac7c73",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/openapi/paperclaw-openapi.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "73bc090cc142e0db98fe0e65dd43059dd10b8a74a578bc43569a53451271645e",
+      "git_blob": "98178b349fc3c9104bc4473189fa454c6341c5d9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/opencode/paperclaw-rules.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "da648003390348b8fb2bcc33473b3062007c56443eafdb2b6cdda43e363c484c",
+      "git_blob": "1c369bb8af01ac0172e090b77c96dd41a295397a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/pinokio/install.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "53286aa326420b4046933a2ac799800c33102280b201e4b5898eefaf0639ce4a",
+      "git_blob": "eb7d69bbce26ed7d88374155ed405b8d2ab98c99",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/pinokio/pinokio.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "91677030a1b64f455816af1c1bcf659b0f52efc3332788e27c559dfbe1d620dc",
+      "git_blob": "d91d218565bfbca55194b0e10ee9d5b2af473053",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/pinokio/reset.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "6ee1e0906e8556f9b9c8e2e08419336719556055ab65bd2afce57d46da0c8530",
+      "git_blob": "a9035213ef87a57ab750fd6bd44a1b2124f46f7f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/pinokio/start.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "0756e93a2f5ea8f9b5ef9dc73ebeaef09829ca6e5e5bf8699166e5729984dc1b",
+      "git_blob": "fdc797a14ef6d0ce1f8d0501322570bb676f50b7",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/pydantic-ai/paperclaw_tool.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "8b53384ead44f461bda4350c591403e4b323a723fe00b5efbda6d428f66caa29",
+      "git_blob": "562f649b45ac6065d11573e98b8853d8b836fc61",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/semantic-kernel/PaperClawPlugin.cs",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "59311598e3f6c26c179c7a9ca0b722c180956d764729cb7a4d9c8972f7e31bf0",
+      "git_blob": "e8d767e4f0ed2a12539bded8cf5b8c13fe7dc7c4",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/semantic-kernel/PaperClawPlugin.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "bbf1e955bff6196462ed5db07e45033572d6a6868250ef6df07bb337379014ab",
+      "git_blob": "ab4212995aacf218e9e73ae24dfe49b47e8c4453",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/sillytavern/paperclaw-character.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "b4daa8d5a555c7a04caa09848f1e1f42544302e1ba8650e584c0e11418639bb0",
+      "git_blob": "b1a497d5e5799df6992c0ab5b74fea2645acf83b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/integrations/text-generation-webui/paperclaw_extension/script.py",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "44fd18940842f331777cab6b725dadefdda0799e9541f1ea4e3ae3bea4f448e1",
+      "git_blob": "11b1fc387d6a303d5df5f5c93d58741c54ab6a6f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/vllm/paperclaw-serve.sh",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "1059eff5a43b7b11fb4c5d153175b7a490bcacc3fe5681c5fc45fc83f20cfb39",
+      "git_blob": "6379327da82bcd02e18288e7ee46b58caeeda19f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/void/paperclaw-config.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "4f1ba6a844f7686f3100a82d9bb0ebb1621f2ee70e82359da033350b2e0aeb87",
+      "git_blob": "94d1fa5287937e3663c3df1ae29f1dff18736edd",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/windsurf/paperclaw-rules.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "71d4c105c0231794cab8b89fe3de97cb494a37a8638dea40cd61f4a4206ec23b",
+      "git_blob": "c577643c39e8a5c147a81e04f58a89e5c6a12800",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/integrations/zed/paperclaw-slash-command.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "a27ce519356fb82ad7f608ba72169cfafdeb78d6ee3b643e7ceab186ab039f6b",
+      "git_blob": "283465f450e0db5864745c80bd8a88bb6655df46",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/package.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "c443e87931f67495e4364f0a9b46fa7716d086e2141d269f9dc28f64cff7ed8d",
+      "git_blob": "3934e7be28f938d74f49e38b290af77fbd7c52f2",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/vscode-extension/.vscodeignore",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "d7aefafd94846ede969a310b5230a4f53f3e90feaa307cdd0b9c82ce04cbc3c7",
+      "git_blob": "706d287f22c3fd2e1ec6f8ea5a3db161aef348f9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/vscode-extension/CHANGELOG.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "60dad3033fbeb5a84067539f8e3ae0478dbaa054c1ee59546997531c799ebd1e",
+      "git_blob": "ceb0dd82277032823b17b792eef9786a52a2c8a1",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/vscode-extension/README.md",
+      "status": "attributed",
+      "category": "documentation",
+      "sha256": "888f20cbd037ae792da03cf1355b7101fb3c99a82b61ef1a045a5797519f3d7f",
+      "git_blob": "e655a4c6cf023f9297b48bdb8c12f529398f5cdc",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/vscode-extension/media/icon.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "04dd06d1aa463680dec6d840e4c5d4fd43a38fe514f014e5f4eaceb72d5a878b",
+      "git_blob": "c6da376cc4a6932a5a2b415c38957d6efadd46f9",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/vscode-extension/package.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "8977b43197dbd0c7cc47103c04df004f9c7bff90a510af658d41f46fa406754e",
+      "git_blob": "0d1cd82d092f1a67bcdf02bc06a08ff4641671f4",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "paperclaw/vscode-extension/src/extension.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b577088e3c868acb0f739046310a8db99f8260c729310adf307b930a6cab7111",
+      "git_blob": "b1804331fc5f187814e7ec2fd1e8e981a4b5ca97",
+      "credit_type": "dual_contributor",
+      "attribution_basis": "Existing dual Silicon/Carbon credit preserved; Francisco credited as project lead/maintainer.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "paperclaw/vscode-extension/tsconfig.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "d49412085fc22738ef156e3c17aae7d44e814bddb01d737d0eb674c354317f28",
+      "git_blob": "8d416f7c33ca4049008c71e1dfaa1b306c9399be",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "postcss.config.mjs",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "dfac7ac2d86d326a0e5adb024e7943c181393ed17a5fcb8f0315b24c7da6ddde",
+      "git_blob": "61e36849cf7cfa9f1f71b4a3964a4953e3e243d3",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/claw-watermark.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "09dc27946d98b7049791bfc78503b8bb69aaef25a8a45b755115aa05cc3259e3",
+      "git_blob": "146abaa7df1e9820fe08ef9130f02e61222ccc19",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/file.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "2b67812c325c199a02536cdbeea0c593a72f707d323b72ee3e08dbab06753bd4",
+      "git_blob": "004145cddf3f9db91b57b9cb596683c8eb420862",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/globe.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "b614b9bf183925957661ac851498fe1d8029fd43a62fbfed86f9e2624a57e7cf",
+      "git_blob": "567f17b0d7c7fb662c16d4357dd74830caf2dccb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/llms.txt",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "a3088585729a66d00ffd25d589d23ae4d9ea249e81a5db39f4f401d29ebee50f",
+      "git_blob": "54aec420c273d610293eb13cad51b131e1065bbb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/manifest.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "2287c95c8d27e1b0a68441c83d822e8f5a3be3a098ab93f24d4e4d0e4d227273",
+      "git_blob": "af8276f490dd0ddac7e0e8df1249641887123b84",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/next.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "55995dfad6ecb4945a1e856ddca03c5e16aa5bf13fd21b4df6a74ae79357bcfc",
+      "git_blob": "5174b28c565c285e3e312ec5178be64fbeca8398",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/silicon/comms/index.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "1886a5f3cffadab26dd461973fb92e4176233b07e3e0000c1c493732acd12dde",
+      "git_blob": "331fe4649132a1486166f9da7b0ef86be5da9514",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/silicon/hub/index.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "4267eae9af6ddb6f5fbe88754cb6d7b5b2d91e79a2af4fb14b029be129b1ae93",
+      "git_blob": "1a0cde602a7b0651ed62a7b751c2530204d1262b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/silicon/index.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "e411c079a6e09ace2b3b4a485a3d898e0295a2298be8f6e2075e8b93c5261e51",
+      "git_blob": "dd18ccad51c56b6adfe678c5e1572f315f261489",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/silicon/map/index.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "2d4b2bce45fecb9f3784c1f388dc8bbd9047c146d9eaccf0edcf051444c60b15",
+      "git_blob": "ebd28142dd336a9ad5fb061ea47639c3a01f8cad",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/silicon/package.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "8c09a464e24044390291c2bda835cf0d7e8205ee76f57f86cba12d54abf776aa",
+      "git_blob": "e3ed4201f7e39e81720706835e57d81cc7266b40",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/silicon/publish/index.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7121c6e069b7a222901d20562e02d302c34e6e913aabc55cf3fec90f465282de",
+      "git_blob": "e0c317d0763b902c3ceb233ed35f9d5f66c87d67",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/silicon/register/index.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "4a949ceadc215e8b3587d6a298b53caaa8b0229420599ec9efb7352487ab8bc2",
+      "git_blob": "30e97036f6728eb023d5fa56247d132ed606bcfa",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/silicon/silicon.js",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "38db5ae2ddffab13944d10dea895384c8ea28fdab40ba92c6df744f63cd436f6",
+      "git_blob": "f2b42bb4148261340b43952635bec6e71bdaa2a8",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/silicon/validate/index.html",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "e4ed85c594d8ab403df2393535ad625b2bba4179957cb896b4155474063dd688",
+      "git_blob": "ce01f107735250a8a1679a73d58b10f7096a947f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/sw.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "95e16fd28bc4d03fdd79ddf0a34171b1bdb7f8bab3cb25dfdf3cf6814499a876",
+      "git_blob": "475812be625ea434555e87042abb1fe4b52d89d7",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/vercel.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "f081337b2fee635b455b63275406a3e7f39d6a014e25ad90dab5a67e62a12ac4",
+      "git_blob": "77053960334e2e34dc584dea8019925c3b4ccca9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/window.svg",
+      "status": "attributed_by_sidecar",
+      "category": "visual_asset",
+      "sha256": "644768c4aaeb4767bce293344eeb0c125fb804a94d801440424072202d85e3a1",
+      "git_blob": "b2b2a44f6ebc70c450043c05a002e7a93ba5d651",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "public/workers/validator.worker.js",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "760a6be03a83ee8d60cc8f1fb3d72a048f97b97113d6da5832597793a49cdafe",
+      "git_blob": "95f3ad3bd65aa4b0ac7fd5f9317ea195deded560",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "public/workflow-engine.html",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "73947763d2e98af657727d7d6bd6f3daf2087c7e5c1710fa0f63fe8e7afd45a1",
+      "git_blob": "6c1723c556a2e5e4f048182b180f1e20ca51c9ea",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "scripts/typecheck-web.mjs",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "bde87c55ddd7d4754c28ba3981fa95d1796ccb940576140ebd5b26cc1a5a3c42",
+      "git_blob": "1ebb3e664fa91367a2a487ffe285d57c231181f2",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "skills/autonomous-engine/guardian-node.js",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "f870bba0445c67671ed9056b8317d84c56c6994af0d7cb671176f6eea8d25198",
+      "git_blob": "3aa694b8e762d089e5438e4fd9cf4d20cee9862e",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "skills/citizens-factory/intellectual-citizen.js",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "3af35eb4bf6a43b255f7e2b8b56f0dd162da54bb1837798ab1c12e9d1b3eb5ec",
+      "git_blob": "d0e26175c7bff0bc498758f450863e9f621cee32",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "skills/citizens-factory/watchman-node.js",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "d78cfe066ce68aa53d9970a68519c5a11ae8903e84d7e99e860ccc2a1654fb6b",
+      "git_blob": "9433cfb1d959c4344fdb1cd74b6d3a2efc398363",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/api/[[...proxy]]/route.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7718813a1880d5598eb21ccd83878111778f6d2efa09b3d6fabd4228dd72f2ec",
+      "git_blob": "8000df19e7936159fa0e530227e6342201ca5ed6",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/api/format-paper/route.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "f816517ff685ef1ff1c27174182facc85bebe292564241e1fcd2d152ec39bb5c",
+      "git_blob": "3d6f495a5767f88dd45002f8e68bb7e689604169",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/api/verify-lean/route.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "5cdcbf74fb7217374c397e1ced88e39d8e6ea685dfcd76d5f625454dec919245",
+      "git_blob": "4a4bce67a6c6f97485f9a2632002775fdee6dc62",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/agents/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "52f50519ce2488ce748d6857130088dbe0412ca02de7354afd5ffe8ac6f24dbd",
+      "git_blob": "7d42f29c425a04358d8bdd7a83c1431f537cfb15",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/benchmark/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "131fa81458c620cfd55bab7bb0e2847649b23a9bff8b02333487beced2c4ff4a",
+      "git_blob": "ae6a73e447d330677999fd77604cac4bb281ac4c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/connect/page.tsx",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "4d2b01e0e34d76922151effd8c7f92fe85c9e844e7f8388a6644851cdfa0f79e",
+      "git_blob": "67a20874406fe93a204cc94552f97a56bc7418d7",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/dashboard/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "4d7e577b2942ea46b6a5aa72f922eeeb54d9a303182fd8769ff0fd9ccbc71a4c",
+      "git_blob": "2ecc0e5381b77c0607731e6c80ee9afa8ec3d39e",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/dataset/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "47bc0a255d3bdc57ebb7cc4e8429938161549cd5c79b4d5f6e89bfa9d69a1ee7",
+      "git_blob": "f0244ecc651acd95b1752cf861e1ef16fcde6861",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/governance/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "10195efdea3c8e206e7cadc526d461b8376004f24f54c4ab8b1d45d074ea0b1a",
+      "git_blob": "1e825829004902ef09095282300fa19c58fbf970",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/knowledge/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "0976737ef8edd03a6cd1b7657f21708490905cbd9f038411b38405c921656aef",
+      "git_blob": "9a0f380abf0b415f0bacb7c9afee1a8c5bde7882",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/layout.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "cfd16a8b6db59286904b6250c5a7a03cfc89ec04cf01a142a6fa603aa89c3ec2",
+      "git_blob": "fed4595bb5ca9b0907c717ebc1d37bf9d24225e1",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/leaderboard/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "81a02741e303be9683e5ecc3469482d5a4d3e7d787944242000f9f75c2bac5e7",
+      "git_blob": "96c6983d7e1e5eeb56f5fe805114b7b2214f7b95",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/mempool/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "6723d745edda88c212a57bc1d13915b6a3082468ba955d7b1c9bb4718cf8c34a",
+      "git_blob": "938b7ff98b5b2ae56934ff7c9d5edef04c8accbb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/network/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "5e68261da80492a56a67be1c796f742cde66bd84b7235dc4a4efdf7f409a8273",
+      "git_blob": "fb4eebc864f0f8fb4502e39ed351eb74a91e1fa4",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "cc2e7c224c1440790e55b2ea648736baf6031c7ffe7079965bd7cea64bebe0a9",
+      "git_blob": "45278047235992b6b7bbd7fef8073614c36cef32",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/papers/[id]/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "1f9c3c544ee4a01685ee14f7800b7d466b42a0defff086dff300dc03bfeb12a3",
+      "git_blob": "7e8d862c994d071073edf9702cd77424fbc0203a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/papers/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "1a5300a7463e6fe127352e20557326ab2c0f440d3aaa500fa31e7053132ff1a1",
+      "git_blob": "6cc43583ae05bda4df4b5c775fa67e073070cab7",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/profile/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "9ab59ba060d6e4a305e6e3306bb2063a04e26dbe7d208c82e477aff5c72e2b91",
+      "git_blob": "9c49cd9b4e73eb9892da4ba8d1ecd4cb95502dc3",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/simulations/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a3ba31de5bbaba41c374fd6340caab56a2d0a1e52af150e010f8a2750b4c47af",
+      "git_blob": "4050ec7858c8781fec0a52d3ab17cf1c8e6a713b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/swarm/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b41d1fd4adb4a5525167acb1880364e96a09600ae41d0f02c9d64fb0a3614f87",
+      "git_blob": "d2873500a41cac45baab140bcf6891a02a1d45a2",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/app/app/transparency/page.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "b493ad3800d7c78d6f3f23dac5918391e0a21117881607f89c3136c99bdc002b"
+      "category": "source_or_commentable_configuration",
+      "sha256": "b493ad3800d7c78d6f3f23dac5918391e0a21117881607f89c3136c99bdc002b",
+      "git_blob": "b77155502a6fb564c8a5fb502d2958edc71fcd06",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/app/app/tribunal/page.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "9855595dc76d581a991363619c1e74a776e6199b7deee800f93fcc233add3ac0"
+      "category": "source_or_commentable_configuration",
+      "sha256": "9855595dc76d581a991363619c1e74a776e6199b7deee800f93fcc233add3ac0",
+      "git_blob": "cd2bf6d4311350a27a8797964dd8db73e3755efe",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/verify/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "f9d843e7229a91ad8c92e52220672c91d16ac6c2b96256425f055b97ea2546d0",
+      "git_blob": "2c5e956bf3fc8038422b051d2de96e4009e95e20",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/workflow/page.tsx",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "f6f42f8341bfd43ef4acd66d93dab15efcfb61d0f659b030de3958b28fa83ad5",
+      "git_blob": "bfede313519c5c7629ef0c264fc6898b137f91dd",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/app/write/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "2ab71fbd0c5a15f2a23af0dfc84b8a9ba0816e026974d7f09a5ce501d325edd3",
+      "git_blob": "02deb0124890a9cc4c2e4bae41a960b524683ea9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/globals.css",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "30cb9fe47555be837fac40b419f36c5944d667a538ce9428ab6a767fc4ccea67",
+      "git_blob": "9a9f66c26aebc454647706ff89b16fabdc277d77",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/lab/page.tsx",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "cc100c1b45b52f913a7f134977a4e873154a00762ff1c5c9caa420289144a8cd",
+      "git_blob": "bead500234e036cb42626dd1711c1a51a40de974",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/layout.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "07486218ea5014d9b9426fadd56fa13fae74aa0d6adeb4a71366657ed936c6b7",
+      "git_blob": "33143c5efb1f16c1123af6973aaf1ef1a252942f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/metrics/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "c58f70efc2238d364b0c94f4b22faf2ec3c31b41d198d3408c98e99f675dd2a1",
+      "git_blob": "35693933488cdad4baad9ecd241f381218e1e027",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/not-found.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "e76081be3db3a3a64a67725a5b74b49dfcd4de7a35e3a86f5df7f250a628c15c",
+      "git_blob": "53b6874ed1033718818d213f52349ad3855e49a0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/page.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "5b5522e29c9d82ac142518cd35df7fe9d7dabf290f27c0264afa0a5d123b66f4",
+      "git_blob": "cb48f6208bb551f4176f3887008f8d08188fc1ab",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/app/silicon/[[...path]]/route.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "273a5c3a04e042713c937abd647d902f425bdb5e3380991c423f9e8f0f5d5c88",
+      "git_blob": "0bdab9c9ef90f484c7d319d9dfd4728569da242e",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/BenchmarkStatus.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "25eda948b2ca2ae52f37cef1bb8f1701aa00924d8b475a9bdfc8513048427855"
+      "category": "source_or_commentable_configuration",
+      "sha256": "25eda948b2ca2ae52f37cef1bb8f1701aa00924d8b475a9bdfc8513048427855",
+      "git_blob": "d2ddb2b0d72e881559c0add159218a6b420c3703",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/BrowserNodeCounter.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b8a1f3b3f627271ab71d29111dbd221d1dddba65758cc0ebba5187ca60ee03c4",
+      "git_blob": "8b43762806a7e544c69c271b1801d56207b8b7a1",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/NodeStatusBadge.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "39fafe493186b40f56a4c88461d0664ee901369d4f9c9bd50882e7eca55b5933",
+      "git_blob": "99cc45eeadebb2c28f659eb30cd2a278b7eae714",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/agents/AgentRow.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "c0abf9cd0285b5d9354af570837cf5c70c9e37aa6381d3fa9728e76bb12df842",
+      "git_blob": "5a054728832f4e0e95753e748a7379eebd439788",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/agents/AgentTypeBadge.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "87f0444953ae6ffc71f815925d24caaec88ed294051e0fbabad1f178de311015",
+      "git_blob": "a6a3e7ee945396885be71b503e22e3c03764b911",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/agents/RankBadge.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "d4098b9673a9c770a5fd3797955141385226e65a04735d5c7da37d8f33d3f3ec",
+      "git_blob": "7baeb8354c1d736a2aba71b6545920664c833424",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/agents/RelayMonitor.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "38cc3ea688a44fe7bc3eae5416056df0cfd4f7decc0ebda0dde2ba1271951b5a",
+      "git_blob": "90ef538f64e47fbf81f54739cae44f2168cb1fb2",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/chat/ChatInput.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "897a9ce9963fb411c04c6ff3cfdb7ab07e81c3816a04853e59125ac94cf4992c",
+      "git_blob": "0ab5f87d9ed0aeac16f73bde90885d01ba0dacf7",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/chat/ChatMessage.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "ba79c057dc6075fd3220dfb4edab9089c675d81c98e9b0c778eaed1eae49ea83",
+      "git_blob": "4cad9b0d7fd624577260dc65145ee34d0e04c39a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/chat/ChatWindow.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b5ce6b05d2478edcda28e69232c71bd991d1c32f08d020f8911d993f1459c2af",
+      "git_blob": "319aa4bdd18386a5c7ffbc12efbf6b90897ca30c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/dashboard/HeroStats.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "65c1981ca21319864cf48a1a69044e514a7c71c87d8d24c7b512b2885fb9c82a",
+      "git_blob": "c97819a04642406dae6e3bad66b51ac747074bb0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/dashboard/InvestigationCard.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "26d70769a8a9c7ab3cb6404c01085cb068aa244d092ac428b3bc699304a81292",
+      "git_blob": "498213ac658fb390d7099306d1c71ca6d5c52498",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/dashboard/InvestigationGrid.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a98bd6950a5d823c235ed46f4ba9a9a76e0dee9006c38cd7160ac72ce60793c3",
+      "git_blob": "66c49a721a2d26e0275746a1893d03a9350fee40",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/dashboard/SyncBanner.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "fc489602249c1bc8295ac1cd85e7150b5755cbe48df10134949eea279869a543",
+      "git_blob": "d51b322fe507ab3517e1ca10c4c39ca7f69d790a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/dashboard/VotePanel.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b29e0bdb506b51fbe9d4525fdeea67121e19e1095faf9120b60b42ed38e62066",
+      "git_blob": "51020ab97fa9eba44f91259025f7cbe458ddef4a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/editor/CollaborativeEditor.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "34b45ec793980643dc633a024c0871719b382d0fc09c83e127d3c272ab5fb429",
+      "git_blob": "8550cd18b76554bc28fbef9e7558fc02f3134cdf",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/editor/EditorToolbar.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "898681735713ef716ec56a3e28e5dcb4fbfe9e4395537181183532316b344a1d",
+      "git_blob": "56ab950bc731ceda6aedbd97976c2ae0567a7db9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/landing/BenchmarkPreview.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "23143e78752604f7f8e82aa837be5d407cbe381e4fab030f0519ee8112383ebc"
+      "category": "source_or_commentable_configuration",
+      "sha256": "23143e78752604f7f8e82aa837be5d407cbe381e4fab030f0519ee8112383ebc",
+      "git_blob": "435d338316b44961978b2d5f12cb21b5c5f225e0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/landing/HowItWorks.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "cd54c8adc5264498f9fc7939c3455ece589001c0ea05e2c6dad9881040df5866"
+      "category": "source_or_commentable_configuration",
+      "sha256": "cd54c8adc5264498f9fc7939c3455ece589001c0ea05e2c6dad9881040df5866",
+      "git_blob": "97f8a3bd258c3c9f050fa45f3cc46708cfc9492d",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/landing/LandingHero.tsx",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7790c4ca19fed18a874879bc9681ce8507f128975d1a4f2db966f4e21969df4d",
+      "git_blob": "a4601e030d7f6159fac2530c039368c065891f8e",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/landing/OpenResearch.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "a32877d6ecf61e34d0a3fa10793547db6366c0ad2f364ef7f1566bba8b23321d"
+      "category": "source_or_commentable_configuration",
+      "sha256": "a32877d6ecf61e34d0a3fa10793547db6366c0ad2f364ef7f1566bba8b23321d",
+      "git_blob": "2d6b092fcda4c2d5c596827d5cdb2bd6dfd64b16",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/landing/Pillars.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "04207283b4790baca1433ac2a0321bbf5649802de020ab3f4deeb32bd9f3adb9"
+      "category": "source_or_commentable_configuration",
+      "sha256": "04207283b4790baca1433ac2a0321bbf5649802de020ab3f4deeb32bd9f3adb9",
+      "git_blob": "d1632d5201e7a9bd4d471f4040b1051a63df80c9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/landing/ResearchTeam.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "217beea164d5adf7f75f8f69e1c08832cdc296aaa49cc61b62f1adc66beb215c"
+      "category": "source_or_commentable_configuration",
+      "sha256": "217beea164d5adf7f75f8f69e1c08832cdc296aaa49cc61b62f1adc66beb215c",
+      "git_blob": "f628168824aaf970e7b885cc609d9a82b65a8ea4",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/landing/StatusBlip.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7667aba8ca7afe0f876d9227d70837e67605266ca09d6a3a836269124e65db5e",
+      "git_blob": "2bb152095ad732f808434723995b785b471345c1",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/landing/useReducedMotion.ts",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "774716b619de8d7cd95fd3ed316c6a95a4fa627222ba5bf2f3a7c7d83e4291c7"
+      "category": "source_or_commentable_configuration",
+      "sha256": "774716b619de8d7cd95fd3ed316c6a95a4fa627222ba5bf2f3a7c7d83e4291c7",
+      "git_blob": "d7f09b8e6648dc790dce0c5c07dd5f17c1668978",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/layout/AppShell.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "4326bd5a558383a81ba7afef53bc28ab4b2fe059b87212433829c23cecde4ef2",
+      "git_blob": "2844d0d2ff7345f1f2f65211e8d0d777f2d5683b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/layout/Header.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "3fe005960c3ee9810027d4b39d3cb0ef9f7abb96d32ccbcb7447decc52f88031",
+      "git_blob": "2cbb4e3ede1c58d5528aef4fe91ac38ae0c289c9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/layout/LogDock.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7e6adf43917b3d1d206a206b16c1c8c2ff17a561085381efbc8d0475224a8b60",
+      "git_blob": "218d31ee3586ffc6c4330ebfe757ef74ab0eeb42",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/layout/Sidebar.tsx",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "2383c7ded1739c00c7538c425de631326fac6ae46d1350a64abc5104eddcbb3c",
+      "git_blob": "48a37ff4cd8dfeff70f8f02e2adbecb5a755490b",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/marketing/BrandMark.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "131a284f3234cf0bebfe7caed6e850b0e6165d45c272b8350ba2c7b406d5b58d"
+      "category": "source_or_commentable_configuration",
+      "sha256": "131a284f3234cf0bebfe7caed6e850b0e6165d45c272b8350ba2c7b406d5b58d",
+      "git_blob": "176515bb4e4e54287cebc8f6472b81d6b3fa0adc",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/marketing/MarketingFooter.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "810f3aa3cf584eb0d5cb9f41deaf68149bd2fac95614f0e01398a01acfdcc84c"
+      "category": "source_or_commentable_configuration",
+      "sha256": "810f3aa3cf584eb0d5cb9f41deaf68149bd2fac95614f0e01398a01acfdcc84c",
+      "git_blob": "cbe00531e2329424db70ce8cda7c190b887f1067",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/marketing/MarketingNav.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "52ce94110185b33b8540a501a83a99a71b65acac432793a03be044d21ed28449"
+      "category": "source_or_commentable_configuration",
+      "sha256": "52ce94110185b33b8540a501a83a99a71b65acac432793a03be044d21ed28449",
+      "git_blob": "650474ad2f025c5ac8c4742884dd1533e46de1ce",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/network/NetworkGraph.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7fefae5f789571bbdfcb3e32a5f50a57c4401ff8afee69c1b819b8d2aaa87a9d",
+      "git_blob": "a5feb6ae8c190972e79a7f68e28b18a525f38ab0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/network/NetworkHUD.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b3c5312d701d2296a1033b560b37077490daf07ce04037d281161ebc5ee2c0c7",
+      "git_blob": "17633ecd4da30cede144c3d6bfe650da4171094c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/network/NetworkScene.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "8079218117373a898202cd33295ee731a9c1cd07a9b1220478439f00f8cc6529",
+      "git_blob": "e8bad0c9179d2026fa5e9dbbb3b958ed775bbaef",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/papers/MempoolCard.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "0fc6049e3abd85900ab310924383e16bec449686cb44793ffbe453a5211572c8",
+      "git_blob": "f1d9ba74a5d7ecc84a6dd154d8949f5cb83a8db4",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/papers/PaperBoard.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "40eee70bfc6280724d05c9ad9489b8a96979656c0959a301493098f9b5ab4e9a",
+      "git_blob": "233430b1e71e50e1307b8443d593d9c5c79b8b92",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/papers/PaperCard.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "d8fd752fd0b4da48a76c00aaa469796252db8a795d5afb1d63d35d71b2c3524d",
+      "git_blob": "de5e3311c10d5ee71f58c8b4530f822bf50451fe",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/papers/PaperPrintView.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a5a2a16441dfb2dcb991d71f3a191493fa7727e56d6549204546956da207b361",
+      "git_blob": "28de460bb5a4add35c1d2f558d0d96bea354611c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/papers/PublishModal.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "53be936cb4f69717f383950c9044530da41674964362e7eac9ad3553c172b8bc",
+      "git_blob": "c1f5719ac6d4e4a2e6c0b93d420cc18595fa396c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/papers/TierBadge.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "fc88950fea4ef8d0a17106d43d63a05a8defbd3ca5c9ff804644fa8ca71a9104",
+      "git_blob": "07fdd083de4fc97060bb48bdcd6d7b2244ff31fa",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/CalibrationFlags.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "f8a4283c44d04ecd5113261dc3b4d56456e2ecc3fc323838e292b421a283bf9f"
+      "category": "source_or_commentable_configuration",
+      "sha256": "f8a4283c44d04ecd5113261dc3b4d56456e2ecc3fc323838e292b421a283bf9f",
+      "git_blob": "c7ab8904e1907a74fc2635a7b7b818dffacc01f0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/DepthScore.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "a4eba4370e7bff6eea566bb1febe9dab4d6d55b88aba001ebaa06bf09f12602a"
+      "category": "source_or_commentable_configuration",
+      "sha256": "a4eba4370e7bff6eea566bb1febe9dab4d6d55b88aba001ebaa06bf09f12602a",
+      "git_blob": "1a4775d5bec88feae58829c0c9895bb787760c05",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/GranularScoreBreakdown.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "7202910274f2b25bd131700600c09859b9a91e253297f52b248cf4f3a55011f5"
-    },
-    {
-      "path": "src/components/science/index.ts",
-      "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "1fa3b05ec580f3d280511d080782ec8ce4ecdda0ff6901f556b937339457d9e2"
+      "category": "source_or_commentable_configuration",
+      "sha256": "7202910274f2b25bd131700600c09859b9a91e253297f52b248cf4f3a55011f5",
+      "git_blob": "b17e6550407a1cdf504f3d2619bb378394f8ecc0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/InterJudgeAgreement.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "979f55e25b04f915426c80371d30f78430bc4bfe5f4e9edc5cea53a81ccabf48"
+      "category": "source_or_commentable_configuration",
+      "sha256": "979f55e25b04f915426c80371d30f78430bc4bfe5f4e9edc5cea53a81ccabf48",
+      "git_blob": "2947af5b10ab62371f03de09cf10d2628c024287",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/LifecycleTimeline.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "515651c0eb3c3238ed76439b140ed05746ddffa34b5f86816e51e466e29a582e"
+      "category": "source_or_commentable_configuration",
+      "sha256": "515651c0eb3c3238ed76439b140ed05746ddffa34b5f86816e51e466e29a582e",
+      "git_blob": "9779001a58040db513b454fc0124fef464093f24",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/PaperEvaluation.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "f8367b490b759077f33777add1069c8f47e43e955693ccf1b7e998c96121a6a0"
+      "category": "source_or_commentable_configuration",
+      "sha256": "f8367b490b759077f33777add1069c8f47e43e955693ccf1b7e998c96121a6a0",
+      "git_blob": "b85787f4f69e2aafb40c5bee46e44e6c47f3043f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/PersistenceTiers.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "f9ca6c5cfe77bb04daa2d3f460c0d36f08f0fb2bc399ff1f1f1a833b941eecf2"
-    },
-    {
-      "path": "src/components/science/primitives.tsx",
-      "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "6115c19dd8db95c4e61e3837ec3d46d7af7cb44af40bcff68416c68c2944fd6f"
+      "category": "source_or_commentable_configuration",
+      "sha256": "f9ca6c5cfe77bb04daa2d3f460c0d36f08f0fb2bc399ff1f1f1a833b941eecf2",
+      "git_blob": "a2f7542afec364b86a74eda710584a18baff7350",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/ReferenceVerification.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "427829da13a154c2935e39effcc5828c342a851c4a9bcfe587c6bac21b318efc"
+      "category": "source_or_commentable_configuration",
+      "sha256": "427829da13a154c2935e39effcc5828c342a851c4a9bcfe587c6bac21b318efc",
+      "git_blob": "499171e8327e6cd5e5353863ecb1d8f87045274f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/science/VerificationBadge.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "8dcd09b2d7ef009255154eb9f00d9a4be1955353d419d0f791f89199198b1ecc"
+      "category": "source_or_commentable_configuration",
+      "sha256": "8dcd09b2d7ef009255154eb9f00d9a4be1955353d419d0f791f89199198b1ecc",
+      "git_blob": "85512e5c1d538f31333e30e3541b6ff8fb7e0fbb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
-      "path": "src/components/theme/theme-script.ts",
+      "path": "src/components/science/index.ts",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "168a20cfe5059ef621209bae5e7bfe2a096fda66e3fa0982356e3a14a85b40ca"
+      "category": "source_or_commentable_configuration",
+      "sha256": "1fa3b05ec580f3d280511d080782ec8ce4ecdda0ff6901f556b937339457d9e2",
+      "git_blob": "b83886ce347aa9699c294761e2c1f00dbbae9806",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/science/primitives.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "6115c19dd8db95c4e61e3837ec3d46d7af7cb44af40bcff68416c68c2944fd6f",
+      "git_blob": "aa5f8ddab5c31893fe28528d1035651cd2295b10",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/theme/ThemeToggle.tsx",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "382cc8f6694e749f2c55d06aa915e36c7c4a3db38e27be7aa22168f94ebec9a2"
+      "category": "source_or_commentable_configuration",
+      "sha256": "382cc8f6694e749f2c55d06aa915e36c7c4a3db38e27be7aa22168f94ebec9a2",
+      "git_blob": "a361bd63a0e0bbc2b40786554a67e0e6e3a88926",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/components/theme/theme-script.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "168a20cfe5059ef621209bae5e7bfe2a096fda66e3fa0982356e3a14a85b40ca",
+      "git_blob": "8f5d7c7791f4e03feda0a67de6b1b250c23104eb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/components/theme/useTheme.ts",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "f1fbff06ee4de64fbc0a7a1775aba7ada59c73b45f0eb6eb36c98e0282d4feb1"
+      "category": "source_or_commentable_configuration",
+      "sha256": "f1fbff06ee4de64fbc0a7a1775aba7ada59c73b45f0eb6eb36c98e0282d4feb1",
+      "git_blob": "f2a58056ca620ec9ded612e624268e9a818ff9fc",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useAgentIdentity.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "823d551188497ace003be1286f402b3223543c9aa3d0ecaea99cc5c2268ada97",
+      "git_blob": "5790a859812953249a179c35ed67525a6e5edd2d",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useAgents.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "d5aac2d54db05078fd24300a1160959e900025266bd1e77a792a379a6d146084",
+      "git_blob": "570b9879eb02eedae930c541c45232115d8c7c41",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useApiAgents.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b8a65886319d8c9191569033aab26842e98487d0fad13ac7c60f51d84d9e7935",
+      "git_blob": "133af7b845af10fccd2ae4d422f7d8dbc84bec2c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useApiChat.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "46d355d0176bfa6a02511b7ed78ad1ac02c32a644b9db10ce1b36883e3ef9d7d",
+      "git_blob": "d135aed4ece5caf7c3639932b549d8dca75c36cb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/hooks/useBenchmark.ts",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "1d6a427fadae7d3aa99b19f0776eebe767e1cf4a1c8baa4a758008a735d8058c"
+      "category": "source_or_commentable_configuration",
+      "sha256": "1d6a427fadae7d3aa99b19f0776eebe767e1cf4a1c8baa4a758008a735d8058c",
+      "git_blob": "50c675bd0639f94655ad832d95da9845f581c332",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useGunChat.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "9f45668aa7380ed2de7530994c44fe36e75ade848260b859637ec81769239b06",
+      "git_blob": "89ca5471abf4d345b904dae541cbd9f4c52234ae",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useGunPapers.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a2b6048a8c1bc5177627e51c95102d759255723ef31cea6d718e1376898ca4bc",
+      "git_blob": "371e411a09d0886766bb8874a782d7e861842dc5",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useLatestPapers.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "2c60dba3b5f5b21b7ae8d8be0576101b3c269a270b39e28b19697a00fdd50702",
+      "git_blob": "1ccd625edbd4d151a26ead9d5b34210bf0c789ee",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useLeaderboard.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "178582ad0b9a2e7dd8eb99f7fd0584ff553e66b80595b90f8d8a20c328e42da7",
+      "git_blob": "72da628c3adb66fb568629987abc951908cd981d",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useMempool.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "8b8c6b20c799b5003241b554e1f009579a61784c52591e3c8158de7664acebbd",
+      "git_blob": "2026a3f347a70d4dfae926ba5e4fb30b5a8b205a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useNetworkStatus.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "c6bba6e7358b8e490aabac17fc473263f80dbbba5ae76390b9d4df4554f3102b",
+      "git_blob": "dc1ecb8c6d4a1615f42f2458d2621635abcc7d59",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/usePresence.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "8adf36d5f7eb524b846eae10f05d0349c0e433ec751fa5f1f86ed87ef58eddf7",
+      "git_blob": "3f5720d4d92eea40ce7a2c54ddae8c8d4216835b",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useRelayStatus.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "77295e0f3686a76c9ab9b1cb478987a1859b09f39bb7fe493a3e28c9f4abfb02",
+      "git_blob": "7698af5d1d463344924ec2a9cd27c71f3d784dbe",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/hooks/useSwarmStatus.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "17ab5ec6c5dbb5d79f27399df8804d4e36817a658bfcabb6e22a4a40cb273ebd",
+      "git_blob": "da036193f191f4543f58d3bc76ec8fca35927b80",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/agent-identity.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "5d24ebf65afa1786da36f7d34a476bbe88f574f5103e03007d99f3cb61f8506e",
+      "git_blob": "65f0fc814a038e34598df87ba12a64c850cd310c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/api-client.ts",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "347b8be46a157ab14655f01c6c2b367a96d5eda27426d2defda93970d29ff899",
+      "git_blob": "3a4acddc68f4055dd2caa45adf9cd217f85a3d87",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/compute-worker.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "2252c5266bf6f09e2e6cc7778b5fdf2939afd837c83d03c8613d695f7e981819",
+      "git_blob": "6205098d0190691e831a4b0e88c92df9d5e92085",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/did.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a30859b0796463123b533389f22bf0514e6eb58adc33436a9f31c506f08086cb",
+      "git_blob": "222ff04a6c8d9ce803c67892c013d7a7c72ef642",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/gun-client.ts",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "1ec848926e26ee276edb5c8598590fd970371d20999c0df99a513945b37f0cf1",
+      "git_blob": "852985b382b2ad45c6028f92c14a1bb36b08644a",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/helia-node.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "fa9333a03f9f9aaaf63b0cd22361de85bf14ed4612b0f49a65e3c2c4754532ba",
+      "git_blob": "98d8dc586c17062826f181177fe0e4c59cfdb1d1",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/lib/live-data.ts",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "ef031016c54afcdeb76efd2f433fd5f4188741ff0e5f15a469bb77632d37c66c"
+      "category": "source_or_commentable_configuration",
+      "sha256": "ef031016c54afcdeb76efd2f433fd5f4188741ff0e5f15a469bb77632d37c66c",
+      "git_blob": "b82c135f571ed266cadd7cbab8817158a4bf8a2f",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/markdown.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "6e29bfe9103006ddd58b2c072d7a89b2936bfe761221b2239fca90cc0751a089",
+      "git_blob": "0fc6dad85db9799f04dde19c989936ac8cc42054",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/peers.ts",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "77ee43f1763b559eb6960ff802e1b8f3bfd9e5c50c0323ac66760604da35214c",
+      "git_blob": "756cf701a3ec04fd664ddf481c78a66bb452b94a",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/lib/proxy-policy.ts",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "6be5dc5d9e0b6779c8dfd6340f7a2c5a0c7d62735d4f6c5838934a132c4eeec6"
+      "category": "source_or_commentable_configuration",
+      "sha256": "6be5dc5d9e0b6779c8dfd6340f7a2c5a0c7d62735d4f6c5838934a132c4eeec6",
+      "git_blob": "e04c978e9c3090c910e58a283c502beba3ab1f54",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/proxy.ts",
+      "status": "contribution_attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "e12ba2092921b2c33752f15f00becbef8c7fbe1c17ebe6b5237070e1bb62a979",
+      "git_blob": "eefcc0485fd0f0a4f6d15f0d730c27decd549071",
+      "credit_type": "contributor_name_fallback",
+      "attribution_basis": "GitHub author.login is null for some commits; raw Git author name Agnuxo1, which the owner confirmed as his account.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/query-client.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "d39690d680632f5a5415e6454a64d3eb22a88d502a39b7eae33a928afe73771e",
+      "git_blob": "4d5a2ea2705f2b03f97737dd3b529b4110fb69b5",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "src/lib/safe-persist-storage.ts",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "444b41520dd04537eb737960a0443027d0646ae1642ccf82e9ff8de815699bd3"
+      "category": "source_or_commentable_configuration",
+      "sha256": "444b41520dd04537eb737960a0443027d0646ae1642ccf82e9ff8de815699bd3",
+      "git_blob": "24b96b665e324af1795cc72134b55b6417fd6c1c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/sw-manager.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "ecdc88f4860bfb840667b8c6506a4f513f155da353b02ecc707314f78f049589",
+      "git_blob": "513128b5dde720972f7902e3e3e8fa3f91beaa9c",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/swarm-metrics.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "c6f2948aedc01d5a9e6482a2c62f5e21cb4f58daaf30bb28161b9281b36065ac",
+      "git_blob": "b38b2785fd2a5a5dc273ebd3f0b9b248a77307a9",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+      "git_blob": "bd0c391ddd1088e9067844c48835bf4abcd61783",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/webmcp.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "be167e5e48723ba5ee5d92f505258e91f7ba152f35cfee9d03f9cc1588211a9e",
+      "git_blob": "61ab1211942486aa68297b315cef9de1843f98e0",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/lib/yjs-provider.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "3b2658f207c44469abc1ddab0d07f8a2f3303d7d5f5c84e7b5f0f84cba1c25d9",
+      "git_blob": "6dd9b8c7200685aa9a2ee6eae9094608fa7e7c6a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/providers/AppProviders.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "931f976bbd2707689614155272cae5bda07a6d134925ebbf054b88dab929f8ed",
+      "git_blob": "2bfdb9a3cb8589f38499c5027cca35057d00e1df",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/providers/GunProvider.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "a33260a374542e09089dcee3baa0dfd724ca0734a3f39cc974c2ecf867cf9217",
+      "git_blob": "edae13971018cf9ab649b2fee1abe243356e9edc",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/providers/P2PProvider.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "7ce398b2e72b270bd08f9aad8ce9a266965f8fb54f88cd4dc9ea3aaafe719998",
+      "git_blob": "61fdec09fe4b9d4a21e69c29d52cd13cfdfccfad",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/providers/QueryProvider.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "d222788f59701449bdcfb3e8c672e529a8eff917707f80d32b963c15a541f8c3",
+      "git_blob": "9a9b0013f56dded359f519bbb10cb0fb80730db5",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/providers/WebMCPProvider.tsx",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "b9034ef4a14c697a3c27a1db01b4ea44a4b69306a1324759078e701933fe36ef",
+      "git_blob": "86962c9d281d76781175a9ade9580c212e236dfb",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/store/agentStore.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "f2eccb00a3bc62bb564341441ecfd552cb451bb1683b06d5714673ef53cf054b",
+      "git_blob": "dbbe0e9221133d8f55cfa4f042d5cf7763d02949",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/store/uiStore.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "83a7e3f53fb2dcd6e16bb182380bedf3777ea5b6d084c23deb4ec965144caedd",
+      "git_blob": "fe652cdceb3acd5be65ca2d0d611342e2780a22a",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/types/api.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "1f7783d84d79e9d999de1cae9fcdd520e50b0d2023d2cdfe8b51744e532f7496",
+      "git_blob": "18265c3131dc06e2be088e4bbe1740e3cbe53ef8",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "src/types/network.ts",
+      "status": "attributed",
+      "category": "source_or_commentable_configuration",
+      "sha256": "05518ec3bc043d6c01f5a55a327143b6a2bf8b1380a57bb8ee4dd9e9be6b9bf5",
+      "git_blob": "38b596d2a7ac1ecfeb4a9ece7df970d9d9cefbac",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "tests/proxy-reliability.test.mjs",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "718bd13227dd7703292ca2c3e455f5a90c7d535457f610a6b7f53180776231b1"
+      "category": "source_or_commentable_configuration",
+      "sha256": "718bd13227dd7703292ca2c3e455f5a90c7d535457f610a6b7f53180776231b1",
+      "git_blob": "485d6e663e9a52d8df09eed5e1de949376a79461",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
     },
     {
       "path": "tests/web-reliability.test.mjs",
       "status": "attributed",
-      "category": "code",
-      "baseline_sha256": "cbc596a880ee2d666c3a629360be959a88a90d4893342a0a1f5e33e81b7b649e"
+      "category": "source_or_commentable_configuration",
+      "sha256": "cbc596a880ee2d666c3a629360be959a88a90d4893342a0a1f5e33e81b7b649e",
+      "git_blob": "bac330835d4d867ef94fcef0246ab170158ce072",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "native_comment_header"
+    },
+    {
+      "path": "tsconfig.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "5c51df4c59f4510d8c7dadf07a5c32132228826a3b331da5e286207b4df7ef9c",
+      "git_blob": "cf9c65d3e0676a0169374d827f7abb97497789ef",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
+    },
+    {
+      "path": "vercel.json",
+      "status": "attributed_by_sidecar",
+      "category": "strict_format_or_configuration",
+      "sha256": "ed7dd91334962265d83654d221a1a0f5ea782a28630ac0a2239657c119185922",
+      "git_blob": "0a6b35ddb0c37fdd1fcda292e62638e57fc04ee5",
+      "credit_type": "author",
+      "attribution_basis": "History maps to one or both owner-confirmed GitHub accounts Agnuxo/Agnuxo1.",
+      "license_scope": "existing root or nested MIT; no license file changed",
+      "attribution_method": "sidecar"
     }
   ],
-  "baseline_manifest": "provenance-baseline.json"
+  "baseline_manifest": "provenance-baseline.json",
+  "metadata_files": [
+    "provenance.json",
+    "provenance-baseline.json",
+    "LICENSE_SCOPE.md"
+  ],
+  "excluded_or_preserved_material": [
+    {
+      "path": "CITATION.cff",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "LICENSE",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "OpenCLAW_P2P_v7_arxiv (1).tex",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "paperclaw/LICENSE",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "paperclaw/vscode-extension/LICENSE",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/badge.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/button.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/card.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/dialog.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/input.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/scroll-area.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/separator.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/skeleton.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/tabs.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/textarea.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "src/components/ui/tooltip.tsx",
+      "reason": "Existing license, citation metadata, coauthored paper, or generated shadcn UI; preserved unchanged and excluded from new attribution."
+    },
+    {
+      "path": "package-lock.json",
+      "reason": "Generated dependency lockfile; preserved unchanged."
+    },
+    {
+      "path": "paperclaw/vscode-extension/package-lock.json",
+      "reason": "Generated dependency lockfile; preserved unchanged."
+    },
+    {
+      "path": "public/silicon/package-lock.json",
+      "reason": "Generated dependency lockfile; preserved unchanged."
+    },
+    {
+      "path": ".github/FUNDING.yml",
+      "reason": "Funding metadata is authored by Kimi-Claw-GitOps; preserved unchanged."
+    },
+    {
+      "path": "public/teerth.jpg",
+      "reason": "Third-party portrait; repository commit history does not establish image rights; preserved unchanged."
+    },
+    {
+      "path": "README.md",
+      "reason": "Shared history includes shristibajpai; existing project-lead/maintainer credit and reuse notice are retained, without a sole-author header."
+    },
+    {
+      "path": "OpenCLAW_P2P_v7_arxiv.pdf",
+      "reason": "PDF of the six-author paper; preserved unchanged."
+    }
+  ],
+  "expanded_on": "2026-11-05"
 }

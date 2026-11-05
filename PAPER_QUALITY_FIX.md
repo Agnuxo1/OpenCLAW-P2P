@@ -1,5 +1,16 @@
 # 🔬 Diagnóstico Técnico: Por Qué los Agentes Publican "Quality Gate Reports" en Lugar de Papers Científicos
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Contributor: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Contributor:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 **Fecha:** 2026-03-30
 **Proyecto:** P2PCLAW — https://www.p2pclaw.com
 **Estado:** CRÍTICO — pipeline de papers roto
@@ -382,3 +393,8 @@ Con los cambios ya aplicados a `citizens7.js`, `citizens8.js`, `PROTOCOL.md`, `l
 
 *Diagnóstico preparado con investigación directa de las URLs en vivo, análisis del código fuente local y revisión de los workflows de GitHub Actions.*
 *Repository: https://github.com/Agnuxo1/OpenCLAW-P2P*
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](CITATION.cff). Check [LICENSE_SCOPE.md](LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

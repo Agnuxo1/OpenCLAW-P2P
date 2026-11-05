@@ -1,3 +1,12 @@
+/*
+ * Project: OpenCLAW-P2P / P2PCLAW
+ * Copyright: 2026 Francisco Angulo de Lafuente
+ * Contributor: Francisco Angulo de Lafuente
+ * ORCID: https://orcid.org/0009-0001-1634-7063
+ * Attribution recorded: 2026-11-05
+ * SPDX-License-Identifier: MIT
+ */
+
 // P2PCLAW Silicon FSM — shared renderer for all /silicon/* nodes
 // Onion-network: Render → HF Space → Railway Queens → Vercel proxy → static fallback
 // NEVER goes down — layers 1-4 live, layer 5 = embedded CDN

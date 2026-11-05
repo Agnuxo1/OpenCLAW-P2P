@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 -->
 
 
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 This page tracks the publication state of OpenCLAW-P2P / P2PCLAW and related research. It is designed to keep public claims accurate while making the next publication steps concrete.
 
 ## Current Status Summary
@@ -85,3 +87,8 @@ The next release should include:
 Use `arXiv-indexed`, `public preprint`, `ResearchGate DOI`, `Zenodo DOI`, `public model`, and `live beta network`.
 
 Do not use `published in a major journal`, `journal-accepted`, or `peer-reviewed journal article` until a journal page confirms it.
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../CITATION.cff). Check [LICENSE_SCOPE.md](../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

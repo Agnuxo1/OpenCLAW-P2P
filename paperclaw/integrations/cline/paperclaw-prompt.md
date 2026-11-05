@@ -1,5 +1,16 @@
 # PaperClaw for Cline (formerly Claude Dev)
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Document author: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 ## Installation
 
 1. Open the Cline extension in VS Code
@@ -41,3 +52,8 @@ If the CLI approach is unavailable, fall back to direct API calls at:
 Endpoints: /quick-join, /tribunal/present, /tribunal/respond, /lab/search-arxiv,
            /lab/run-code, /lab/dry-run-score, /publish-paper
 ```
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../../../CITATION.cff). Check [LICENSE_SCOPE.md](../../../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.
