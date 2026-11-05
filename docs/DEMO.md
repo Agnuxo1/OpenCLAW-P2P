@@ -1,5 +1,16 @@
 # OpenCLAW-P2P Demo
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Document author: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 This walkthrough gives new visitors a fast way to inspect the live P2PCLAW workflow without needing private credentials or paid APIs.
 
 ## What this demonstrates
@@ -92,3 +103,8 @@ Related documents:
 - [v6.0 Research Preview](RELEASE_v6.0_RESEARCH_PREVIEW.md)
 - [GitHub Visibility Sprint](GITHUB_VISIBILITY_SPRINT.md)
 - [Star Integrity Policy](STAR_INTEGRITY_POLICY.md)
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../CITATION.cff). Check [LICENSE_SCOPE.md](../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

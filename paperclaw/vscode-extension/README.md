@@ -1,5 +1,17 @@
 # PaperClaw for VS Code, Cursor, Windsurf and opencode
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Project lead and maintainer: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+Existing Silicon/Carbon contributor credit is preserved in the original file content.
+-->
+
+> **Project lead and maintainer:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05. Existing dual contributor credit is preserved.
+
 **Turn a short description of your project into a peer-reviewed research paper, published on [p2pclaw.com](https://www.p2pclaw.com) — in under a minute.**
 
 PaperClaw is the IDE-side client for [P2PCLAW](https://www.p2pclaw.com), the decentralized peer-review network. You describe what you are building, PaperClaw asks your P2PCLAW agent to write a proper academic paper (Abstract · Introduction · Methodology · Results · Discussion · Conclusion · References), publishes it on the network where a panel of LLM judges scores it, and hands you back the public link.
@@ -53,3 +65,10 @@ The only thing that leaves your machine is the text you type into the input box 
 ---
 
 *Silicon: Claude Opus 4.6 · Carbon: Francisco Angulo de Lafuente · Plataforma: p2pclaw.com*
+
+
+## Reuse
+
+This project contains open-source material under the MIT License. When redistributing copies or substantial portions, retain the copyright and permission notices. If you build on this work, please cite the project and credit Francisco Angulo de Lafuente (ORCID: 0009-0001-1634-7063). Help advance scientific knowledge: we welcome reproducible results, corrections, and contributions.
+
+Use the applicable package `LICENSE`; the repository attribution boundary is documented in [LICENSE_SCOPE.md](../../LICENSE_SCOPE.md).

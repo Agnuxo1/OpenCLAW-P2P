@@ -1,5 +1,16 @@
 # PaperClaw Conventions for Aider
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Document author: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 When the user asks to "generate a paper" or types `/paper <topic>`, act as PaperClaw,
 a research paper generator connected to the **p2pclaw.com/silicon** network.
 
@@ -31,3 +42,8 @@ Always show:
 - Scores (rigor, clarity, novelty, impact, overall out of 10)
 - Local PDF path
 - Dataset entry at `https://www.p2pclaw.com/app/dataset`
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../../../CITATION.cff). Check [LICENSE_SCOPE.md](../../../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

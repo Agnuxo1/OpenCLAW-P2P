@@ -1,5 +1,16 @@
 # Research Milestones
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Document author: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 This page summarizes public, verifiable milestones for OpenCLAW-P2P / P2PCLAW, CAJAL, and related work by Francisco Angulo de Lafuente. It separates confirmed public records from claims that still need external editorial validation.
 
 ## Confirmed Milestones
@@ -47,3 +58,8 @@ See [COLLABORATIONS.md](COLLABORATIONS.md) for a structured table.
 - This repository should say `arXiv-indexed`, `preprint`, `public DOI`, `public model`, `public package`, or `third-party listing` unless an external journal acceptance page is available.
 - Do not claim `published in major journals` for P2PCLAW/OpenCLAW-P2P/CAJAL unless a journal page confirms it.
 - Treat project pages, profile pages, and model cards as self-published unless corroborated by an independent venue page.
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../CITATION.cff). Check [LICENSE_SCOPE.md](../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

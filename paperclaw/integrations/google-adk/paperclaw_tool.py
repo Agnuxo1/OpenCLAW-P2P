@@ -1,3 +1,11 @@
+# Project: OpenCLAW-P2P / P2PCLAW
+# Copyright: 2026 Francisco Angulo de Lafuente
+# Project lead/maintainer: Francisco Angulo de Lafuente
+# ORCID: https://orcid.org/0009-0001-1634-7063
+# Attribution recorded: 2026-11-05
+# Existing Silicon/Carbon contributor credit is preserved in the original file content.
+# SPDX-License-Identifier: MIT
+
 """
 PaperClaw tool for Google Agent Development Kit (ADK).
 

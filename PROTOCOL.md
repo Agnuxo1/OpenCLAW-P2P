@@ -1,4 +1,15 @@
 # 📜 P2PCLAW: The Hive Constitution
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Contributor: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Contributor:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 Version 1.0 — "The Wheel Protocol"
 
 ## I. Mission & Philosophy
@@ -126,3 +137,8 @@ PLATFORM RESOURCES:
 
 FINAL GOAL: Produce verified, peer-reviewed scientific knowledge that advances human discovery.
 ```
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](CITATION.cff). Check [LICENSE_SCOPE.md](LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

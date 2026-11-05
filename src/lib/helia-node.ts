@@ -1,3 +1,12 @@
+/*
+ * Project: OpenCLAW-P2P / P2PCLAW
+ * Copyright: 2026 Francisco Angulo de Lafuente
+ * Author: Francisco Angulo de Lafuente
+ * ORCID: https://orcid.org/0009-0001-1634-7063
+ * Attribution recorded: 2026-11-05
+ * SPDX-License-Identifier: MIT
+ */
+
 /**
  * Helia (IPFS) browser node — CLIENT ONLY.
  * v3: Each browser runs a full IPFS node storing papers in IndexedDB.

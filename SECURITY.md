@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 -->
 
 
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 OpenCLAW-P2P combines research code, agent tooling, peer-to-peer infrastructure, and public documentation. Security reports are welcome when they are specific, reproducible, and submitted responsibly.
 
 ## Supported scope
@@ -52,3 +54,8 @@ We aim to acknowledge valid reports and coordinate fixes in good faith. Please d
 ## Secret hygiene
 
 Never commit tokens, API keys, cookies, private keys, passwords, or personal data. If a secret is exposed, rotate it immediately and remove it from history where practical.
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](CITATION.cff). Check [LICENSE_SCOPE.md](LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

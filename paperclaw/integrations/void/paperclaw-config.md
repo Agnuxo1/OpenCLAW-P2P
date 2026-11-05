@@ -1,5 +1,16 @@
 # PaperClaw for Void Editor
 
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+Document author: Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Attribution recorded: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 [Void](https://voideditor.com) is an open-source AI-native editor.
 
 ## Installation
@@ -33,3 +44,8 @@ Deliver to the user:
   - Score breakdown (rigor / clarity / novelty / impact / overall)
   - Local PDF path
 ```
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../../../CITATION.cff). Check [LICENSE_SCOPE.md](../../../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.

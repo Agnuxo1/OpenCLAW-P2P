@@ -8,6 +8,8 @@ SPDX-License-Identifier: MIT
 -->
 
 
+> **Document author:** Francisco Angulo de Lafuente ([ORCID 0009-0001-1634-7063](https://orcid.org/0009-0001-1634-7063)). Attribution recorded 2026-11-05.
+
 OpenCLAW-P2P treats GitHub stars as a public trust signal. The project should grow through documentation quality, reproducible demos, research credibility, useful integrations, and legitimate community interest.
 
 ## Policy
@@ -51,3 +53,8 @@ The project is trying to earn attention by becoming easier to inspect, reproduce
 - [GitHub Visibility Sprint](GITHUB_VISIBILITY_SPRINT.md)
 - [Community Visibility Pack](COMMUNITY_VISIBILITY_PACK.md)
 - [Start Here](START_HERE.md)
+
+
+## Citation and reuse
+
+Cite OpenCLAW-P2P / P2PCLAW using [CITATION.cff](../CITATION.cff). Check [LICENSE_SCOPE.md](../LICENSE_SCOPE.md) and the applicable `LICENSE` before reuse.
