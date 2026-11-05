@@ -1,4 +1,12 @@
 # Publication Pipeline
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Recorded on: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
 
 This page tracks the publication state of OpenCLAW-P2P / P2PCLAW and related research. It is designed to keep public claims accurate while making the next publication steps concrete.
 

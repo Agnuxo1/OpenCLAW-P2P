@@ -1,4 +1,12 @@
 # Ecosystem Map
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Recorded on: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
 
 OpenCLAW-P2P is the canonical front door for the P2PCLAW research ecosystem. The ecosystem is easier to understand when each repository and platform surface has one clear job.
 

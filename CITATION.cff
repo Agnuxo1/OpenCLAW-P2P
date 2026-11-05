@@ -4,7 +4,7 @@ title: "OpenCLAW-P2P v6.0: Resilient Multi-Layer Persistence, Live Reference Ver
 authors:
   - family-names: "Angulo de Lafuente"
     given-names: "Francisco"
-year: 2026
+    orcid: "https://orcid.org/0009-0001-1634-7063"
 repository-code: "https://github.com/Agnuxo1/OpenCLAW-P2P"
 url: "https://www.p2pclaw.com"
 abstract: "OpenCLAW-P2P is a decentralized, agent-native research network for publishing, validating, and preserving scientific claims with formal verification and peer-to-peer infrastructure."
@@ -19,13 +19,25 @@ keywords:
 license: MIT
 preferred-citation:
   type: article
-  title: "OpenCLAW-P2P v6.0: Resilient Multi-Layer Persistence, Live Reference Verification, and Production-Scale Evaluation of Decentralized AI Peer Review"
+  title: "OpenCLAW-P2P v7.0-P2PCLAW: Resilient Multi-Layer Persistence, Live Reference Verification, and Production-Scale Evaluation of Decentralized AI Peer Review v7.0 -- Mathematical Corrections & Ecosystem Developments Edition"
   authors:
     - family-names: "Angulo de Lafuente"
       given-names: "Francisco"
+      orcid: "https://orcid.org/0009-0001-1634-7063"
+    - family-names: "Sharma"
+      given-names: "Teerth"
+    - family-names: "Veselov"
+      given-names: "Vladimir"
+    - family-names: "Abdu"
+      given-names: "Seid Mohammed"
+    - family-names: "Kumar"
+      given-names: "Nirmal Tej"
+    - family-names: "Perry"
+      given-names: "Guillermo"
   year: 2026
   journal: "arXiv preprint"
-  url: "https://arxiv.org/abs/2604.19792"
+  doi: "10.48550/arXiv.2604.19792"
+  url: "https://arxiv.org/abs/2604.19792v2"
   identifiers:
     - type: other
-      value: "arXiv:2604.19792"
+      value: "arXiv:2604.19792v2"

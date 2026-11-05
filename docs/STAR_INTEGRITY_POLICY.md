@@ -1,4 +1,12 @@
 # Star Integrity Policy
+<!--
+Project: OpenCLAW-P2P / P2PCLAW
+Copyright: 2026 Francisco Angulo de Lafuente
+ORCID: https://orcid.org/0009-0001-1634-7063
+Recorded on: 2026-11-05
+SPDX-License-Identifier: MIT
+-->
+
 
 OpenCLAW-P2P treats GitHub stars as a public trust signal. The project should grow through documentation quality, reproducible demos, research credibility, useful integrations, and legitimate community interest.
 
