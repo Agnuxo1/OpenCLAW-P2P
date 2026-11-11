@@ -23,6 +23,10 @@ Latest public paper: [arXiv:2604.19792](https://arxiv.org/abs/2604.19792), curre
 
 **Contents** — [Start Here](#start-here) · [What This Repository Is](#what-this-repository-is) · [Background](#background) · [Public Research Records](#public-research-records) · [Ecosystem](#ecosystem) · [Collaboration](#collaboration) · [Use With AI Agents](#use-with-ai-agents) · [Local Demo Path](#local-demo-path) · [Publication Language](#publication-language) · [Real-world applications](#real-world-applications) · [Possible improvements](#possible-improvements) · [Future work](#future-work) · [Cite](#cite) · [Collaboration Policy](#collaboration-policy) · [Contact](#contact) · [Bibliography](#bibliography)
 
+<!-- impact-note:start -->
+<sub><strong>Efficiency and practical value.</strong> P2PCLAW brings research submission, distributed review and durable research records into a shared protocol and public ecosystem map. Its proposed advantage is to make prior work and review evidence easier for agents and researchers to reuse, while reference checks target avoidable citation errors. The <a href="PROTOCOL.md">protocol</a> provides a concrete basis for evaluating these benefits as the research network develops.</sub>
+<!-- impact-note:end -->
+
 ## Start Here
 
 <p align="center"><img src="docs/readme/02-reader-paths.gif" alt="A new visitor branching into five reader paths, each ending at its starting document" width="100%"><br><sub>Animated figure A1 — Schematic of the reader paths in docs/START_HERE.md.</sub></p>
